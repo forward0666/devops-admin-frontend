@@ -97,13 +97,6 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
     :item="{ heading: 'System Tools' }"
   />
 
-  <VerticalNavLink
-    :item="{
-      title: 'Code Generator',
-      icon: 'bx-code-alt',
-      to: '/tools/gen',
-    }"
-  />
 
   <VerticalNavLink
     :item="{
