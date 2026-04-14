@@ -1,81 +1,276 @@
 <script setup lang="ts">
 const search = ref('')
-const isDialogVisible = ref(false)
-const dialogTitle = ref('Add Role')
-
-const headers = [
-  { title: 'ID', key: 'id', sortable: true },
-  { title: 'Role Name', key: 'name', sortable: true },
-  { title: 'Role Key', key: 'key' },
-  { title: 'Sort', key: 'sort', sortable: true },
-  { title: 'Status', key: 'status' },
-  { title: 'Remark', key: 'remark' },
-  { title: 'Created', key: 'created', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false },
-]
 
 const roles = ref([
-  { id: 1, name: 'Super Admin', key: 'admin', sort: 1, status: 'active', remark: 'Super administrator', created: '2024-01-01' },
-  { id: 2, name: 'Editor', key: 'editor', sort: 2, status: 'active', remark: 'Content editor', created: '2024-02-15' },
-  { id: 3, name: 'Viewer', key: 'viewer', sort: 3, status: 'active', remark: 'Read-only access', created: '2024-03-20' },
-  { id: 4, name: 'Operator', key: 'operator', sort: 4, status: 'active', remark: 'DevOps operator', created: '2024-04-10' },
-  { id: 5, name: 'Auditor', key: 'auditor', sort: 5, status: 'inactive', remark: 'Audit logs viewer', created: '2024-05-05' },
+  {
+    id: 1,
+    name: 'sys_admin',
+    label: 'System Administrator',
+    description: 'Full system access, manage all settings, users, and permissions',
+    builtin: true,
+    users: 1,
+    color: 'error',
+  },
+  {
+    id: 2,
+    name: 'admin',
+    label: 'Administrator',
+    description: 'Manage users, groups, and most system configurations',
+    builtin: true,
+    users: 3,
+    color: 'warning',
+  },
+  {
+    id: 3,
+    name: 'user',
+    label: 'User',
+    description: 'Basic access to assigned resources only',
+    builtin: true,
+    users: 12,
+    color: 'primary',
+  },
 ])
 
-const form = ref({ name: '', key: '', sort: 1, status: 'active', remark: '' })
+const roleMenuPermissions = ref([
+  {
+    id: 1, role: 'sys_admin', menu: 'Dashboard', permission: 'edit',
+  },
+  {
+    id: 2, role: 'sys_admin', menu: 'User Management', permission: 'edit',
+  },
+  {
+    id: 3, role: 'sys_admin', menu: 'Roles & Permissions', permission: 'edit',
+  },
+  {
+    id: 4, role: 'sys_admin', menu: 'Menu Management', permission: 'edit',
+  },
+  {
+    id: 5, role: 'sys_admin', menu: 'Permission', permission: 'edit',
+  },
+  {
+    id: 6, role: 'sys_admin', menu: 'Department', permission: 'edit',
+  },
+  {
+    id: 7, role: 'sys_admin', menu: 'Dictionary', permission: 'edit',
+  },
+  {
+    id: 8, role: 'sys_admin', menu: 'Online Users', permission: 'edit',
+  },
+  {
+    id: 9, role: 'sys_admin', menu: 'Operation Log', permission: 'edit',
+  },
+  {
+    id: 10, role: 'sys_admin', menu: 'Login Log', permission: 'edit',
+  },
+  {
+    id: 11, role: 'sys_admin', menu: 'Code Generator', permission: 'edit',
+  },
+  {
+    id: 12, role: 'sys_admin', menu: 'System API', permission: 'edit',
+  },
+  {
+    id: 13, role: 'sys_admin', menu: 'System Config', permission: 'edit',
+  },
+  {
+    id: 14, role: 'admin', menu: 'Dashboard', permission: 'view',
+  },
+  {
+    id: 15, role: 'admin', menu: 'User Management', permission: 'view',
+  },
+  {
+    id: 16, role: 'admin', menu: 'Roles & Permissions', permission: 'none',
+  },
+  {
+    id: 17, role: 'admin', menu: 'Menu Management', permission: 'none',
+  },
+  {
+    id: 18, role: 'admin', menu: 'Permission', permission: 'none',
+  },
+  {
+    id: 19, role: 'admin', menu: 'Department', permission: 'view',
+  },
+  {
+    id: 20, role: 'admin', menu: 'Dictionary', permission: 'edit',
+  },
+  {
+    id: 21, role: 'admin', menu: 'Online Users', permission: 'view',
+  },
+  {
+    id: 22, role: 'admin', menu: 'Operation Log', permission: 'view',
+  },
+  {
+    id: 23, role: 'admin', menu: 'Login Log', permission: 'view',
+  },
+  {
+    id: 24, role: 'admin', menu: 'Code Generator', permission: 'none',
+  },
+  {
+    id: 25, role: 'admin', menu: 'System API', permission: 'none',
+  },
+  {
+    id: 26, role: 'admin', menu: 'System Config', permission: 'view',
+  },
+  {
+    id: 27, role: 'user', menu: 'Dashboard', permission: 'view',
+  },
+  {
+    id: 28, role: 'user', menu: 'User Management', permission: 'none',
+  },
+  {
+    id: 29, role: 'user', menu: 'Roles & Permissions', permission: 'none',
+  },
+  {
+    id: 30, role: 'user', menu: 'Menu Management', permission: 'none',
+  },
+  {
+    id: 31, role: 'user', menu: 'Permission', permission: 'none',
+  },
+  {
+    id: 32, role: 'user', menu: 'Department', permission: 'none',
+  },
+  {
+    id: 33, role: 'user', menu: 'Dictionary', permission: 'none',
+  },
+  {
+    id: 34, role: 'user', menu: 'Online Users', permission: 'none',
+  },
+  {
+    id: 35, role: 'user', menu: 'Operation Log', permission: 'none',
+  },
+  {
+    id: 36, role: 'user', menu: 'Login Log', permission: 'none',
+  },
+  {
+    id: 37, role: 'user', menu: 'Code Generator', permission: 'none',
+  },
+  {
+    id: 38, role: 'user', menu: 'System API', permission: 'none',
+  },
+  {
+    id: 39, role: 'user', menu: 'System Config', permission: 'none',
+  },
+])
+
+const menus = ['Dashboard', 'User Management', 'Roles & Permissions', 'Menu Management', 'Permission', 'Department', 'Dictionary', 'Online Users', 'Operation Log', 'Login Log', 'Code Generator', 'System API', 'System Config']
+
+const getPermission = (role: string, menu: string) => {
+  const item = roleMenuPermissions.value.find(r => r.role === role && r.menu === menu)
+  return item?.permission || 'none'
+}
+
+const setPermission = (role: string, menu: string, perm: string) => {
+  const item = roleMenuPermissions.value.find(r => r.role === role && r.menu === menu)
+  if (item) item.permission = perm
+}
+
+const permissionColor = (perm: string) => {
+  if (perm === 'edit') return 'success'
+  if (perm === 'view') return 'info'
+  return 'error'
+}
 </script>
 
 <template>
   <div>
     <VRow class="mb-4">
       <VCol cols="12" md="6"><h4 class="text-h4">Role Management</h4></VCol>
-      <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-plus" color="primary" @click="dialogTitle = 'Add Role'; isDialogVisible = true">Add</VBtn>
-        <VBtn prepend-icon="bx-refresh" variant="tonal" color="secondary">Refresh</VBtn>
+      <VCol cols="12" md="6" class="d-flex justify-end">
+        <VBtn prepend-icon="bx-info-circle" variant="tonal" color="info">About Roles</VBtn>
       </VCol>
     </VRow>
 
-    <VCard>
-      <VCardText>
-        <VRow align="center">
-          <VCol cols="12" sm="6" md="3">
-            <AppTextField v-model="search" placeholder="Search role" prepend-inner-icon="bx-search" density="compact" hide-details />
-          </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <AppSelect placeholder="Status" :items="['Active', 'Inactive']" density="compact" hide-details clearable />
-          </VCol>
-        </VRow>
-      </VCardText>
-      <VDataTable :headers="headers" :items="roles" :search="search" :items-per-page="10" class="text-no-wrap">
-        <template #item.status="{ item }">
-          <VChip variant="tonal" :color="item.status === 'active' ? 'success' : 'error'" size="small" label>{{ item.status === 'active' ? 'Active' : 'Inactive' }}</VChip>
+    <!-- Role Cards -->
+    <VRow>
+      <VCol v-for="role in roles" :key="role.id" cols="12" md="4">
+        <VCard :color="role.builtin ? undefined : undefined" variant="flat" class="h-100">
+          <VCardText class="pa-6">
+            <div class="d-flex align-center justify-space-between mb-4">
+              <VAvatar size="52" variant="tonal" :color="role.color">
+                <VIcon icon="bx-shield-quarter" size="28" />
+              </VAvatar>
+              <VChip variant="tonal" :color="role.color" size="small" label class="font-weight-bold">
+                {{ role.name }}
+              </VChip>
+            </div>
+            <h5 class="text-h5 mb-1">{{ role.label }}</h5>
+            <p class="text-body-2 text-medium-emphasis mb-4">{{ role.description }}</p>
+            <div class="d-flex align-center gap-x-2 text-body-2">
+              <VIcon icon="bx-user" size="18" class="text-medium-emphasis" />
+              <span>{{ role.users }} users</span>
+              <VChip v-if="role.builtin" size="x-small" variant="flat" color="primary" class="ms-2">Built-in</VChip>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+
+    <!-- Permission Matrix -->
+    <VCard class="mt-6">
+      <VCardItem>
+        <VCardTitle>Menu Permissions by Role</VCardTitle>
+        <VCardSubtitle>Configure what each role can access: none / view / edit</VCardSubtitle>
+      </VCardItem>
+      <VDivider />
+      <VDataTable
+        :items="menus"
+        :items-per-page="-1"
+        :headers="[
+          { title: 'Menu', key: 'menu' },
+          { title: 'sys_admin', key: 'sys_admin', align: 'center' },
+          { title: 'admin', key: 'admin', align: 'center' },
+          { title: 'user', key: 'user', align: 'center' },
+        ]"
+        hide-default-footer
+        class="text-no-wrap"
+      >
+        <template #item.menu="{ item }">
+          <span class="font-weight-medium">{{ item }}</span>
         </template>
-        <template #item.actions="{ item }">
-          <div class="d-flex gap-1">
-            <VBtn size="small" variant="tonal" color="primary" prepend-icon="bx-check-shield" @click="dialogTitle = 'Assign Permissions'">Permissions</VBtn>
-            <IconBtn size="small" @click="dialogTitle = 'Edit Role'; isDialogVisible = true"><VIcon icon="bx-edit" size="18" /></IconBtn>
-            <IconBtn size="small" color="error"><VIcon icon="bx-trash" size="18" /></IconBtn>
+        <template v-for="role in roles" :key="role.name" #[`item.${role.name}`]="{ item }">
+          <div class="d-flex justify-center">
+            <VBtnToggle
+              :model-value="getPermission(role.name, item)"
+              density="compact"
+              color="primary"
+              variant="outlined"
+              divided
+              mandatory
+              @update:model-value="setPermission(role.name, item, $event)"
+            >
+              <VBtn value="none" size="small" :color="getPermission(role.name, item) === 'none' ? 'error' : undefined" variant="flat">
+                <VIcon icon="bx-x" size="16" />
+                <VTooltip activator="parent" location="top">None</VTooltip>
+              </VBtn>
+              <VBtn value="view" size="small" :color="getPermission(role.name, item) === 'view' ? 'info' : undefined" variant="flat">
+                <VIcon icon="bx-show" size="16" />
+                <VTooltip activator="parent" location="top">View</VTooltip>
+              </VBtn>
+              <VBtn value="edit" size="small" :color="getPermission(role.name, item) === 'edit' ? 'success' : undefined" variant="flat">
+                <VIcon icon="bx-pencil" size="16" />
+                <VTooltip activator="parent" location="top">Edit</VTooltip>
+              </VBtn>
+            </VBtnToggle>
           </div>
         </template>
       </VDataTable>
     </VCard>
 
-    <VDialog v-model="isDialogVisible" max-width="550">
-      <VCard :title="dialogTitle">
-        <VCardText>
-          <VForm>
-            <AppTextField v-model="form.name" label="Role Name" class="mb-3" />
-            <AppTextField v-model="form.key" label="Role Key" placeholder="e.g. editor, viewer" class="mb-3" />
-            <AppTextField v-model="form.sort" label="Sort Order" type="number" class="mb-3" />
-            <AppSelect v-model="form.status" label="Status" :items="['active', 'inactive']" class="mb-3" />
-            <AppTextarea v-model="form.remark" label="Remark" />
-          </VForm>
-        </VCardText>
-        <VCardActions class="justify-end">
-          <VBtn variant="tonal" @click="isDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary">Submit</VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
+    <!-- Legend -->
+    <VCard class="mt-4" variant="flat">
+      <VCardText class="d-flex gap-x-6">
+        <div class="d-flex align-center gap-x-2">
+          <VIcon icon="bx-x" color="error" size="18" />
+          <span class="text-body-2">None — No access</span>
+        </div>
+        <div class="d-flex align-center gap-x-2">
+          <VIcon icon="bx-show" color="info" size="18" />
+          <span class="text-body-2">View — Read only</span>
+        </div>
+        <div class="d-flex align-center gap-x-2">
+          <VIcon icon="bx-pencil" color="success" size="18" />
+          <span class="text-body-2">Edit — Full access</span>
+        </div>
+      </VCardText>
+    </VCard>
   </div>
 </template>

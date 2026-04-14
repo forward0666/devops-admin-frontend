@@ -36,7 +36,7 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
     }"
   >
     <VerticalNavLink :item="{ title: 'Roles', to: '/system/role' }" />
-    <VerticalNavLink :item="{ title: 'Permissions', to: '/system/permission' }" />
+    <VerticalNavLink :item="{ title: 'Groups & Permissions', to: '/system/permission' }" />
   </VerticalNavGroup>
 
   <VerticalNavLink
