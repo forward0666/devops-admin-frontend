@@ -113,21 +113,7 @@ definePageMeta({ layout: 'blank' })
 
               <!-- create account -->
               <VCol
-                cols="12"
-                class="text-body-1 text-center"
-              >
-                <span class="d-inline-block">
-                  New on our platform?
-                </span>
-                <NuxtLink
-                  class="text-primary ms-1 d-inline-block text-body-1"
-                  to="/register"
-                >
-                  Create an account
-                </NuxtLink>
-              </VCol>
 
-              <VCol
                 cols="12"
                 class="d-flex align-center"
               >

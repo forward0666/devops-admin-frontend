@@ -5,24 +5,19 @@ const { global } = useTheme()
 
 const authProviders = [
   {
-    icon: 'bxl-facebook',
-    color: '#4267b2',
-    colorInDark: '#4267b2',
-  },
-  {
-    icon: 'bxl-twitter',
-    color: '#1da1f2',
-    colorInDark: '#1da1f2',
-  },
-  {
-    icon: 'bxl-github',
-    color: '#272727',
-    colorInDark: '#fff',
+    icon: 'bxl-telegram',
+    color: '#0088cc',
+    colorInDark: '#0088cc',
   },
   {
     icon: 'bxl-google',
     color: '#db4437',
     colorInDark: '#db4437',
+  },
+  {
+    icon: 'bxl-slack',
+    color: '#4a154b',
+    colorInDark: '#e01e5a',
   },
 ]
 </script>
