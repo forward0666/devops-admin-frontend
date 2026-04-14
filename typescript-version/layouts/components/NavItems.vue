@@ -35,7 +35,6 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
       icon: 'bx-check-shield',
     }"
   >
-    <VerticalNavLink :item="{ title: 'Roles', to: '/system/role' }" />
     <VerticalNavLink :item="{ title: 'Groups & Permissions', to: '/system/permission' }" />
   </VerticalNavGroup>
 
