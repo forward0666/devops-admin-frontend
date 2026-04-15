@@ -9,8 +9,10 @@ const userData = {
   email: 'irena.dubrovna@wayne.com',
   role: 'admin',
   status: 'Active',
-  taxId: 'Tax-8894',
   contact: '(829) 537-0057',
+  telegram: '@johndoe',
+  google: 'john@gmail.com',
+  slack: 'john-doe',
   language: 'English',
   country: 'United States',
   taskDone: '1.23k',
@@ -96,11 +98,12 @@ const passwordRequirements = [
                 <VDivider class="my-4" />
                 <VList class="card-list mt-2" density="compact" lines="one">
                   <VListItem><VListItemTitle><h6 class="text-h6">Username: <span class="text-body-1 d-inline-block">{{ userData.username }}</span></h6></VListItemTitle></VListItem>
-                  <VListItem><VListItemTitle><h6 class="text-h6">Billing Email: <span class="text-body-1 d-inline-block">{{ userData.email }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Status: <span class="text-body-1 text-capitalize d-inline-block">{{ userData.status }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Role: <span class="text-body-1 text-capitalize d-inline-block">{{ userData.role }}</span></h6></VListItemTitle></VListItem>
-                  <VListItem><VListItemTitle><h6 class="text-h6">Tax ID: <span class="text-body-1 d-inline-block">{{ userData.taxId }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Contact: <span class="text-body-1 d-inline-block">{{ userData.contact }}</span></h6></VListItemTitle></VListItem>
+                  <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ userData.telegram }}</span></h6></VListItemTitle></VListItem>
+                  <VListItem><VListItemTitle><h6 class="text-h6">Google: <span class="text-body-1 d-inline-block">{{ userData.google }}</span></h6></VListItemTitle></VListItem>
+                  <VListItem><VListItemTitle><h6 class="text-h6">Slack: <span class="text-body-1 d-inline-block">{{ userData.slack }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Language: <span class="text-body-1 d-inline-block">{{ userData.language }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Country: <span class="text-body-1 d-inline-block">{{ userData.country }}</span></h6></VListItemTitle></VListItem>
                 </VList>
