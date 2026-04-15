@@ -7,25 +7,25 @@ const projectMenuTree = [
   {
     name: 'Dashboard Design', children: [
       { name: 'Project Info' },
-      { name: 'Project Assets' },
+      { name: 'Asset' },
     ],
   },
   {
     name: 'BGC eCommerce App', children: [
       { name: 'Project Info' },
-      { name: 'Project Assets' },
+      { name: 'Asset' },
     ],
   },
   {
     name: 'Falcon Logo Design', children: [
       { name: 'Project Info' },
-      { name: 'Project Assets' },
+      { name: 'Asset' },
     ],
   },
   {
     name: 'Foodista Mobile App', children: [
       { name: 'Project Info' },
-      { name: 'Project Assets' },
+      { name: 'Asset' },
     ],
   },
 ]
@@ -46,12 +46,12 @@ const groups = ref([
   {
     id: 1, name: 'all-projects', label: 'All Projects', description: 'Access to all projects', builtin: true,
     users: ['admin', 'john', 'mary', 'tom'],
-    permissions: { ...makeEmptyPerms(), 'Dashboard Design': 'edit', 'BGC eCommerce App': 'edit', 'Falcon Logo Design': 'view', 'Foodista Mobile App': 'view', 'Project Info': 'view', 'Project Assets': 'view' },
+    permissions: { ...makeEmptyPerms(), 'Dashboard Design': 'edit', 'BGC eCommerce App': 'edit', 'Falcon Logo Design': 'view', 'Foodista Mobile App': 'view', 'Project Info': 'view', 'Asset': 'view' },
   },
   {
     id: 2, name: 'design-team', label: 'Design Team', description: 'Design related projects only', builtin: false,
     users: ['mary'],
-    permissions: { ...makeEmptyPerms(), 'Dashboard Design': 'edit', 'Falcon Logo Design': 'edit', 'Project Info': 'view', 'Project Assets': 'edit' },
+    permissions: { ...makeEmptyPerms(), 'Dashboard Design': 'edit', 'Falcon Logo Design': 'edit', 'Project Info': 'view', 'Asset': 'edit' },
   },
 ])
 

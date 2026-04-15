@@ -2,22 +2,9 @@
 const route = useRoute()
 const projectId = computed(() => route.params.id as string)
 
-const projectNames: Record<string, string> = {
-  '1': 'Dashboard Design',
-  '2': 'BGC eCommerce App',
-  '3': 'Falcon Logo Design',
-  '4': 'Foodista Mobile App',
-}
-
-const projectData: Record<string, any> = {
-  '1': { type: 'Vuejs Project', status: 'active', progress: 62, leader: 'Keith', startDate: '2024-01-01', endDate: '2024-06-30' },
-  '2': { type: 'React Project', status: 'active', progress: 78, leader: 'Eileen', startDate: '2024-01-15', endDate: '2024-08-30' },
-  '3': { type: 'Figma Project', status: 'completed', progress: 100, leader: 'Owen', startDate: '2023-10-01', endDate: '2024-01-10' },
-  '4': { type: 'Xamarin Project', status: 'pending', progress: 8, leader: 'Merline', startDate: '2024-02-01', endDate: '2024-12-31' },
-}
-
-const project = computed(() => projectData[projectId.value] || projectData['1'])
-const name = computed(() => projectNames[projectId.value] || 'Unknown Project')
+const projectStore = useProjectStore()
+const project = computed(() => projectStore.projects.find(p => String(p.id) === projectId.value) || projectStore.projects[0])
+const name = computed(() => project.value?.name || 'Unknown Project')
 
 const teamMembers = ref([
   { name: 'Keith', role: 'Lead', initials: 'K' },
@@ -37,7 +24,7 @@ const activityTimeline = ref([
 <template>
   <div>
     <VRow class="mb-4">
-      <VCol cols="12" md="6"><h4 class="text-h4">{{ name }} - Project Info</h4></VCol>
+      <VCol cols="12" md="6"><h4 class="text-h4">{{ name }} - Info</h4></VCol>
     </VRow>
 
     <!-- Overview Card -->
@@ -69,12 +56,11 @@ const activityTimeline = ref([
         <VDivider class="my-4" />
         <VRow>
           <VCol cols="12" sm="6">
-            <div class="text-body-2 text-medium-emphasis mb-1">Start Date</div>
-            <div class="text-body-1">{{ project.startDate }}</div>
+            <div class="text-body-2 text-medium-emphasis mb-1">Created</div>
+            <div class="text-body-1">{{ project.created }}</div>
           </VCol>
           <VCol cols="12" sm="6">
-            <div class="text-body-2 text-medium-emphasis mb-1">End Date</div>
-            <div class="text-body-1">{{ project.endDate }}</div>
+            <div class="text-body-2 text-medium-emphasis mb-1">Status</div>
           </VCol>
         </VRow>
       </VCardText>

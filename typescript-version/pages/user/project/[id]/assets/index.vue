@@ -2,14 +2,8 @@
 const route = useRoute()
 const projectId = computed(() => route.params.id as string)
 
-const projectNames: Record<string, string> = {
-  '1': 'Dashboard Design',
-  '2': 'BGC eCommerce App',
-  '3': 'Falcon Logo Design',
-  '4': 'Foodista Mobile App',
-}
-
-const name = computed(() => projectNames[projectId.value] || 'Unknown Project')
+const projectStore = useProjectStore()
+const name = computed(() => projectStore.projects.find(p => String(p.id) === projectId.value)?.name || 'Unknown Project')
 
 const assets = ref([
   { name: 'Design System', type: 'Figma', size: '24 MB', updated: '2024-01-15', icon: 'bx-palette', color: 'error' },
@@ -23,7 +17,7 @@ const assets = ref([
 <template>
   <div>
     <VRow class="mb-4">
-      <VCol cols="12" md="6"><h4 class="text-h4">{{ name }} - Project Assets</h4></VCol>
+      <VCol cols="12" md="6"><h4 class="text-h4">{{ name }} - Asset</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end">
         <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary">Upload</VBtn>
       </VCol>

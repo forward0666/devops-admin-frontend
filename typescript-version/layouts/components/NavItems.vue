@@ -148,8 +148,8 @@ const isProjectActive = (projectId: number) => route.path.includes(`/user/projec
       >
       <template v-for="project in projectList" :key="`project-nav-${project.id}-${projectKey}`">
         <VerticalNavGroup :item="{ title: project.name, icon: 'bx-detail' }" :open="isProjectActive(project.id)">
-          <VerticalNavLink :item="{ title: 'Project Info', to: `/user/project/${project.id}/info` }" />
-          <VerticalNavLink :item="{ title: 'Project Assets', to: `/user/project/${project.id}/assets` }" />
+          <VerticalNavLink :item="{ title: 'Info', to: `/user/project/${project.id}/info` }" />
+          <VerticalNavLink :item="{ title: 'Asset', to: `/user/project/${project.id}/assets` }" />
         </VerticalNavGroup>
       </template>
       </VerticalNavGroup>
