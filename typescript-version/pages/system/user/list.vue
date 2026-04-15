@@ -88,15 +88,15 @@ const userHeaders = [
           <VCardText>
             <div class="d-flex justify-space-between">
               <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Paid Users</div>
+                <div class="text-body-1 text-high-emphasis">Active Users</div>
                 <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">4,567</h4>
-                  <div class="text-base text-success"> (+18%) </div>
+                  <h4 class="text-h4">19,860</h4>
+                  <div class="text-base text-success"> (+14%) </div>
                 </div>
                 <div class="text-sm">Last Week Analytics</div>
               </div>
-              <VAvatar color="error" variant="tonal" rounded size="40">
-                <VIcon icon="bx-user-plus" size="24" />
+              <VAvatar color="success" variant="tonal" rounded size="40">
+                <VIcon icon="bx-user-check" size="24" />
               </VAvatar>
             </div>
           </VCardText>
@@ -107,15 +107,15 @@ const userHeaders = [
           <VCardText>
             <div class="d-flex justify-space-between">
               <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Active Users</div>
+                <div class="text-body-1 text-high-emphasis">Block Users</div>
                 <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">19,860</h4>
-                  <div class="text-base text-error"> (-14%) </div>
+                  <h4 class="text-h4">4,567</h4>
+                  <div class="text-base text-error"> (-18%) </div>
                 </div>
                 <div class="text-sm">Last Week Analytics</div>
               </div>
-              <VAvatar color="success" variant="tonal" rounded size="40">
-                <VIcon icon="bx-user-check" size="24" />
+              <VAvatar color="error" variant="tonal" rounded size="40">
+                <VIcon icon="bx-user-x" size="24" />
               </VAvatar>
             </div>
           </VCardText>
