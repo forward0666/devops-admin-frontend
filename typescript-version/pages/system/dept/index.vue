@@ -3,24 +3,22 @@ const search = ref('')
 const isDialogVisible = ref(false)
 
 const departments = ref([
-  { id: 1, name: 'JH DevOps', leader: 'admin', phone: '15888888888', email: 'admin@jhdevops.com', status: 'active', children: [
-    { id: 2, name: 'R&D Department', leader: 'John', phone: '15666666666', email: 'rd@jhdevops.com', status: 'active', children: [
-      { id: 3, name: 'Frontend Team', leader: 'Mary', phone: '13888888888', email: 'frontend@jhdevops.com', status: 'active', children: [] },
-      { id: 4, name: 'Backend Team', leader: 'Tom', phone: '13999999999', email: 'backend@jhdevops.com', status: 'active', children: [] },
+  { id: 1, name: 'JH DevOps', office: 'Headquarters', team: 'Engineering', leader: 'admin', phone: '15888888888', email: 'admin@jhdevops.com', status: 'active', children: [
+    { id: 2, name: 'R&D Department', office: 'Building A', team: 'Development', leader: 'John', phone: '15666666666', email: 'rd@jhdevops.com', status: 'active', children: [
+      { id: 3, name: 'Frontend Team', office: 'Building A', team: 'UI/UX', leader: 'Mary', phone: '13888888888', email: 'frontend@jhdevops.com', status: 'active', children: [] },
+      { id: 4, name: 'Backend Team', office: 'Building A', team: 'API', leader: 'Tom', phone: '13999999999', email: 'backend@jhdevops.com', status: 'active', children: [] },
     ]},
-    { id: 5, name: 'Operations', leader: 'Lucy', phone: '15877777777', email: 'ops@jhdevops.com', status: 'active', children: [] },
-    { id: 6, name: 'Finance', leader: 'Jack', phone: '13666666666', email: 'finance@jhdevops.com', status: 'active', children: [] },
-    { id: 7, name: 'Marketing', leader: 'Rose', phone: '13555555555', email: 'marketing@jhdevops.com', status: 'inactive', children: [] },
+    { id: 5, name: 'Operations', office: 'Building B', team: 'DevOps', leader: 'Lucy', phone: '15877777777', email: 'ops@jhdevops.com', status: 'active', children: [] },
+    { id: 6, name: 'Finance', office: 'Building B', team: 'Accounting', leader: 'Jack', phone: '13666666666', email: 'finance@jhdevops.com', status: 'active', children: [] },
+    { id: 7, name: 'Marketing', office: 'Building C', team: 'Growth', leader: 'Rose', phone: '13555555555', email: 'marketing@jhdevops.com', status: 'inactive', children: [] },
   ]},
 ])
 
 const headers = [
+  { title: 'Office', key: 'office' },
   { title: 'Department', key: 'name' },
+  { title: 'Team', key: 'team' },
   { title: 'Leader', key: 'leader' },
-  { title: 'Phone', key: 'phone' },
-  { title: 'Email', key: 'email' },
-  { title: 'Status', key: 'status' },
-  { title: 'Created', key: 'created' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
