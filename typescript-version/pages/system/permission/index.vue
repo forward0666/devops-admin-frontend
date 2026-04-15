@@ -118,7 +118,7 @@ const onPermChange = (menuName: string, value: string) => {
 <template>
   <div>
     <VRow class="mb-4">
-      <VCol cols="12" md="6"><h4 class="text-h4">Groups & Permissions</h4></VCol>
+      <VCol cols="12" md="6"><h4 class="text-h4">Group & Permissions</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
         <VBtn prepend-icon="bx-plus" color="primary" @click="isGroupDialogVisible = true">New Group</VBtn>
       </VCol>

@@ -40,7 +40,7 @@ const form = ref({ name: '', icon: '', sort: 1, path: '', type: 'Menu', status: 
 <template>
   <div>
     <VRow class="mb-4">
-      <VCol cols="12" md="6"><h4 class="text-h4">Menu Management</h4></VCol>
+      <VCol cols="12" md="6"><h4 class="text-h4">Menu</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
         <VBtn prepend-icon="bx-plus" color="primary" @click="dialogTitle = 'Add Menu'; isDialogVisible = true">Add</VBtn>
         <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary">Expand All</VBtn>

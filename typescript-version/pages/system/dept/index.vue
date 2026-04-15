@@ -42,7 +42,7 @@ const form = ref({ name: '', parentId: '', leader: '', phone: '', email: '', sta
 <template>
   <div>
     <VRow class="mb-4">
-      <VCol cols="12" md="6"><h4 class="text-h4">Department Management</h4></VCol>
+      <VCol cols="12" md="6"><h4 class="text-h4">Department</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
         <VBtn prepend-icon="bx-plus" color="primary" @click="isDialogVisible = true">Add</VBtn>
         <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary">Expand</VBtn>
