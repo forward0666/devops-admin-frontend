@@ -21,7 +21,7 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
 
   <VerticalNavGroup
     :item="{
-      title: 'User Management',
+      title: 'User & Permission',
       icon: 'bx-user',
     }"
   >
@@ -32,7 +32,7 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
 
   <VerticalNavLink
     :item="{
-      title: 'Menu Management',
+      title: 'Menu',
       icon: 'bx-menu',
       to: '/system/menu',
     }"
@@ -43,14 +43,6 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
       title: 'Department',
       icon: 'bx-buildings',
       to: '/system/dept',
-    }"
-  />
-
-  <VerticalNavLink
-    :item="{
-      title: 'Dictionary',
-      icon: 'bx-book-open',
-      to: '/system/dict',
     }"
   />
 
