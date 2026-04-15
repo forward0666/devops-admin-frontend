@@ -71,8 +71,8 @@ const passwordRequirements = [
           <VCol cols="12">
             <VCard>
               <VCardText class="text-center pt-12">
-                <VAvatar size="120" variant="flat" color="primary" rounded>
-                  <VImg src="/images/avatars/avatar-1.png" />
+                <VAvatar size="120" variant="tonal" color="primary" rounded>
+                  <span class="text-h2 font-weight-medium">{{ userData.fullName.charAt(0) }}</span>
                 </VAvatar>
                 <h5 class="text-h5 mt-4">{{ userData.fullName }}</h5>
                 <VChip variant="tonal" color="secondary" size="small" label class="text-capitalize mt-4">{{ userData.role }}</VChip>
@@ -104,6 +104,8 @@ const passwordRequirements = [
                   <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ userData.telegram }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Google: <span class="text-body-1 d-inline-block">{{ userData.google }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Slack: <span class="text-body-1 d-inline-block">{{ userData.slack }}</span></h6></VListItemTitle></VListItem>
+                  <VListItem><VListItemTitle><h6 class="text-h6">Department: <span class="text-body-1 d-inline-block">Engineering</span></h6></VListItemTitle></VListItem>
+                  <VListItem><VListItemTitle><h6 class="text-h6">Team: <span class="text-body-1 d-inline-block">Backend</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Language: <span class="text-body-1 d-inline-block">{{ userData.language }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Country: <span class="text-body-1 d-inline-block">{{ userData.country }}</span></h6></VListItemTitle></VListItem>
                 </VList>
@@ -133,7 +135,7 @@ const passwordRequirements = [
             <VDataTable show-select :items="projects" :items-per-page="itemsPerPage" :headers="[{ title: 'PROJECT', key: 'project' }, { title: 'LEADER', key: 'leader' }, { title: 'TEAM', key: 'team' }, { title: 'PROGRESS', key: 'progress' }, { title: 'Action', key: 'action', sortable: false }]" class="text-no-wrap">
               <template #item.project="{ item }">
                 <div class="d-flex align-center gap-x-3">
-                  <VAvatar size="34" rounded variant="flat"><VImg :src="item.img" /></VAvatar>
+                  <VAvatar size="34" rounded variant="tonal" color="primary"><span class="text-sm font-weight-medium">{{ item.name.charAt(0) }}</span></VAvatar>
                   <div>
                     <h6 class="text-h6 text-no-wrap">{{ item.name }}</h6>
                     <div class="text-body-2">{{ item.type }}</div>
@@ -144,7 +146,7 @@ const passwordRequirements = [
               <template #item.team="{ item }">
                 <div class="d-flex">
                   <VAvatarGroup size="26">
-                    <VAvatar v-for="(avatar, i) in item.team" :key="i" size="26"><VImg :src="`/images/avatars/${avatar}`" /></VAvatar>
+                    <VAvatar v-for="(avatar, i) in item.team" :key="i" size="26" variant="tonal" color="primary"><span class="text-caption font-weight-medium">{{ avatar.split('-')[1]?.charAt(0) || avatar.charAt(0) }}</span></VAvatar>
                     <VAvatar v-if="item.teamExtra" size="26" color="grey-light"><span class="text-caption text-high-emphasis">+{{ item.teamExtra }}</span></VAvatar>
                   </VAvatarGroup>
                 </div>

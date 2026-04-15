@@ -1,10 +1,22 @@
 <script setup lang="ts">
 const searchQuery = ref('')
 const selectedRole = ref()
-const selectedPlan = ref()
+const selectedTeam = ref()
 const selectedStatus = ref()
 const itemsPerPage = ref(10)
 const selectedUsers = ref<any[]>([])
+
+const isAddUserDialogVisible = ref(false)
+const isImportDialogVisible = ref(false)
+
+const newUser = ref({
+  fullName: '',
+  email: '',
+  role: '',
+  team: '',
+  department: '',
+  status: 'active',
+})
 
 const resolveUserRoleIcon = (role: string) => {
   const roleIcons: Record<string, { icon: string; color: string }> = {
@@ -49,6 +61,18 @@ const users = ref([
   { id: 42, fullName: 'Benedetto Rossiter', email: 'brossiter15@craigslist.org', role: 'editor', team: 'Mobile', department: 'Engineering', status: 'inactive', avatar: 1 },
   { id: 41, fullName: 'Garvin Odem', email: 'godem14@eepurl.com', role: 'subscriber', team: 'Support', department: 'Customer Success', status: 'active', avatar: 3 },
 ])
+
+const filteredUsers = computed(() => {
+  const query = searchQuery.value.toLowerCase()
+  return users.value.filter(user => {
+    const matchRole = !selectedRole.value || user.role === selectedRole.value
+    const matchTeam = !selectedTeam.value || user.team === selectedTeam.value
+    const matchStatus = !selectedStatus.value || user.status === selectedStatus.value.toLowerCase()
+    const matchSearch = !query || user.fullName.toLowerCase().includes(query) || user.email.toLowerCase().includes(query)
+
+    return matchRole && matchTeam && matchStatus && matchSearch
+  })
+})
 
 const userHeaders = [
   { title: 'User', key: 'user', sortable: true },
@@ -150,39 +174,50 @@ const userHeaders = [
       <VCardText class="pt-0">
         <VRow>
           <VCol cols="12" sm="4">
-            <VSelect placeholder="Select Role" :items="['admin', 'editor', 'subscriber', 'maintainer', 'author']" density="comfortable" clearable hide-details variant="outlined" />
+            <VSelect v-model="selectedRole" placeholder="Select Role" :items="['admin', 'editor', 'subscriber', 'maintainer', 'author']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
           <VCol cols="12" sm="4">
-            <VSelect placeholder="Select Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" clearable hide-details variant="outlined" />
+            <VSelect v-model="selectedTeam" placeholder="Select Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
           <VCol cols="12" sm="4">
-            <VSelect placeholder="Select Status" :items="['Active', 'Inactive', 'Pending']" density="comfortable" clearable hide-details variant="outlined" />
+            <VSelect v-model="selectedStatus" placeholder="Select Status" :items="['Active', 'Inactive', 'Pending']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
         </VRow>
       </VCardText>
       <VDivider />
       <VCardText class="d-flex flex-wrap gap-4">
-        <div class="me-3 d-flex gap-3">
-          <AppSelect v-model="itemsPerPage" :items="[5, 10, 25, 50]" density="comfortable" style="inline-size: 6.25rem;" hide-details />
-        </div>
+        <VTextField v-model="searchQuery" placeholder="Search User" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
         <VSpacer />
-        <div class="d-flex align-center flex-wrap gap-4">
-          <VTextField v-model="searchQuery" placeholder="Search User" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
           <VBtn prepend-icon="bx-export" variant="tonal" color="secondary">
             Export
           </VBtn>
-          <VBtn prepend-icon="bx-plus" color="primary">
+          <VBtn prepend-icon="bx-import" variant="tonal" color="secondary" @click="isImportDialogVisible = true">
+            Import
+          </VBtn>
+          <VBtn prepend-icon="bx-plus" color="primary" @click="isAddUserDialogVisible = true">
             Add New User
           </VBtn>
-        </div>
       </VCardText>
       <VDivider />
+      <!-- Batch Action Bar -->
+      <VExpandTransition>
+        <VCardText v-if="selectedUsers.length > 0" class="d-flex align-center gap-3 bg-primary-lighten-4 rounded-lg ma-3">
+          <VIcon icon="bx-check-double" color="primary" size="20" />
+          <span class="text-body-1 font-weight-medium">{{ selectedUsers.length }} user(s) selected</span>
+          <VSpacer />
+          <VBtn size="small" variant="tonal" color="error" prepend-icon="bx-trash">
+            Delete Selected
+          </VBtn>
+          <VBtn size="small" variant="tonal" color="warning" prepend-icon="bx-block">
+            Block Selected
+          </VBtn>
+        </VCardText>
+      </VExpandTransition>
       <VDataTable
         v-model:selected="selectedUsers"
         :headers="userHeaders"
-        :items="users"
+        :items="filteredUsers"
         :items-per-page="itemsPerPage"
-        :search="searchQuery"
         show-select
         class="text-no-wrap"
       >
@@ -236,5 +271,54 @@ const userHeaders = [
         </template>
       </VDataTable>
     </VCard>
+
+    <!-- Add User Dialog -->
+    <VDialog v-model="isAddUserDialogVisible" max-width="500">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Add New User</VCardTitle>
+          <VBtn icon variant="text" @click="isAddUserDialogVisible = false">
+            <VIcon icon="bx-x" />
+          </VBtn>
+        </VCardItem>
+        <VCardText>
+          <VTextField v-model="newUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="newUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newUser.role" label="Role" :items="['admin', 'editor', 'subscriber', 'maintainer', 'author']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newUser.team" label="Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newUser.department" label="Department" :items="['Engineering', 'Marketing', 'Operations', 'IT', 'Analytics', 'Customer Success']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newUser.status" label="Status" :items="['active', 'inactive', 'pending']" density="comfortable" variant="outlined" />
+        </VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isAddUserDialogVisible = false">Cancel</VBtn>
+          <VBtn color="primary" @click="isAddUserDialogVisible = false">Add User</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Import Dialog -->
+    <VDialog v-model="isImportDialogVisible" max-width="500">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Import Users</VCardTitle>
+          <VBtn icon variant="text" @click="isImportDialogVisible = false">
+            <VIcon icon="bx-x" />
+          </VBtn>
+        </VCardItem>
+        <VCardText>
+          <div class="drop-zone pa-8 text-center border-dashed border-2 border-primary rounded-lg" @dragover.prevent @drop.prevent>
+            <VIcon icon="bx-cloud-upload" size="48" color="primary" class="mb-3" />
+            <h6 class="text-h6 mb-1">Drag & Drop files here</h6>
+            <p class="text-body-2 text-medium-emphasis mb-3">or click to browse</p>
+            <VBtn variant="tonal" color="primary" size="small">Browse Files</VBtn>
+            <p class="text-body-2 text-medium-emphasis mt-3">Supports CSV, XLS, XLSX format</p>
+          </div>
+        </VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isImportDialogVisible = false">Cancel</VBtn>
+          <VBtn color="primary" @click="isImportDialogVisible = false">Import</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </div>
 </template>
