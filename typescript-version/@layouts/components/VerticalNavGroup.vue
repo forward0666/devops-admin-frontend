@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { NavGroup } from '@layouts/types'
 
-defineProps<{
+const props = defineProps<{
   item: Omit<NavGroup, 'children'>
+  open?: boolean
 }>()
 
-const isOpen = ref(false)
+const isOpen = ref(true)
 </script>
 
 <template>
@@ -31,9 +32,10 @@ const isOpen = ref(false)
       <VIcon
         icon="bx-chevron-right"
         class="nav-group-arrow"
+        :class="isOpen && 'rotate-180'"
       />
     </div>
-    <div class="nav-group-children-wrapper">
+    <div v-show="isOpen" class="nav-group-children-wrapper">
       <ul class="nav-group-children">
         <slot />
       </ul>
@@ -50,19 +52,11 @@ const isOpen = ref(false)
       cursor: pointer;
     }
 
-    .nav-group-children-wrapper {
-      display: grid;
-      grid-template-rows: 0fr;
-      transition: grid-template-rows 0.3s ease-in-out;
+    .nav-group-arrow {
+      transition: transform 0.25s ease;
 
-      .nav-group-children {
-        overflow: hidden;
-      }
-    }
-
-    &.open {
-      .nav-group-children-wrapper {
-        grid-template-rows: 1fr;
+      &.rotate-180 {
+        transform: rotate(90deg);
       }
     }
   }

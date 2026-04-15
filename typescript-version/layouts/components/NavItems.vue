@@ -4,6 +4,16 @@ import VerticalNavGroup from "@layouts/components/VerticalNavGroup.vue";
 import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
 
 const authStore = useAuthStore()
+const projectStore = useProjectStore()
+const projectList = computed(() => [...projectStore.projects])
+const projectKey = ref(0)
+const route = useRoute()
+
+watch(() => projectStore.projects.length, () => {
+  projectKey.value++
+})
+
+const isProjectActive = (projectId: number) => route.path.includes(`/user/project/${projectId}/`)
 </script>
 
 <template>
@@ -119,6 +129,30 @@ const authStore = useAuthStore()
         to: '/user/profile',
       }"
     />
+
+      <VerticalNavGroup
+        :item="{
+          title: 'Menu & Permission',
+          icon: 'bx-list-check',
+        }"
+      >
+        <VerticalNavLink :item="{ title: 'Project List', to: '/user/project/list' }" />
+        <VerticalNavLink :item="{ title: 'Permission', to: '/user/project/permission' }" />
+      </VerticalNavGroup>
+
+      <VerticalNavGroup
+        :item="{
+          title: 'Project',
+          icon: 'bx-folder',
+        }"
+      >
+      <template v-for="project in projectList" :key="`project-nav-${project.id}-${projectKey}`">
+        <VerticalNavGroup :item="{ title: project.name, icon: 'bx-detail' }" :open="isProjectActive(project.id)">
+          <VerticalNavLink :item="{ title: 'Project Info', to: `/user/project/${project.id}/info` }" />
+          <VerticalNavLink :item="{ title: 'Project Assets', to: `/user/project/${project.id}/assets` }" />
+        </VerticalNavGroup>
+      </template>
+      </VerticalNavGroup>
     </template>
   </template>
 </template>
