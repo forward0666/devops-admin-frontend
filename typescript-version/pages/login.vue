@@ -8,11 +8,19 @@ const form = ref({
   email: '',
   password: '',
   remember: false,
+  role: 'sys_admin' as string,
 })
 
+const authStore = useAuthStore()
 const isPasswordVisible = ref(false)
 
 definePageMeta({ layout: 'blank' })
+
+const handleLogin = () => {
+  authStore.setRole(form.value.role as any)
+  authStore.setUserName(form.value.email || 'Admin')
+  navigateTo(authStore.homeRoute)
+}
 </script>
 
 <template>
@@ -59,7 +67,7 @@ definePageMeta({ layout: 'blank' })
         </VCardText>
 
         <VCardText>
-          <VForm @submit.prevent="$router.push('/')">
+          <VForm @submit.prevent="handleLogin">
             <VRow>
               <!-- email -->
               <VCol cols="12">
@@ -70,6 +78,17 @@ definePageMeta({ layout: 'blank' })
                   label="Email or Username"
                   type="email"
                   placeholder="johndoe@email.com"
+                />
+              </VCol>
+
+              <!-- role select (for testing) -->
+              <VCol cols="12">
+                <VSelect
+                  v-model="form.role"
+                  label="Login as Role"
+                  :items="['sys_admin', 'admin', 'user']"
+                  variant="outlined"
+                  density="comfortable"
                 />
               </VCol>
 

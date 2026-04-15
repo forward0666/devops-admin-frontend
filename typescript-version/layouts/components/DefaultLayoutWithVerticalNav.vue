@@ -7,6 +7,14 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 import Footer from '@/layouts/components/Footer.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
+
+const authStore = useAuthStore()
+const currentRole = ref(authStore.role)
+
+const switchRole = (val: string) => {
+  authStore.setRole(val as any)
+  navigateTo(val === 'user' ? '/user/dashboard' : '/dashboard')
+}
 </script>
 
 <template>
@@ -40,6 +48,16 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
 
         <VSpacer />
 
+
+        <!-- 👉 Role Switch -->
+        <VBtnToggle v-model="currentRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;" @update:model-value="switchRole">
+          <VBtn value="sys_admin" size="small" style="flex: 1;">
+            <VIcon start icon="bx-shield" size="16" />Admin
+          </VBtn>
+          <VBtn value="user" size="small" style="flex: 1;">
+            <VIcon start icon="bx-user" size="16" />User
+          </VBtn>
+        </VBtnToggle>
 
         <IconBtn>
           <VIcon icon="bx-bell" />
