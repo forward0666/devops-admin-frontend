@@ -127,6 +127,7 @@ const form = ref({ name: '', parentId: '', leader: '', type: 'department' })
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
             <IconBtn v-if="item.type !== 'team'" size="small"><VIcon icon="bx-plus" size="18" /></IconBtn>
+            <div v-else style="inline-size: 32px; visibility: hidden;"><IconBtn size="small"><VIcon icon="bx-plus" size="18" /></IconBtn></div>
             <IconBtn size="small"><VIcon icon="bx-edit" size="18" /></IconBtn>
             <IconBtn size="small" color="error"><VIcon icon="bx-trash" size="18" /></IconBtn>
           </div>
