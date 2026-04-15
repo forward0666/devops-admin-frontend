@@ -1,167 +1,233 @@
 <script setup lang="ts">
-const search = ref('')
-const isAddDialogVisible = ref(false)
-const isEditDialogVisible = ref(false)
+const searchQuery = ref('')
+const selectedRole = ref()
+const selectedPlan = ref()
+const selectedStatus = ref()
+const itemsPerPage = ref(10)
+const selectedUsers = ref<any[]>([])
 
-const isPasswordVisible = ref(false)
+const resolveUserRoleIcon = (role: string) => {
+  const roleIcons: Record<string, { icon: string; color: string }> = {
+    admin: { icon: 'bx-crown', color: 'primary' },
+    editor: { icon: 'bx-edit', color: 'warning' },
+    subscriber: { icon: 'bx-user', color: 'success' },
+    maintainer: { icon: 'bx-pie-chart-alt', color: 'info' },
+    author: { icon: 'bx-desktop', color: 'error' },
+  }
 
-const form = ref({
-  username: '',
-  nickname: '',
-  email: '',
-  phone: '',
-  sex: 'male',
-  status: 'active',
-  dept: '',
-  role: '',
-  remark: '',
-  password: '',
-})
+  return roleIcons[role] || { icon: 'bx-user', color: 'primary' }
+}
 
-const headers = [
-  { title: 'ID', key: 'id', sortable: true },
-  { title: 'Username', key: 'username', sortable: true },
-  { title: 'Nickname', key: 'nickname', sortable: true },
-  { title: 'Department', key: 'dept' },
-  { title: 'Phone', key: 'phone' },
-  { title: 'Status', key: 'status' },
-  { title: 'Created', key: 'created' },
-  { title: 'Actions', key: 'actions', sortable: false },
-]
+const resolveUserStatusVariant = (status: string) => {
+  const statusColor: Record<string, string> = {
+    active: 'success',
+    inactive: 'secondary',
+    pending: 'warning',
+  }
+
+  return statusColor[status] || 'secondary'
+}
+
+const resolveAvatarUrl = (avatarNum: number) => `/images/avatars/avatar-${avatarNum}.png`
 
 const users = ref([
-  { id: 1, username: 'admin', nickname: 'Administrator', dept: 'R&D', phone: '15888888888', status: 'active', created: '2024-01-01', avatar: 1 },
-  { id: 2, username: 'john', nickname: 'John Doe', dept: 'Marketing', phone: '15666666666', status: 'active', created: '2024-02-15', avatar: 2 },
-  { id: 3, username: 'mary', nickname: 'Mary Smith', dept: 'Finance', phone: '13888888888', status: 'inactive', created: '2024-03-20', avatar: 3 },
-  { id: 4, username: 'tom', nickname: 'Tom Wilson', dept: 'Operations', phone: '13999999999', status: 'active', created: '2024-04-10', avatar: 4 },
-  { id: 5, username: 'lucy', nickname: 'Lucy Brown', dept: 'R&D', phone: '15877777777', status: 'active', created: '2024-05-05', avatar: 5 },
-  { id: 6, username: 'jack', nickname: 'Jack Lee', dept: 'HR', phone: '13666666666', status: 'active', created: '2024-06-18', avatar: 6 },
+  { id: 50, fullName: 'Beverlie Krabbe', email: 'bkrabbe1d@home.pl', role: 'editor', plan: 'company', billing: 'Manual-Cash', status: 'active', avatar: 1 },
+  { id: 49, fullName: 'Paulie Durber', email: 'pdurber1c@gov.uk', role: 'subscriber', plan: 'team', billing: 'Manual-PayPal', status: 'inactive', avatar: 2 },
+  { id: 48, fullName: 'Onfre Wind', email: 'owind1b@yandex.ru', role: 'admin', plan: 'basic', billing: 'Manual-PayPal', status: 'pending', avatar: 3 },
+  { id: 47, fullName: 'Karena Courtliff', email: 'kcourtliff1a@bbc.co.uk', role: 'admin', plan: 'basic', billing: 'Manual-Credit Card', status: 'active', avatar: 6 },
+  { id: 46, fullName: 'Saunder Offner', email: 'soffner19@mac.com', role: 'maintainer', plan: 'enterprise', billing: 'Manual-Credit Card', status: 'pending', avatar: 4 },
+  { id: 45, fullName: 'Corrie Perot', email: 'cperot18@goo.ne.jp', role: 'subscriber', plan: 'team', billing: 'Manual-Credit Card', status: 'pending', avatar: 5 },
+  { id: 44, fullName: 'Vladamir Koschek', email: 'vkoschek17@abc.net.au', role: 'author', plan: 'team', billing: 'Manual-Credit Card', status: 'active', avatar: 1 },
+  { id: 43, fullName: 'Micaela McNirlan', email: 'mmcnirlan16@hc360.com', role: 'admin', plan: 'basic', billing: 'Auto Debit', status: 'inactive', avatar: 2 },
+  { id: 42, fullName: 'Benedetto Rossiter', email: 'brossiter15@craigslist.org', role: 'editor', plan: 'team', billing: 'Auto Debit', status: 'inactive', avatar: 1 },
+  { id: 41, fullName: 'Garvin Odem', email: 'godem14@eepurl.com', role: 'subscriber', plan: 'enterprise', billing: 'Manual-Cash', status: 'active', avatar: 3 },
 ])
 
-const selectedUsers = ref<number[]>([])
+const userHeaders = [
+  { title: 'User', key: 'user', sortable: true },
+  { title: 'Role', key: 'role', sortable: true },
+  { title: 'Plan', key: 'plan', sortable: true },
+  { title: 'Billing', key: 'billing', sortable: true },
+  { title: 'Status', key: 'status', sortable: true },
+  { title: 'Actions', key: 'actions', sortable: false },
+]
 </script>
 
 <template>
   <div>
-    <!-- Header -->
-    <VRow class="mb-4">
-      <VCol cols="12" md="6">
-        <h4 class="text-h4">User Management</h4>
+    <!-- Stat Cards -->
+    <VRow class="mb-6">
+      <VCol cols="12" sm="6" md="3">
+        <VCard>
+          <VCardText>
+            <div class="d-flex justify-space-between">
+              <div class="d-flex flex-column gap-y-1">
+                <div class="text-body-1 text-high-emphasis">Session</div>
+                <div class="d-flex gap-x-2 align-center">
+                  <h4 class="text-h4">21,459</h4>
+                  <div class="text-base text-success"> (+29%) </div>
+                </div>
+                <div class="text-sm">Total Users</div>
+              </div>
+              <VAvatar color="primary" variant="tonal" rounded size="40">
+                <VIcon icon="bx-group" size="24" />
+              </VAvatar>
+            </div>
+          </VCardText>
+        </VCard>
       </VCol>
-      <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-plus" color="primary" @click="isAddDialogVisible = true">
-          Add
-        </VBtn>
-        <VBtn prepend-icon="bx-export" variant="tonal" color="secondary">
-          Export
-        </VBtn>
+      <VCol cols="12" sm="6" md="3">
+        <VCard>
+          <VCardText>
+            <div class="d-flex justify-space-between">
+              <div class="d-flex flex-column gap-y-1">
+                <div class="text-body-1 text-high-emphasis">Paid Users</div>
+                <div class="d-flex gap-x-2 align-center">
+                  <h4 class="text-h4">4,567</h4>
+                  <div class="text-base text-success"> (+18%) </div>
+                </div>
+                <div class="text-sm">Last Week Analytics</div>
+              </div>
+              <VAvatar color="error" variant="tonal" rounded size="40">
+                <VIcon icon="bx-user-plus" size="24" />
+              </VAvatar>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+      <VCol cols="12" sm="6" md="3">
+        <VCard>
+          <VCardText>
+            <div class="d-flex justify-space-between">
+              <div class="d-flex flex-column gap-y-1">
+                <div class="text-body-1 text-high-emphasis">Active Users</div>
+                <div class="d-flex gap-x-2 align-center">
+                  <h4 class="text-h4">19,860</h4>
+                  <div class="text-base text-error"> (-14%) </div>
+                </div>
+                <div class="text-sm">Last Week Analytics</div>
+              </div>
+              <VAvatar color="success" variant="tonal" rounded size="40">
+                <VIcon icon="bx-user-check" size="24" />
+              </VAvatar>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+      <VCol cols="12" sm="6" md="3">
+        <VCard>
+          <VCardText>
+            <div class="d-flex justify-space-between">
+              <div class="d-flex flex-column gap-y-1">
+                <div class="text-body-1 text-high-emphasis">Pending Users</div>
+                <div class="d-flex gap-x-2 align-center">
+                  <h4 class="text-h4">237</h4>
+                  <div class="text-base text-success"> (+42%) </div>
+                </div>
+                <div class="text-sm">Last Week Analytics</div>
+              </div>
+              <VAvatar color="warning" variant="tonal" rounded size="40">
+                <VIcon icon="bx-user-voice" size="24" />
+              </VAvatar>
+            </div>
+          </VCardText>
+        </VCard>
       </VCol>
     </VRow>
 
-    <!-- Filters -->
-    <VCard>
-      <VCardText>
-        <VRow align="center">
-          <VCol cols="12" sm="6" md="3">
-            <AppTextField v-model="search" placeholder="Search username" prepend-inner-icon="bx-search" density="compact" hide-details />
+    <!-- Filters Card -->
+    <VCard class="mb-6">
+      <VCardItem class="pb-4">
+        <VCardTitle>Filters</VCardTitle>
+      </VCardItem>
+      <VCardText class="pt-0">
+        <VRow>
+          <VCol cols="12" sm="4">
+            <VSelect placeholder="Select Role" :items="['admin', 'editor', 'subscriber', 'maintainer', 'author']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <AppSelect placeholder="Status" :items="['Active', 'Inactive']" density="compact" hide-details clearable />
+          <VCol cols="12" sm="4">
+            <VSelect placeholder="Select Plan" :items="['basic', 'team', 'company', 'enterprise']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <AppSelect placeholder="Department" :items="['R&D', 'Marketing', 'Finance', 'Operations', 'HR']" density="compact" hide-details clearable />
-          </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <VBtn prepend-icon="bx-search" color="primary" block>Search</VBtn>
+          <VCol cols="12" sm="4">
+            <VSelect placeholder="Select Status" :items="['Active', 'Inactive', 'Pending']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
         </VRow>
       </VCardText>
-    </VCard>
-
-    <!-- Table -->
-    <VCard class="mt-4">
+      <VDivider />
+      <VCardText class="d-flex flex-wrap gap-4">
+        <div class="me-3 d-flex gap-3">
+          <AppSelect v-model="itemsPerPage" :items="[5, 10, 25, 50]" density="comfortable" style="inline-size: 6.25rem;" hide-details />
+        </div>
+        <VSpacer />
+        <div class="d-flex align-center flex-wrap gap-4">
+          <VTextField v-model="searchQuery" placeholder="Search User" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
+          <VBtn prepend-icon="bx-export" variant="tonal" color="secondary">
+            Export
+          </VBtn>
+          <VBtn prepend-icon="bx-plus" color="primary">
+            Add New User
+          </VBtn>
+        </div>
+      </VCardText>
+      <VDivider />
       <VDataTable
         v-model:selected="selectedUsers"
-        :headers="headers"
+        :headers="userHeaders"
         :items="users"
-        :search="search"
-        :items-per-page="10"
+        :items-per-page="itemsPerPage"
+        :search="searchQuery"
         show-select
         class="text-no-wrap"
       >
-        <template #item.username="{ item }">
-          <div class="d-flex align-center gap-x-3">
-            <VAvatar size="34" variant="flat" color="primary">
-              <span class="text-xs text-white">{{ item.nickname.charAt(0) }}</span>
+        <template #item.user="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            <VAvatar size="34" variant="flat">
+              <VImg :src="resolveAvatarUrl(item.avatar)" />
             </VAvatar>
-            <div>
-              <div class="font-weight-medium">{{ item.username }}</div>
+            <div class="d-flex flex-column">
+              <h6 class="text-base">
+                <NuxtLink :to="`/system/user/view?id=${item.id}`" class="font-weight-medium text-link">
+                  {{ item.fullName }}
+                </NuxtLink>
+              </h6>
+              <div class="text-sm">{{ item.email }}</div>
             </div>
           </div>
         </template>
 
+        <template #item.role="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <VIcon :icon="resolveUserRoleIcon(item.role).icon" :color="resolveUserRoleIcon(item.role).color" size="20" />
+            <div class="text-capitalize text-high-emphasis text-body-1">{{ item.role }}</div>
+          </div>
+        </template>
+
+        <template #item.plan="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">{{ item.plan }}</div>
+        </template>
+
+        <template #item.billing="{ item }">
+          {{ item.billing }}
+        </template>
+
         <template #item.status="{ item }">
-          <VChip variant="tonal" :color="item.status === 'active' ? 'success' : 'error'" size="small" label>
-            {{ item.status === 'active' ? 'Active' : 'Inactive' }}
+          <VChip variant="tonal" :color="resolveUserStatusVariant(item.status)" size="small" label class="text-capitalize">
+            {{ item.status }}
           </VChip>
         </template>
 
-        <template #item.actions="{ item }">
-          <div class="d-flex gap-1">
-            <IconBtn size="small" @click="isEditDialogVisible = true">
-              <VIcon icon="bx-edit" size="18" />
-            </IconBtn>
-            <IconBtn size="small" color="error">
-              <VIcon icon="bx-trash" size="18" />
-            </IconBtn>
-            <IconBtn size="small" color="primary" :to="`/system/user/view`">
-              <VIcon icon="bx-show" size="18" />
-            </IconBtn>
-          </div>
+        <template #item.actions>
+          <IconBtn>
+            <VIcon icon="bx-trash" />
+          </IconBtn>
+          <IconBtn>
+            <VIcon icon="bx-show" />
+          </IconBtn>
+          <IconBtn>
+            <VIcon icon="bx-dots-vertical-rounded" />
+          </IconBtn>
         </template>
       </VDataTable>
     </VCard>
-
-    <!-- Add/Edit Dialog -->
-    <VDialog v-model="isAddDialogVisible" max-width="600">
-      <VCard title="Add User">
-        <VCardText>
-          <VForm>
-            <AppTextField v-model="form.username" label="Username" class="mb-3" />
-            <AppTextField v-model="form.nickname" label="Nickname" class="mb-3" />
-            <AppTextField v-model="form.password" :type="isPasswordVisible ? 'text' : 'password'" label="Password" :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'" @click:append-inner="isPasswordVisible = !isPasswordVisible" class="mb-3" />
-            <AppTextField v-model="form.email" label="Email" class="mb-3" />
-            <AppTextField v-model="form.phone" label="Phone" class="mb-3" />
-            <AppSelect v-model="form.sex" label="Gender" :items="['male', 'female']" class="mb-3" />
-            <AppSelect v-model="form.status" label="Status" :items="['active', 'inactive']" class="mb-3" />
-            <AppSelect v-model="form.dept" label="Department" :items="['R&D', 'Marketing', 'Finance', 'Operations', 'HR']" class="mb-3" />
-            <AppSelect v-model="form.role" label="Role" :items="['admin', 'editor', 'viewer']" class="mb-3" />
-            <AppTextarea v-model="form.remark" label="Remark" />
-          </VForm>
-        </VCardText>
-        <VCardActions class="justify-end">
-          <VBtn variant="tonal" @click="isAddDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary">Submit</VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
-
-    <VDialog v-model="isEditDialogVisible" max-width="600">
-      <VCard title="Edit User">
-        <VCardText>
-          <VForm>
-            <AppTextField v-model="form.nickname" label="Nickname" class="mb-3" />
-            <AppTextField v-model="form.phone" label="Phone" class="mb-3" />
-            <AppSelect v-model="form.sex" label="Gender" :items="['male', 'female']" class="mb-3" />
-            <AppSelect v-model="form.status" label="Status" :items="['active', 'inactive']" class="mb-3" />
-            <AppTextarea v-model="form.remark" label="Remark" />
-          </VForm>
-        </VCardText>
-        <VCardActions class="justify-end">
-          <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary">Save</VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
   </div>
 </template>
