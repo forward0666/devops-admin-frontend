@@ -30,24 +30,31 @@ const resolveUserStatusVariant = (status: string) => {
 
 const resolveAvatarUrl = (avatarNum: number) => `/images/avatars/avatar-${avatarNum}.png`
 
+const resolveAvatarColor = (name: string) => {
+  const colors = ['primary', 'secondary', 'success', 'info', 'warning', 'error']
+  const index = name.charCodeAt(0) % colors.length
+
+  return colors[index]
+}
+
 const users = ref([
-  { id: 50, fullName: 'Beverlie Krabbe', email: 'bkrabbe1d@home.pl', role: 'editor', plan: 'company', billing: 'Manual-Cash', status: 'active', avatar: 1 },
-  { id: 49, fullName: 'Paulie Durber', email: 'pdurber1c@gov.uk', role: 'subscriber', plan: 'team', billing: 'Manual-PayPal', status: 'inactive', avatar: 2 },
-  { id: 48, fullName: 'Onfre Wind', email: 'owind1b@yandex.ru', role: 'admin', plan: 'basic', billing: 'Manual-PayPal', status: 'pending', avatar: 3 },
-  { id: 47, fullName: 'Karena Courtliff', email: 'kcourtliff1a@bbc.co.uk', role: 'admin', plan: 'basic', billing: 'Manual-Credit Card', status: 'active', avatar: 6 },
-  { id: 46, fullName: 'Saunder Offner', email: 'soffner19@mac.com', role: 'maintainer', plan: 'enterprise', billing: 'Manual-Credit Card', status: 'pending', avatar: 4 },
-  { id: 45, fullName: 'Corrie Perot', email: 'cperot18@goo.ne.jp', role: 'subscriber', plan: 'team', billing: 'Manual-Credit Card', status: 'pending', avatar: 5 },
-  { id: 44, fullName: 'Vladamir Koschek', email: 'vkoschek17@abc.net.au', role: 'author', plan: 'team', billing: 'Manual-Credit Card', status: 'active', avatar: 1 },
-  { id: 43, fullName: 'Micaela McNirlan', email: 'mmcnirlan16@hc360.com', role: 'admin', plan: 'basic', billing: 'Auto Debit', status: 'inactive', avatar: 2 },
-  { id: 42, fullName: 'Benedetto Rossiter', email: 'brossiter15@craigslist.org', role: 'editor', plan: 'team', billing: 'Auto Debit', status: 'inactive', avatar: 1 },
-  { id: 41, fullName: 'Garvin Odem', email: 'godem14@eepurl.com', role: 'subscriber', plan: 'enterprise', billing: 'Manual-Cash', status: 'active', avatar: 3 },
+  { id: 50, fullName: 'Beverlie Krabbe', email: 'bkrabbe1d@home.pl', role: 'editor', team: 'Product', department: 'Engineering', status: 'active', avatar: 1 },
+  { id: 49, fullName: 'Paulie Durber', email: 'pdurber1c@gov.uk', role: 'subscriber', team: 'Design', department: 'Marketing', status: 'inactive', avatar: 2 },
+  { id: 48, fullName: 'Onfre Wind', email: 'owind1b@yandex.ru', role: 'admin', team: 'Backend', department: 'Engineering', status: 'pending', avatar: 3 },
+  { id: 47, fullName: 'Karena Courtliff', email: 'kcourtliff1a@bbc.co.uk', role: 'admin', team: 'DevOps', department: 'Operations', status: 'active', avatar: 6 },
+  { id: 46, fullName: 'Saunder Offner', email: 'soffner19@mac.com', role: 'maintainer', team: 'QA', department: 'Engineering', status: 'pending', avatar: 4 },
+  { id: 45, fullName: 'Corrie Perot', email: 'cperot18@goo.ne.jp', role: 'subscriber', team: 'Frontend', department: 'Engineering', status: 'pending', avatar: 5 },
+  { id: 44, fullName: 'Vladamir Koschek', email: 'vkoschek17@abc.net.au', role: 'author', team: 'Security', department: 'IT', status: 'active', avatar: 1 },
+  { id: 43, fullName: 'Micaela McNirlan', email: 'mmcnirlan16@hc360.com', role: 'admin', team: 'Data', department: 'Analytics', status: 'inactive', avatar: 2 },
+  { id: 42, fullName: 'Benedetto Rossiter', email: 'brossiter15@craigslist.org', role: 'editor', team: 'Mobile', department: 'Engineering', status: 'inactive', avatar: 1 },
+  { id: 41, fullName: 'Garvin Odem', email: 'godem14@eepurl.com', role: 'subscriber', team: 'Support', department: 'Customer Success', status: 'active', avatar: 3 },
 ])
 
 const userHeaders = [
   { title: 'User', key: 'user', sortable: true },
   { title: 'Role', key: 'role', sortable: true },
-  { title: 'Plan', key: 'plan', sortable: true },
-  { title: 'Billing', key: 'billing', sortable: true },
+  { title: 'Team', key: 'team', sortable: true },
+  { title: 'Department', key: 'department', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
@@ -146,7 +153,7 @@ const userHeaders = [
             <VSelect placeholder="Select Role" :items="['admin', 'editor', 'subscriber', 'maintainer', 'author']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
           <VCol cols="12" sm="4">
-            <VSelect placeholder="Select Plan" :items="['basic', 'team', 'company', 'enterprise']" density="comfortable" clearable hide-details variant="outlined" />
+            <VSelect placeholder="Select Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
           <VCol cols="12" sm="4">
             <VSelect placeholder="Select Status" :items="['Active', 'Inactive', 'Pending']" density="comfortable" clearable hide-details variant="outlined" />
@@ -181,10 +188,10 @@ const userHeaders = [
       >
         <template #item.user="{ item }">
           <div class="d-flex align-center gap-x-4">
-            <VAvatar size="34" variant="flat">
-              <VImg :src="resolveAvatarUrl(item.avatar)" />
+            <VAvatar size="34" variant="tonal" :color="resolveAvatarColor(item.fullName)">
+              <span class="text-sm font-weight-medium">{{ item.fullName.charAt(0) }}</span>
             </VAvatar>
-            <div class="d-flex flex-column">
+            <div class="d-flex flex-column" style="min-inline-size: 180px;">
               <h6 class="text-base">
                 <NuxtLink :to="`/system/user/view?id=${item.id}`" class="font-weight-medium text-link">
                   {{ item.fullName }}
@@ -202,12 +209,12 @@ const userHeaders = [
           </div>
         </template>
 
-        <template #item.plan="{ item }">
-          <div class="text-body-1 text-high-emphasis text-capitalize">{{ item.plan }}</div>
+        <template #item.team="{ item }">
+          <div class="text-body-1 text-high-emphasis">{{ item.team }}</div>
         </template>
 
-        <template #item.billing="{ item }">
-          {{ item.billing }}
+        <template #item.department="{ item }">
+          <div class="text-body-1">{{ item.department }}</div>
         </template>
 
         <template #item.status="{ item }">
