@@ -20,19 +20,14 @@ const userData = {
 const itemsPerPage = ref(5)
 
 const projects = ref([
-  { name: 'BGC eCommerce App', type: 'React Project', leader: 'Eileen', progress: 78, img: '/images/pages/react.png' },
-  { name: 'Falcon Logo Design', type: 'Figma Project', leader: 'Owen', progress: 25, img: '/images/pages/figma.png' },
-  { name: 'Dashboard Design', type: 'Vuejs Project', leader: 'Keith', progress: 62, img: '/images/pages/vuejs.png' },
-  { name: 'Foodista mobile app', type: 'Xamarin Project', leader: 'Merline', progress: 8, img: '/images/pages/xamarin.png' },
-  { name: 'Dojo Email App', type: 'Python Project', leader: 'Harmonia', progress: 18, img: '/images/pages/python.png' },
+  { name: 'BGC eCommerce App', type: 'React Project', leader: 'Eileen', progress: 78, img: '/images/pages/react.png', team: ['avatar-1.png', 'avatar-8.png', 'avatar-6.png'], teamExtra: 3 },
+  { name: 'Falcon Logo Design', type: 'Figma Project', leader: 'Owen', progress: 25, img: '/images/pages/figma.png', team: ['avatar-5.png', 'avatar-2.png'], teamExtra: 0 },
+  { name: 'Dashboard Design', type: 'Vuejs Project', leader: 'Keith', progress: 62, img: '/images/pages/vuejs.png', team: ['avatar-8.png', 'avatar-2.png', 'avatar-1.png'], teamExtra: 0 },
+  { name: 'Foodista mobile app', type: 'Xamarin Project', leader: 'Merline', progress: 8, img: '/images/pages/xamarin.png', team: ['avatar-3.png', 'avatar-4.png', 'avatar-7.png'], teamExtra: 8 },
+  { name: 'Dojo Email App', type: 'Python Project', leader: 'Harmonia', progress: 51, img: '/images/pages/python.png', team: ['avatar-4.png', 'avatar-3.png', 'avatar-1.png'], teamExtra: 5 },
+  { name: 'Hilton Group', type: 'React Project', leader: 'Rebecca', progress: 85, img: '/images/pages/react.png', team: ['avatar-2.png', 'avatar-5.png', 'avatar-4.png'], teamExtra: 2 },
+  { name: 'Mobile App UI', type: 'Figma Project', leader: 'Olivia', progress: 40, img: '/images/pages/figma.png', team: ['avatar-7.png', 'avatar-1.png'], teamExtra: 1 },
 ])
-
-const teamAvatars = [
-  '/images/avatars/avatar-1.png',
-  '/images/avatars/avatar-2.png',
-  '/images/avatars/avatar-3.png',
-  '/images/avatars/avatar-4.png',
-]
 
 const recentDevices = ref([
   { device: 'iPhone 13 Pro', browser: 'Safari', location: 'San Francisco, US', time: '10:30 AM', icon: 'bx-mobile', current: true },
@@ -132,14 +127,7 @@ const passwordRequirements = [
         <div v-show="activeTab === 'account'" class="mt-6">
           <VCard>
             <VCardItem><VCardTitle>Projects List</VCardTitle></VCardItem>
-            <VCardItem class="pt-0">
-              <div class="d-flex justify-space-between align-center flex-wrap gap-4">
-                <AppSelect v-model="itemsPerPage" :items="[5, 10, 25, 50]" style="inline-size: 5rem;" />
-                <AppTextField placeholder="Search Project" style="inline-size: 250px;" />
-              </div>
-            </VCardItem>
-            <VDivider />
-            <VDataTable :items="projects" :items-per-page="itemsPerPage" :headers="[{ title: 'PROJECT', key: 'project' }, { title: 'LEADER', key: 'leader' }, { title: 'TEAM', key: 'team' }, { title: 'PROGRESS', key: 'progress' }, { title: 'Action', key: 'action', sortable: false }]" class="text-no-wrap">
+            <VDataTable show-select :items="projects" :items-per-page="itemsPerPage" :headers="[{ title: 'PROJECT', key: 'project' }, { title: 'LEADER', key: 'leader' }, { title: 'TEAM', key: 'team' }, { title: 'PROGRESS', key: 'progress' }, { title: 'Action', key: 'action', sortable: false }]" class="text-no-wrap">
               <template #item.project="{ item }">
                 <div class="d-flex align-center gap-x-3">
                   <VAvatar size="34" rounded variant="flat"><VImg :src="item.img" /></VAvatar>
@@ -150,11 +138,11 @@ const passwordRequirements = [
                 </div>
               </template>
               <template #item.leader="{ item }"><div class="text-base text-high-emphasis">{{ item.leader }}</div></template>
-              <template #item.team>
+              <template #item.team="{ item }">
                 <div class="d-flex">
                   <VAvatarGroup size="26">
-                    <VAvatar v-for="(avatar, i) in teamAvatars" :key="i" size="26"><VImg :src="avatar" /></VAvatar>
-                    <VAvatar size="26" color="grey-light"><span class="text-caption text-high-emphasis">+3</span></VAvatar>
+                    <VAvatar v-for="(avatar, i) in item.team" :key="i" size="26"><VImg :src="`/images/avatars/${avatar}`" /></VAvatar>
+                    <VAvatar v-if="item.teamExtra" size="26" color="grey-light"><span class="text-caption text-high-emphasis">+{{ item.teamExtra }}</span></VAvatar>
                   </VAvatarGroup>
                 </div>
               </template>
