@@ -1,11 +1,9 @@
 // Redirect to correct home based on role
-import { useAuthStore } from '~/stores/auth'
-
 export default defineNuxtRouteMiddleware((to) => {
-  const authStore = useAuthStore()
-
-  // Only apply on exact root or dashboard
+  // Only on exact root
   if (to.path === '/' || to.path === '') {
-    return navigateTo(authStore.homeRoute)
+    const saved = import.meta.client ? localStorage.getItem('auth-role') : null
+    const home = saved === 'user' ? '/user/dashboard' : '/dashboard'
+    return navigateTo(home)
   }
 })

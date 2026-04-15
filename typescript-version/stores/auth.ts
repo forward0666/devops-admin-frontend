@@ -6,12 +6,14 @@ export type UserRole = 'sys_admin' | 'admin' | 'user'
 interface UserState {
   role: UserRole
   userName: string
+  _ready: boolean
 }
 
 export const useAuthStore = defineStore('auth', {
   state: (): UserState => ({
-    role: 'sys_admin', // 默认管理员，登录后根据接口设置
+    role: 'sys_admin',
     userName: 'Admin',
+    _ready: false,
   }),
 
   getters: {
@@ -26,6 +28,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     setRole(role: UserRole) {
       this.role = role
+      localStorage.setItem('auth-role', role)
     },
     setUserName(name: string) {
       this.userName = name

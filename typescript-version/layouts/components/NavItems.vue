@@ -7,6 +7,7 @@ const authStore = useAuthStore()
 </script>
 
 <template>
+  <template v-if="authStore._ready">
   <!-- 👉 Admin Navigation -->
   <template v-if="authStore.isAdmin">
     <!-- 👉 Dashboard -->
@@ -118,6 +119,6 @@ const authStore = useAuthStore()
         to: '/user/profile',
       }"
     />
+    </template>
   </template>
-
 </template>

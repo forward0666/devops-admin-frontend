@@ -9,11 +9,22 @@ import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
 
 const authStore = useAuthStore()
-const currentRole = ref(authStore.role)
+const currentRole = ref('sys_admin')
 
-const switchRole = (val: string) => {
-  authStore.setRole(val as any)
-  navigateTo(val === 'user' ? '/user/dashboard' : '/dashboard')
+watch(() => authStore._ready, (ready) => {
+  if (ready) currentRole.value = authStore.role
+})
+
+const switchToAdmin = () => {
+  currentRole.value = 'sys_admin'
+  authStore.setRole('sys_admin')
+  navigateTo('/dashboard')
+}
+
+const switchToUser = () => {
+  currentRole.value = 'user'
+  authStore.setRole('user')
+  navigateTo('/user/dashboard')
 }
 </script>
 
@@ -50,11 +61,11 @@ const switchRole = (val: string) => {
 
 
         <!-- 👉 Role Switch -->
-        <VBtnToggle v-model="currentRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;" @update:model-value="switchRole">
-          <VBtn value="sys_admin" size="small" style="flex: 1;">
+        <VBtnToggle :model-value="currentRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;">
+          <VBtn size="small" style="flex: 1;" :variant="currentRole === 'sys_admin' ? 'flat' : 'outlined'" @click="switchToAdmin">
             <VIcon start icon="bx-shield" size="16" />Admin
           </VBtn>
-          <VBtn value="user" size="small" style="flex: 1;">
+          <VBtn size="small" style="flex: 1;" :variant="currentRole === 'user' ? 'flat' : 'outlined'" @click="switchToUser">
             <VIcon start icon="bx-user" size="16" />User
           </VBtn>
         </VBtnToggle>
