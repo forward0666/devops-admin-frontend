@@ -354,18 +354,19 @@ const passwordRequirements = [
               <VDivider class="mb-4" />
               <VList>
                 <VListItem>
-                  <template #prepend><VAvatar color="#4267B2" variant="tonal" size="40" rounded><VIcon icon="bxl-facebook" /></VAvatar></template>
-                  <VListItemTitle>Facebook</VListItemTitle><VListItemSubtitle>Connected</VListItemSubtitle>
+                  <template #prepend><VAvatar color="#0088cc" variant="tonal" size="40" rounded><VIcon icon="bxl-telegram" /></VAvatar></template>
+                  <VListItemTitle>Telegram</VListItemTitle><VListItemSubtitle>Connected</VListItemSubtitle>
                   <template #append><VBtn variant="tonal" color="error" size="small">Disconnect</VBtn></template>
                 </VListItem>
                 <VListItem>
-                  <template #prepend><VAvatar color="#1DA1F2" variant="tonal" size="40" rounded><VIcon icon="bxl-twitter" /></VAvatar></template>
-                  <VListItemTitle>Twitter</VListItemTitle><VListItemSubtitle>Connected</VListItemSubtitle>
+                  <template #prepend><VAvatar color="#db4437" variant="tonal" size="40" rounded><VIcon icon="bxl-google" /></VAvatar></template>
+                  <VListItemTitle>Google</VListItemTitle><VListItemSubtitle>Connected</VListItemSubtitle>
                   <template #append><VBtn variant="tonal" color="error" size="small">Disconnect</VBtn></template>
                 </VListItem>
                 <VListItem>
-                  <template #prepend><VAvatar color="#EA4335" variant="tonal" size="40" rounded><VIcon icon="bxl-google" /></VAvatar></template>
-                  <VListItemTitle>Google</VListItemTitle><VListItemSubtitle>Not Connected</VListItemSubtitle>
+                  <template #prepend><VAvatar color="#4a154b" variant="tonal" size="40" rounded><VIcon icon="bxl-slack" /></VAvatar></template>
+                  <VListItemTitle>Slack</VListItemTitle>
+                  <VListItemSubtitle>Not Connected</VListItemSubtitle>
                   <template #append><VBtn variant="tonal" color="primary" size="small">Connect</VBtn></template>
                 </VListItem>
               </VList>
