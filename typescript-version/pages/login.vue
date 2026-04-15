@@ -8,7 +8,6 @@ const form = ref({
   email: '',
   password: '',
   remember: false,
-  role: 'sys_admin' as string,
 })
 
 const authStore = useAuthStore()
@@ -16,10 +15,19 @@ const isPasswordVisible = ref(false)
 
 definePageMeta({ layout: 'blank' })
 
+const mockUsers = [
+  { email: 'admin@jhdevops.com', password: 'admin123', role: 'sys_admin', name: 'Admin' },
+  { email: 'manager@jhdevops.com', password: 'admin123', role: 'admin', name: 'Manager' },
+  { email: 'john@jhdevops.com', password: 'user123', role: 'user', name: 'John' },
+]
+
 const handleLogin = () => {
-  authStore.setRole(form.value.role as any)
-  authStore.setUserName(form.value.email || 'Admin')
-  navigateTo(authStore.homeRoute)
+  const user = mockUsers.find(u => u.email === form.value.email && u.password === form.value.password)
+  if (user) {
+    authStore.setLoginRole(user.role as any)
+    authStore.setUserName(user.name)
+    navigateTo(authStore.homeRoute)
+  }
 }
 </script>
 
@@ -78,17 +86,6 @@ const handleLogin = () => {
                   label="Email or Username"
                   type="email"
                   placeholder="johndoe@email.com"
-                />
-              </VCol>
-
-              <!-- role select (for testing) -->
-              <VCol cols="12">
-                <VSelect
-                  v-model="form.role"
-                  label="Login as Role"
-                  :items="['sys_admin', 'admin', 'user']"
-                  variant="outlined"
-                  density="comfortable"
                 />
               </VCol>
 

@@ -5,6 +5,7 @@ export type UserRole = 'sys_admin' | 'admin' | 'user'
 
 interface UserState {
   role: UserRole
+  loginRole: UserRole
   userName: string
   _ready: boolean
 }
@@ -12,13 +13,15 @@ interface UserState {
 export const useAuthStore = defineStore('auth', {
   state: (): UserState => ({
     role: 'sys_admin',
+    loginRole: 'sys_admin',
     userName: 'Admin',
     _ready: false,
   }),
 
   getters: {
-    isAdmin: (state) => state.role === 'sys_admin' || state.role === 'admin',
-    isUser: (state) => state.role === 'user',
+    isAdmin: (state) => state._ready && (state.loginRole === 'sys_admin' || state.loginRole === 'admin'),
+    isUser: (state) => state._ready && state.role === 'user',
+    isReady: (state) => state._ready,
     homeRoute: (state) => {
       if (state.role === 'user') return '/user/dashboard'
       return '/dashboard'
@@ -29,6 +32,12 @@ export const useAuthStore = defineStore('auth', {
     setRole(role: UserRole) {
       this.role = role
       localStorage.setItem('auth-role', role)
+    },
+    setLoginRole(role: UserRole) {
+      this.loginRole = role
+      this.role = role
+      localStorage.setItem('auth-role', role)
+      localStorage.setItem('auth-login-role', role)
     },
     setUserName(name: string) {
       this.userName = name

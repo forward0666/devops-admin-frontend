@@ -7,9 +7,9 @@ const authStore = useAuthStore()
 </script>
 
 <template>
-  <template v-if="authStore._ready">
+  <template v-if="authStore.isReady">
   <!-- 👉 Admin Navigation -->
-  <template v-if="authStore.isAdmin">
+  <template v-if="!authStore.isUser">
     <!-- 👉 Dashboard -->
     <VerticalNavLink
       :item="{

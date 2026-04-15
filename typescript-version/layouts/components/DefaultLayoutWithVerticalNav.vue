@@ -11,7 +11,7 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
 const authStore = useAuthStore()
 const currentRole = ref('sys_admin')
 
-watch(() => authStore._ready, (ready) => {
+watch(() => authStore.isReady, (ready) => {
   if (ready) currentRole.value = authStore.role
 })
 
@@ -60,8 +60,8 @@ const switchToUser = () => {
         <VSpacer />
 
 
-        <!-- 👉 Role Switch -->
-        <VBtnToggle :model-value="currentRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;">
+        <!-- 👉 Role Switch (admin only) -->
+        <VBtnToggle v-if="authStore.isAdmin" :model-value="currentRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;">
           <VBtn size="small" style="flex: 1;" :variant="currentRole === 'sys_admin' ? 'flat' : 'outlined'" @click="switchToAdmin">
             <VIcon start icon="bx-shield" size="16" />Admin
           </VBtn>
