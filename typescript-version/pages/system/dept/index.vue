@@ -11,9 +11,7 @@ const toggleExpand = (item: any) => {
 
 const isRowExpanded = (item: any) => {
   if (isExpandAll.value) return true
-  if (item.depth === 0) return !expandedRows.value.has(item.id)
-  // Check if parent is expanded
-  return expandedRows.value.has(item.id)
+  return !expandedRows.value.has(item.id)
 }
 
 const departments = ref([
@@ -71,7 +69,7 @@ const flatDepts = computed(() => {
   const flatten = (items: any[], depth: number, parentExpanded: boolean) => {
     items.forEach(item => {
       if (!parentExpanded) return
-      const expanded = isExpandAll.value || !expandedRows.value.has(item.id)
+      const expanded = isExpandAll.value || isRowExpanded(item)
       result.push({ ...item, depth })
       if (item.children?.length) flatten(item.children, depth + 1, expanded)
     })
