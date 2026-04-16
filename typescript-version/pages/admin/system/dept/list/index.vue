@@ -1,8 +1,12 @@
 <script setup lang="ts">
 const search = ref('')
 const isDialogVisible = ref(false)
+const isEditDialogVisible = ref(false)
+const isDeleteDialogVisible = ref(false)
 const isExpandAll = ref(false)
 const expandedRows = ref<Set<number>>(new Set())
+const editingItem = ref<any>(null)
+const deletingItem = ref<any>(null)
 
 const toggleExpand = (item: any) => {
   if (expandedRows.value.has(item.id)) expandedRows.value.delete(item.id)
@@ -16,41 +20,41 @@ const isRowExpanded = (item: any) => {
 
 const departments = ref([
   {
-    id: 1, name: 'Headquarters', type: 'office', leader: 'admin', children: [
+    id: 1, name: 'Headquarters', type: 'office', children: [
       {
-        id: 2, name: 'Research Department', type: 'department', leader: 'John', children: [
+        id: 2, name: 'Research Department', type: 'department', children: [
           { id: 3, name: 'Frontend Team', type: 'team', leader: 'Mary', children: [] },
           { id: 4, name: 'Backend Team', type: 'team', leader: 'Tom', children: [] },
         ],
       },
       {
-        id: 5, name: 'Operations Department', type: 'department', leader: 'Lucy', children: [
+        id: 5, name: 'Operations Department', type: 'department', children: [
           { id: 8, name: 'DevOps Team', type: 'team', leader: 'Jerry', children: [] },
           { id: 9, name: 'SRE Team', type: 'team', leader: 'Anna', children: [] },
         ],
       },
       {
-        id: 6, name: 'Finance Department', type: 'department', leader: 'Jack', children: [
+        id: 6, name: 'Finance Department', type: 'department', children: [
           { id: 10, name: 'Accounting Team', type: 'team', leader: 'Bob', children: [] },
         ],
       },
       {
-        id: 7, name: 'Marketing Department', type: 'department', leader: 'Rose', children: [
+        id: 7, name: 'Marketing Department', type: 'department', children: [
           { id: 11, name: 'Growth Team', type: 'team', leader: 'Diana', children: [] },
         ],
       },
     ],
   },
   {
-    id: 12, name: 'Branch Office', type: 'office', leader: 'Steven', children: [
+    id: 12, name: 'Branch Office', type: 'office', children: [
       {
-        id: 13, name: 'Sales Department', type: 'department', leader: 'Kevin', children: [
+        id: 13, name: 'Sales Department', type: 'department', children: [
           { id: 14, name: 'Domestic Sales Team', type: 'team', leader: 'Liam', children: [] },
           { id: 15, name: 'Overseas Sales Team', type: 'team', leader: 'Noah', children: [] },
         ],
       },
       {
-        id: 16, name: 'Support Department', type: 'department', leader: 'Mia', children: [
+        id: 16, name: 'Support Department', type: 'department', children: [
           { id: 17, name: 'CS Team', type: 'team', leader: 'Oliver', children: [] },
         ],
       },
@@ -61,7 +65,7 @@ const departments = ref([
 const headers = [
   { title: 'Office / Department / Team', key: 'name' },
   { title: 'Leader', key: 'leader' },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const },
 ]
 
 const flatDepts = computed(() => {
@@ -88,17 +92,95 @@ const typeColor = (type: string) => {
   return map[type] || 'grey'
 }
 
-const form = ref({ name: '', parentId: '', leader: '', type: 'department' })
+const parentOptions = computed(() => {
+  const names: string[] = ['None (Top Level)']
+  const collect = (items: any[]) => {
+    items.forEach(item => {
+      if (item.type !== 'team') { names.push(item.name); if (item.children?.length) collect(item.children) }
+    })
+  }
+  collect(departments.value)
+  return names
+})
+
+const form = ref({ name: '', parentId: 'None (Top Level)', leader: '', type: 'department' })
+
+function openAddDialog() {
+  form.value = { name: '', parentId: 'None (Top Level)', leader: '', type: 'department' }
+  isDialogVisible.value = true
+}
+
+function addChildTo(item: any) {
+  form.value = { name: '', parentId: item.name, leader: '', type: item.type === 'office' ? 'department' : 'team' }
+  isDialogVisible.value = true
+}
+
+function addItem() {
+  const newId = Date.now()
+  const newItem = { id: newId, name: form.value.name, type: form.value.type, leader: form.value.leader, children: [] }
+  if (form.value.parentId === 'None (Top Level)') {
+    departments.value.push(newItem)
+  } else {
+    const parent = findInTree(departments.value, form.value.parentId)
+    if (parent) {
+      if (!parent.children) parent.children = []
+      parent.children.push(newItem)
+    }
+  }
+  isDialogVisible.value = false
+}
+
+function findInTree(items: any[], name: string): any {
+  for (const item of items) {
+    if (item.name === name) return item
+    if (item.children) { const found = findInTree(item.children, name); if (found) return found }
+  }
+  return null
+}
+
+function openEditDialog(item: any) {
+  editingItem.value = { ...item }
+  isEditDialogVisible.value = true
+}
+
+function saveEdit() {
+  if (!editingItem.value) return
+  const target = findInTree(departments.value, editingItem.value._originalName)
+  if (target) {
+    target.name = editingItem.value.name
+    target.leader = editingItem.value.leader
+  }
+  isEditDialogVisible.value = false
+}
+
+function openDeleteDialog(item: any) {
+  deletingItem.value = item
+  isDeleteDialogVisible.value = true
+}
+
+function confirmDelete() {
+  if (!deletingItem.value) return
+  deleteFromTree(departments.value, deletingItem.value.name)
+  isDeleteDialogVisible.value = false
+}
+
+function deleteFromTree(items: any[], name: string): boolean {
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].name === name) { items.splice(i, 1); return true }
+    if (items[i].children && deleteFromTree(items[i].children, name)) return true
+  }
+  return false
+}
 </script>
 
 <template>
   <div>
-    <VRow class="mb-4">
+    <VRow class="mb-4 align-center">
       <VCol cols="12" md="6"><h4 class="text-h4">Department</h4></VCol>
-      <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-plus" color="primary" @click="isDialogVisible = true">Add</VBtn>
-        <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" @click="isExpandAll = true">Expand</VBtn>
-        <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" @click="isExpandAll = false; expandedRows = new Set()">Collapse</VBtn>
+      <VCol cols="12" md="6" class="d-flex justify-end align-center gap-3">
+        <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="openAddDialog">Add</VBtn>
+        <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = true">Expand</VBtn>
+        <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows = new Set()">Collapse</VBtn>
       </VCol>
     </VRow>
 
@@ -123,30 +205,63 @@ const form = ref({ name: '', parentId: '', leader: '', type: 'department' })
           </div>
         </template>
         <template #item.actions="{ item }">
-          <div class="d-flex gap-1">
-            <IconBtn v-if="item.type !== 'team'" size="small"><VIcon icon="bx-plus" size="18" /></IconBtn>
-            <div v-else style="inline-size: 32px; visibility: hidden;"><IconBtn size="small"><VIcon icon="bx-plus" size="18" /></IconBtn></div>
-            <NuxtLink :to="`/admin/system/dept/view?name=${item.name}`"><IconBtn size="small"><VIcon icon="bx-show" size="18" /></IconBtn></NuxtLink>
-            <IconBtn size="small"><VIcon icon="bx-edit" size="18" /></IconBtn>
-            <IconBtn size="small" color="error"><VIcon icon="bx-trash" size="18" /></IconBtn>
-          </div>
+          <NuxtLink :to="`/admin/system/dept/view?name=${item.name}`"><IconBtn><VIcon icon="bx-show" /></IconBtn></NuxtLink>
+          <IconBtn @click="openEditDialog({ ...item, _originalName: item.name })"><VIcon icon="bx-edit" /></IconBtn>
+          <IconBtn color="error" @click="openDeleteDialog(item)"><VIcon icon="bx-trash" /></IconBtn>
         </template>
       </VDataTable>
     </VCard>
 
-    <VDialog v-model="isDialogVisible" max-width="550">
-      <VCard title="Add Department">
+    <!-- Add Dialog -->
+    <VDialog v-model="isDialogVisible" max-width="500">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Add New</VCardTitle>
+          <VBtn icon variant="text" @click="isDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
         <VCardText>
-          <VForm>
-            <VSelect v-model="form.type" label="Type" :items="['office', 'department', 'team']" class="mb-3" variant="outlined" />
-            <VSelect v-model="form.parentId" label="Parent" :items="['None', 'Headquarters', 'Branch Office']" class="mb-3" variant="outlined" clearable />
-            <VTextField v-model="form.name" label="Name" class="mb-3" variant="outlined" />
-            <VTextField v-model="form.leader" label="Leader" variant="outlined" />
-          </VForm>
+          <VSelect v-model="form.type" label="Type" :items="['office', 'department', 'team']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="form.parentId" label="Parent" :items="parentOptions" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="form.name" label="Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="form.leader" label="Leader" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary">Submit</VBtn>
+          <VBtn color="primary" @click="addItem">Submit</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Edit Dialog -->
+    <VDialog v-model="isEditDialogVisible" max-width="500">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Edit</VCardTitle>
+          <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
+        <VCardText>
+          <VTextField :model-value="editingItem?.type" label="Type" density="comfortable" class="mb-3" variant="outlined" readonly />
+          <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editingItem.leader" label="Leader" density="comfortable" variant="outlined" />
+        </VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
+          <VBtn color="primary" @click="saveEdit">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Delete Dialog -->
+    <VDialog v-model="isDeleteDialogVisible" max-width="400">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Delete</VCardTitle>
+          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
+        <VCardText>Are you sure you want to delete <strong>{{ deletingItem?.name }}</strong>? This will also remove all children.</VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
+          <VBtn color="error" @click="confirmDelete">Delete</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

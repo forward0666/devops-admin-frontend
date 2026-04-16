@@ -7,30 +7,30 @@ watch(() => route.query, (q) => {
 
 const departments = [
   {
-    id: 1, name: 'Headquarters', type: 'office', leader: 'admin', children: [
-      { id: 2, name: 'Research Department', type: 'department', leader: 'John', children: [
+    id: 1, name: 'Headquarters', type: 'office', children: [
+      { id: 2, name: 'Research Department', type: 'department', children: [
         { id: 3, name: 'Frontend Team', type: 'team', leader: 'Mary', members: 8 },
         { id: 4, name: 'Backend Team', type: 'team', leader: 'Tom', members: 10 },
       ]},
-      { id: 5, name: 'Operations Department', type: 'department', leader: 'Lucy', children: [
+      { id: 5, name: 'Operations Department', type: 'department', children: [
         { id: 8, name: 'DevOps Team', type: 'team', leader: 'Jerry', members: 6 },
         { id: 9, name: 'SRE Team', type: 'team', leader: 'Anna', members: 5 },
       ]},
-      { id: 6, name: 'Finance Department', type: 'department', leader: 'Jack', children: [
+      { id: 6, name: 'Finance Department', type: 'department', children: [
         { id: 10, name: 'Accounting Team', type: 'team', leader: 'Bob', members: 4 },
       ]},
-      { id: 7, name: 'Marketing Department', type: 'department', leader: 'Rose', children: [
+      { id: 7, name: 'Marketing Department', type: 'department', children: [
         { id: 11, name: 'Growth Team', type: 'team', leader: 'Diana', members: 5 },
       ]},
     ],
   },
   {
-    id: 12, name: 'Branch Office', type: 'office', leader: 'Steven', children: [
-      { id: 13, name: 'Sales Department', type: 'department', leader: 'Kevin', children: [
+    id: 12, name: 'Branch Office', type: 'office', children: [
+      { id: 13, name: 'Sales Department', type: 'department', children: [
         { id: 14, name: 'Domestic Sales Team', type: 'team', leader: 'Liam', members: 7 },
         { id: 15, name: 'Overseas Sales Team', type: 'team', leader: 'Noah', members: 6 },
       ]},
-      { id: 16, name: 'Support Department', type: 'department', leader: 'Mia', children: [
+      { id: 16, name: 'Support Department', type: 'department', children: [
         { id: 17, name: 'CS Team', type: 'team', leader: 'Oliver', members: 5 },
       ]},
     ],
@@ -112,7 +112,7 @@ const activeTab = ref('overview')
               <VListItem><VListItemTitle><h6 class="text-h6">Name: <span class="text-body-1 d-inline-block">{{ deptData.name }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Type: <span class="text-body-1 text-capitalize d-inline-block">{{ deptData.type }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Status: <span class="text-body-1 text-capitalize d-inline-block">{{ deptData.status }}</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Leader: <span class="text-body-1 d-inline-block">{{ deptData.leader }}</span></h6></VListItemTitle></VListItem>
+              <VListItem v-if="deptData.leader"><VListItemTitle><h6 class="text-h6">Leader: <span class="text-body-1 d-inline-block">{{ deptData.leader }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Created: <span class="text-body-1 d-inline-block">{{ deptData.createdAt }}</span></h6></VListItemTitle></VListItem>
             </VList>
           </VCardText>
