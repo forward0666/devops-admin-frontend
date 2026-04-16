@@ -2,8 +2,10 @@
 const search = ref('')
 const isDialogVisible = ref(false)
 const isEditDialogVisible = ref(false)
+const addFormRef = ref<any>(null)
+const editFormRef = ref<any>(null)
 const isDeleteDialogVisible = ref(false)
-const isExpandAll = ref(false)
+const isExpandAll = ref<boolean | null>(null)
 const expandedRows = ref<Set<number>>(new Set())
 const editingItem = ref<any>(null)
 const deletingItem = ref<any>(null)
@@ -14,8 +16,9 @@ const toggleExpand = (item: any) => {
 }
 
 const isRowExpanded = (item: any) => {
-  if (isExpandAll.value) return true
-  return !expandedRows.value.has(item.id)
+  if (isExpandAll.value === true) return true
+  if (isExpandAll.value === false) return false
+  return expandedRows.value.has(item.id)
 }
 
 const departments = ref([
@@ -92,22 +95,35 @@ const typeColor = (type: string) => {
   return map[type] || 'grey'
 }
 
-const parentOptions = computed(() => {
-  const names: string[] = ['None (Top Level)']
-  const collect = (items: any[]) => {
+const officeOptions = computed(() => departments.value.filter(d => d.type === 'office').map(d => d.name))
+const deptOptions = computed(() => {
+  const names: string[] = []
+ const collect = (items: any[]) => {
     items.forEach(item => {
-      if (item.type !== 'team') { names.push(item.name); if (item.children?.length) collect(item.children) }
+      if (item.type === 'department') { names.push(item.name) }
+      if (item.children?.length) collect(item.children)
     })
   }
   collect(departments.value)
   return names
 })
 
+const parentOptions = computed(() => {
+  if (form.value.type === 'office') return ['None (Top Level)']
+  if (form.value.type === 'department') return officeOptions.value
+  if (form.value.type === 'team') return deptOptions.value
+  return ['None (Top Level)']
+})
+
 const form = ref({ name: '', parentId: 'None (Top Level)', leader: '', type: 'department' })
 
 function openAddDialog() {
-  form.value = { name: '', parentId: 'None (Top Level)', leader: '', type: 'department' }
+  form.value = { name: '', parentId: '', leader: '', type: 'department' }
   isDialogVisible.value = true
+}
+
+function onTypeChange() {
+  form.value.parentId = parentOptions.value[0] || ''
 }
 
 function addChildTo(item: any) {
@@ -116,18 +132,21 @@ function addChildTo(item: any) {
 }
 
 function addItem() {
-  const newId = Date.now()
-  const newItem = { id: newId, name: form.value.name, type: form.value.type, leader: form.value.leader, children: [] }
-  if (form.value.parentId === 'None (Top Level)') {
-    departments.value.push(newItem)
-  } else {
-    const parent = findInTree(departments.value, form.value.parentId)
-    if (parent) {
-      if (!parent.children) parent.children = []
-      parent.children.push(newItem)
+  addFormRef.value?.validate().then(({ valid }: any) => {
+    if (!valid) return
+    const newId = Date.now()
+    const newItem = { id: newId, name: form.value.name, type: form.value.type, leader: form.value.leader, children: [] }
+    if (form.value.parentId === 'None (Top Level)') {
+      departments.value.push(newItem)
+    } else {
+      const parent = findInTree(departments.value, form.value.parentId)
+      if (parent) {
+        if (!parent.children) parent.children = []
+        parent.children.push(newItem)
+      }
     }
-  }
-  isDialogVisible.value = false
+    isDialogVisible.value = false
+  })
 }
 
 function findInTree(items: any[], name: string): any {
@@ -144,13 +163,16 @@ function openEditDialog(item: any) {
 }
 
 function saveEdit() {
-  if (!editingItem.value) return
-  const target = findInTree(departments.value, editingItem.value._originalName)
-  if (target) {
-    target.name = editingItem.value.name
-    target.leader = editingItem.value.leader
-  }
-  isEditDialogVisible.value = false
+  editFormRef.value?.validate().then(({ valid }: any) => {
+    if (!valid) return
+    if (!editingItem.value) return
+    const target = findInTree(departments.value, editingItem.value._originalName)
+    if (target) {
+      target.name = editingItem.value.name
+      target.leader = editingItem.value.leader
+    }
+    isEditDialogVisible.value = false
+  })
 }
 
 function openDeleteDialog(item: any) {
@@ -180,7 +202,7 @@ function deleteFromTree(items: any[], name: string): boolean {
       <VCol cols="12" md="6" class="d-flex justify-end align-center gap-3">
         <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="openAddDialog">Add</VBtn>
         <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = true">Expand</VBtn>
-        <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows = new Set()">Collapse</VBtn>
+        <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows = new Set(); flatDepts">Collapse</VBtn>
       </VCol>
     </VRow>
 
@@ -220,10 +242,12 @@ function deleteFromTree(items: any[], name: string): boolean {
           <VBtn icon variant="text" @click="isDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
-          <VSelect v-model="form.type" label="Type" :items="['office', 'department', 'team']" density="comfortable" class="mb-3" variant="outlined" />
+          <VForm ref="addFormRef">
+            <VSelect v-model="form.type" label="Type" :items="['office', 'department', 'team']" density="comfortable" class="mb-3" variant="outlined" @update:model-value="onTypeChange" />
           <VSelect v-model="form.parentId" label="Parent" :items="parentOptions" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="form.name" label="Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="form.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
           <VTextField v-model="form.leader" label="Leader" density="comfortable" variant="outlined" />
+          </VForm>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDialogVisible = false">Cancel</VBtn>
@@ -240,9 +264,11 @@ function deleteFromTree(items: any[], name: string): boolean {
           <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
-          <VTextField :model-value="editingItem?.type" label="Type" density="comfortable" class="mb-3" variant="outlined" readonly />
-          <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VForm ref="editFormRef">
+            <VTextField :model-value="editingItem?.type" label="Type" density="comfortable" class="mb-3" variant="outlined" readonly />
+          <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
           <VTextField v-model="editingItem.leader" label="Leader" density="comfortable" variant="outlined" />
+          </VForm>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
