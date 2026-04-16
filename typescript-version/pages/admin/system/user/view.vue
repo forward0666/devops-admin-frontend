@@ -1,7 +1,26 @@
 <script setup lang="ts">
 const activeTab = ref('account')
 const isConfirmDeleteDialogVisible = ref(false)
-const isTwoFactorDialogVisible = ref(false)
+const isEditDialogVisible = ref(false)
+const editForm = ref({ fullName: '', contact: '', telegram: '', google: '', slack: '', language: '', country: '' })
+
+function openEditDialog() {
+  editForm.value = {
+    fullName: userData.fullName,
+    contact: userData.contact,
+    telegram: userData.telegram,
+    google: userData.google,
+    slack: userData.slack,
+    language: userData.language,
+    country: userData.country,
+  }
+  isEditDialogVisible.value = true
+}
+
+function saveEdit() {
+  Object.assign(userData, editForm.value)
+  isEditDialogVisible.value = false
+}
 
 const userData = {
   fullName: 'Selina Kyle',
@@ -75,7 +94,6 @@ const passwordRequirements = [
                   <span class="text-h2 font-weight-medium">{{ userData.fullName.charAt(0) }}</span>
                 </VAvatar>
                 <h5 class="text-h5 mt-4">{{ userData.fullName }}</h5>
-                <VChip variant="tonal" color="secondary" size="small" label class="text-capitalize mt-4">{{ userData.role }}</VChip>
               </VCardText>
               <VCardText>
                 <div class="d-flex justify-space-around gap-x-6 gap-y-2 flex-wrap mb-6">
@@ -99,7 +117,7 @@ const passwordRequirements = [
                 <VList class="card-list mt-2" density="compact" lines="one">
                   <VListItem><VListItemTitle><h6 class="text-h6">Username: <span class="text-body-1 d-inline-block">{{ userData.username }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Status: <span class="text-body-1 text-capitalize d-inline-block">{{ userData.status }}</span></h6></VListItemTitle></VListItem>
-                  <VListItem><VListItemTitle><h6 class="text-h6">Role: <span class="text-body-1 text-capitalize d-inline-block">{{ userData.role }}</span></h6></VListItemTitle></VListItem>
+                  <VListItem><VListItemTitle><h6 class="text-h6">Role: <span class="text-body-1 d-inline-block">{{ userData.role }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Contact: <span class="text-body-1 d-inline-block">{{ userData.contact }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ userData.telegram }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Google: <span class="text-body-1 d-inline-block">{{ userData.google }}</span></h6></VListItemTitle></VListItem>
@@ -111,7 +129,7 @@ const passwordRequirements = [
                 </VList>
               </VCardText>
               <VCardText class="d-flex justify-center gap-x-4">
-                <VBtn variant="elevated" color="primary">Edit</VBtn>
+                <VBtn variant="elevated" color="primary" @click="openEditDialog">Edit</VBtn>
                 <VBtn variant="tonal" color="error" @click="isConfirmDeleteDialogVisible = !isConfirmDeleteDialogVisible">Suspend</VBtn>
               </VCardText>
             </VCard>
@@ -220,7 +238,6 @@ const passwordRequirements = [
           <!-- Two-steps verification -->
           <VCard title="Two-steps verification" subtitle="Keep your account secure with authentication step." class="mt-6">
             <VCardText>
-              <!-- Verification method -->
               <VRadioGroup v-model="verifyMethod" density="compact" hide-details class="mb-4">
                 <VRadio value="phone" color="primary">
                   <template #label>
@@ -248,53 +265,33 @@ const passwordRequirements = [
                 </VRadio>
               </VRadioGroup>
 
-              <!-- Phone input -->
               <div v-if="verifyMethod === 'phone'">
                 <h6 class="text-h6 mb-1">SMS</h6>
                 <div class="d-flex align-center gap-x-4">
-                  <VTextField
-                    v-model="phoneNumber"
-                    placeholder="+1(968) 819-2547"
-                    density="comfortable"
-                    class="flex-grow-1"
-                  />
+                  <VTextField v-model="phoneNumber" placeholder="+1(968) 819-2547" density="comfortable" class="flex-grow-1" />
                   <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
                   <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
                 </div>
               </div>
 
-              <!-- Email input -->
               <div v-if="verifyMethod === 'email'">
                 <h6 class="text-h6 mb-1">Google Email</h6>
                 <div class="d-flex align-center gap-x-4">
-                  <VTextField
-                    v-model="emailAddress"
-                    placeholder="Enter Google email"
-                    density="comfortable"
-                    class="flex-grow-1"
-                  />
+                  <VTextField v-model="emailAddress" placeholder="Enter Google email" density="comfortable" class="flex-grow-1" />
                   <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
                   <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
                 </div>
               </div>
 
-              <!-- Authenticator App -->
               <div v-if="verifyMethod === 'authenticator'">
                 <h6 class="text-h6 mb-1">Authenticator App</h6>
                 <div class="d-flex align-center gap-x-4">
-                  <VTextField
-                    label="Enter 6-digit code"
-                    placeholder="000000"
-                    maxlength="6"
-                    density="comfortable"
-                    class="flex-grow-1"
-                  />
+                  <VTextField label="Enter 6-digit code" placeholder="000000" maxlength="6" density="comfortable" class="flex-grow-1" />
                   <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
                   <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
                 </div>
                 <VBtn variant="elevated" color="primary" prepend-icon="bx-qr" class="mt-3">Show QR Code</VBtn>
               </div>
-
             </VCardText>
           </VCard>
 
@@ -370,6 +367,29 @@ const passwordRequirements = [
     </VRow>
 
     <ConfirmDialog v-model:is-dialog-visible="isConfirmDeleteDialogVisible" title="Suspend User" message="Are you sure you want to suspend this user account?" confirm-text="Yes, Suspend" cancel-text="Cancel" @confirm="isConfirmDeleteDialogVisible = false" @cancel="isConfirmDeleteDialogVisible = false" />
+
+    <!-- Edit User Dialog -->
+    <VDialog v-model="isEditDialogVisible" max-width="500">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Edit User</VCardTitle>
+          <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
+        <VCardText>
+          <VTextField v-model="editForm.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editForm.contact" label="Contact" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editForm.telegram" label="Telegram" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editForm.google" label="Google" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editForm.slack" label="Slack" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editForm.language" label="Language" :items="['English', 'Chinese', 'Japanese']" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editForm.country" label="Country" density="comfortable" variant="outlined" />
+        </VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
+          <VBtn color="primary" @click="saveEdit">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </div>
 </template>
 
