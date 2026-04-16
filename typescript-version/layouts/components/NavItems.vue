@@ -41,15 +41,24 @@ const isProjectActive = (projectId: number) => {
 
     <VerticalNavGroup
       :item="{
-        title: 'User & Permission',
+        title: 'User',
         icon: 'bx-user',
       }"
     >
-      <VerticalNavLink :item="{ title: 'User List', to: '/admin/system/user/list' }" />
-      <VerticalNavLink :item="{ title: 'User View', to: '/admin/system/user/view' }" />
+      <VerticalNavLink :item="{ title: 'List', to: '/admin/system/user/list' }" />
+      <VerticalNavLink :item="{ title: 'View', to: '/admin/system/user/view' }" />
       <VerticalNavLink :item="{ title: 'Permission', to: '/admin/system/permission' }" />
-      <VerticalNavLink :item="{ title: 'Project List', to: '/user/project/list' }" />
-      <VerticalNavLink :item="{ title: 'Project Permission', to: '/user/project/permission' }" />
+    </VerticalNavGroup>
+
+    <VerticalNavGroup
+      :item="{
+        title: 'Project',
+        icon: 'bx-folder',
+      }"
+    >
+      <VerticalNavLink :item="{ title: 'List', to: '/user/project/list' }" />
+      <VerticalNavLink :item="{ title: 'View', to: '/user/project/view' }" />
+      <VerticalNavLink :item="{ title: 'Permission', to: '/user/project/permission' }" />
     </VerticalNavGroup>
 
     <VerticalNavLink

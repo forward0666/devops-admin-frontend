@@ -258,15 +258,15 @@ const userHeaders = [
           </VChip>
         </template>
 
-        <template #item.actions>
+        <template #item.actions="{ item }">
+          <NuxtLink :to="`/admin/system/user/view?id=${item.id}`">
+            <IconBtn><VIcon icon="bx-show" /></IconBtn>
+          </NuxtLink>
+          <IconBtn>
+            <VIcon icon="bx-edit" />
+          </IconBtn>
           <IconBtn>
             <VIcon icon="bx-trash" />
-          </IconBtn>
-          <IconBtn>
-            <VIcon icon="bx-show" />
-          </IconBtn>
-          <IconBtn>
-            <VIcon icon="bx-dots-vertical-rounded" />
           </IconBtn>
         </template>
       </VDataTable>
