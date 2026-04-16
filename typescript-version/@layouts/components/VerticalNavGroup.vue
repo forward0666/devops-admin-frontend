@@ -6,7 +6,23 @@ const props = defineProps<{
   open?: boolean
 }>()
 
-const isOpen = ref(true)
+const route = useRoute()
+
+const isOpen = ref(props.open || false)
+
+// Auto-expand when user navigates into a child route
+const slotEl = ref<HTMLElement | null>(null)
+onMounted(() => {
+ const links = slotEl.value?.querySelectorAll('a[href]')
+  if (links) {
+    const checkActive = () => {
+      const isActive = Array.from(links).some((a: HTMLAnchorElement) => route.path.startsWith(a.getAttribute('href') || ''))
+      if (isActive && !isOpen.value) isOpen.value = true
+    }
+    checkActive()
+    watch(() => route.path, checkActive)
+  }
+})
 </script>
 
 <template>
@@ -35,7 +51,7 @@ const isOpen = ref(true)
         :class="isOpen && 'rotate-180'"
       />
     </div>
-    <div v-show="isOpen" class="nav-group-children-wrapper">
+    <div ref="slotEl" v-show="isOpen" class="nav-group-children-wrapper">
       <ul class="nav-group-children">
         <slot />
       </ul>
