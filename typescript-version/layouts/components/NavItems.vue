@@ -49,6 +49,11 @@ const isProjectActive = (projectId: number) => {
       <VerticalNavLink :item="{ title: 'View', to: '/admin/system/user/view' }" />
     </VerticalNavGroup>
 
+    <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }">
+      <VerticalNavLink :item="{ title: 'List', to: '/admin/system/dept/list' }" />
+      <VerticalNavLink :item="{ title: 'View', to: '/admin/system/dept/view' }" />
+    </VerticalNavGroup>
+
     <VerticalNavGroup
       :item="{
         title: 'Project',
@@ -68,10 +73,7 @@ const isProjectActive = (projectId: number) => {
       }"
     />
 
-    <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }">
-      <VerticalNavLink :item="{ title: 'List', to: '/admin/system/dept/list' }" />
-      <VerticalNavLink :item="{ title: 'View', to: '/admin/system/dept/view' }" />
-    </VerticalNavGroup>
+
 
     <!-- 👉 System Monitor -->
     <VerticalNavSectionTitle
