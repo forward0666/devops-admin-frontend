@@ -8,6 +8,52 @@ const selectedUsers = ref<any[]>([])
 
 const isAddUserDialogVisible = ref(false)
 const isImportDialogVisible = ref(false)
+const isEditUserDialogVisible = ref(false)
+const isDeleteDialogVisible = ref(false)
+const editingUser = ref<any>(null)
+const deletingUser = ref<any>(null)
+const userStore = useUserStore()
+
+function openEditDialog(user: any) {
+  editingUser.value = { ...user }
+  isEditUserDialogVisible.value = true
+}
+
+function saveEditUser() {
+  if (editingUser.value) {
+    const idx = userStore.users.findIndex(u => u.id === editingUser.value.id)
+    if (idx !== -1) userStore.users[idx] = { ...editingUser.value }
+    isEditUserDialogVisible.value = false
+  }
+}
+
+function openDeleteDialog(user: any) {
+  deletingUser.value = user
+  isDeleteDialogVisible.value = true
+}
+
+function confirmDelete() {
+  if (deletingUser.value) {
+    userStore.users = userStore.users.filter(u => u.id !== deletingUser.value.id)
+    isDeleteDialogVisible.value = false
+  }
+}
+
+function addUser() {
+  const maxId = Math.max(...userStore.users.map(u => u.id), 0)
+  userStore.users.push({
+    id: maxId + 1,
+    fullName: newUser.value.fullName,
+    email: newUser.value.email,
+    role: newUser.value.role,
+    team: newUser.value.team,
+    department: newUser.value.department,
+    status: newUser.value.status,
+    avatar: Math.floor(Math.random() * 6) + 1,
+  })
+  newUser.value = { fullName: '', email: '', role: '', team: '', department: '', status: 'active' }
+  isAddUserDialogVisible.value = false
+}
 
 const newUser = ref({
   fullName: '',
@@ -49,18 +95,7 @@ const resolveAvatarColor = (name: string) => {
   return colors[index]
 }
 
-const users = ref([
-  { id: 50, fullName: 'Beverlie Krabbe', email: 'bkrabbe1d@home.pl', role: 'editor', team: 'Product', department: 'Engineering', status: 'active', avatar: 1 },
-  { id: 49, fullName: 'Paulie Durber', email: 'pdurber1c@gov.uk', role: 'subscriber', team: 'Design', department: 'Marketing', status: 'inactive', avatar: 2 },
-  { id: 48, fullName: 'Onfre Wind', email: 'owind1b@yandex.ru', role: 'admin', team: 'Backend', department: 'Engineering', status: 'pending', avatar: 3 },
-  { id: 47, fullName: 'Karena Courtliff', email: 'kcourtliff1a@bbc.co.uk', role: 'admin', team: 'DevOps', department: 'Operations', status: 'active', avatar: 6 },
-  { id: 46, fullName: 'Saunder Offner', email: 'soffner19@mac.com', role: 'maintainer', team: 'QA', department: 'Engineering', status: 'pending', avatar: 4 },
-  { id: 45, fullName: 'Corrie Perot', email: 'cperot18@goo.ne.jp', role: 'subscriber', team: 'Frontend', department: 'Engineering', status: 'pending', avatar: 5 },
-  { id: 44, fullName: 'Vladamir Koschek', email: 'vkoschek17@abc.net.au', role: 'author', team: 'Security', department: 'IT', status: 'active', avatar: 1 },
-  { id: 43, fullName: 'Micaela McNirlan', email: 'mmcnirlan16@hc360.com', role: 'admin', team: 'Data', department: 'Analytics', status: 'inactive', avatar: 2 },
-  { id: 42, fullName: 'Benedetto Rossiter', email: 'brossiter15@craigslist.org', role: 'editor', team: 'Mobile', department: 'Engineering', status: 'inactive', avatar: 1 },
-  { id: 41, fullName: 'Garvin Odem', email: 'godem14@eepurl.com', role: 'subscriber', team: 'Support', department: 'Customer Success', status: 'active', avatar: 3 },
-])
+const users = computed(() => userStore.users)
 
 const filteredUsers = computed(() => {
   const query = searchQuery.value.toLowerCase()
@@ -174,7 +209,7 @@ const userHeaders = [
       <VCardText class="pt-0">
         <VRow>
           <VCol cols="12" sm="4">
-            <VSelect v-model="selectedRole" placeholder="Select Role" :items="['admin', 'editor', 'subscriber', 'maintainer', 'author']" density="comfortable" clearable hide-details variant="outlined" />
+            <VSelect v-model="selectedRole" placeholder="Select Role" :items="['admin', 'user']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
           <VCol cols="12" sm="4">
             <VSelect v-model="selectedTeam" placeholder="Select Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" clearable hide-details variant="outlined" />
@@ -262,10 +297,10 @@ const userHeaders = [
           <NuxtLink :to="`/admin/system/user/view?id=${item.id}`">
             <IconBtn><VIcon icon="bx-show" /></IconBtn>
           </NuxtLink>
-          <IconBtn>
+          <IconBtn @click="openEditDialog(item)">
             <VIcon icon="bx-edit" />
           </IconBtn>
-          <IconBtn>
+          <IconBtn @click="openDeleteDialog(item)">
             <VIcon icon="bx-trash" />
           </IconBtn>
         </template>
@@ -284,14 +319,14 @@ const userHeaders = [
         <VCardText>
           <VTextField v-model="newUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="newUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newUser.role" label="Role" :items="['admin', 'editor', 'subscriber', 'maintainer', 'author']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newUser.role" label="Role" :items="['admin', 'user']" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.team" label="Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.department" label="Department" :items="['Engineering', 'Marketing', 'Operations', 'IT', 'Analytics', 'Customer Success']" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.status" label="Status" :items="['active', 'inactive', 'pending']" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isAddUserDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" @click="isAddUserDialogVisible = false">Add User</VBtn>
+          <VBtn color="primary" @click="addUser">Add User</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -317,6 +352,43 @@ const userHeaders = [
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isImportDialogVisible = false">Cancel</VBtn>
           <VBtn color="primary" @click="isImportDialogVisible = false">Import</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Edit User Dialog -->
+    <VDialog v-model="isEditUserDialogVisible" max-width="500">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Edit User</VCardTitle>
+          <VBtn icon variant="text" @click="isEditUserDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
+        <VCardText>
+          <VTextField v-model="editingUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editingUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingUser.role" label="Role" :items="['admin', 'user']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingUser.team" label="Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingUser.department" label="Department" :items="['Engineering', 'Marketing', 'Operations', 'IT', 'Analytics', 'Customer Success']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingUser.status" label="Status" :items="['active', 'inactive', 'pending']" density="comfortable" variant="outlined" />
+        </VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isEditUserDialogVisible = false">Cancel</VBtn>
+          <VBtn color="primary" @click="saveEditUser">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Delete Confirm Dialog -->
+    <VDialog v-model="isDeleteDialogVisible" max-width="400">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Delete User</VCardTitle>
+          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
+        <VCardText>Are you sure you want to delete <strong>{{ deletingUser?.fullName }}</strong>? This action cannot be undone.</VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
+          <VBtn color="error" @click="confirmDelete">Delete</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

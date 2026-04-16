@@ -22,21 +22,29 @@ function saveEdit() {
   isEditDialogVisible.value = false
 }
 
-const userData = {
-  fullName: 'Selina Kyle',
-  username: 'Selina Kyle',
-  email: 'irena.dubrovna@wayne.com',
-  role: 'admin',
-  status: 'Active',
+const route = useRoute()
+const userStore = useUserStore()
+
+const userId = computed(() => Number(route.query.id))
+const dbUser = computed(() => userStore.users.find(u => u.id === userId.value))
+
+const userData = reactive({
+  fullName: dbUser.value?.fullName || 'Selina Kyle',
+  username: dbUser.value?.fullName || 'Selina Kyle',
+  email: dbUser.value?.email || 'irena.dubrovna@wayne.com',
+  role: dbUser.value?.role || 'admin',
+  status: dbUser.value?.status || 'Active',
   contact: '(829) 537-0057',
   telegram: '@johndoe',
   google: 'john@gmail.com',
   slack: 'john-doe',
   language: 'English',
   country: 'United States',
+  department: dbUser.value?.department || 'Engineering',
+  team: dbUser.value?.team || 'Backend',
   taskDone: '1.23k',
   projectDone: '568',
-}
+})
 
 const itemsPerPage = ref(5)
 
@@ -122,8 +130,8 @@ const passwordRequirements = [
                   <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ userData.telegram }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Google: <span class="text-body-1 d-inline-block">{{ userData.google }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Slack: <span class="text-body-1 d-inline-block">{{ userData.slack }}</span></h6></VListItemTitle></VListItem>
-                  <VListItem><VListItemTitle><h6 class="text-h6">Department: <span class="text-body-1 d-inline-block">Engineering</span></h6></VListItemTitle></VListItem>
-                  <VListItem><VListItemTitle><h6 class="text-h6">Team: <span class="text-body-1 d-inline-block">Backend</span></h6></VListItemTitle></VListItem>
+                  <VListItem><VListItemTitle><h6 class="text-h6">Department: <span class="text-body-1 d-inline-block">{{ userData.department }}</span></h6></VListItemTitle></VListItem>
+                  <VListItem><VListItemTitle><h6 class="text-h6">Team: <span class="text-body-1 d-inline-block">{{ userData.team }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Language: <span class="text-body-1 d-inline-block">{{ userData.language }}</span></h6></VListItemTitle></VListItem>
                   <VListItem><VListItemTitle><h6 class="text-h6">Country: <span class="text-body-1 d-inline-block">{{ userData.country }}</span></h6></VListItemTitle></VListItem>
                 </VList>
