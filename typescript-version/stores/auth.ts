@@ -38,6 +38,8 @@ export const useAuthStore = defineStore('auth', {
       this.role = role
       localStorage.setItem('auth-role', role)
       localStorage.setItem('auth-login-role', role)
+      const cookie = useCookie('auth-login-role', { maxAge: 31536000, path: '/' })
+      cookie.value = role
     },
     setUserName(name: string) {
       this.userName = name
