@@ -12,6 +12,50 @@ const isViewDialogVisible = ref(false)
 const viewingMember = ref<any>(null)
 const isDeleteDialogVisible = ref(false)
 const deletingMember = ref<any>(null)
+const isInviteDialogVisible = ref(false)
+const inviteSearch = ref('')
+const selectedInviteUsers = ref<any[]>([])
+
+const userStore = useUserStore()
+
+const availableUsers = computed(() => {
+  const query = inviteSearch.value.toLowerCase()
+  const memberEmails = new Set(members.value.map(m => m.email))
+  return userStore.users.filter(u => {
+    if (memberEmails.has(u.email)) return false
+    if (!query) return true
+    return u.fullName.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
+  })
+})
+
+const isUserSelected = (user: any) => selectedInviteUsers.value.some(u => u.id === user.id)
+
+function toggleUser(user: any) {
+  const idx = selectedInviteUsers.value.findIndex(u => u.id === user.id)
+  if (idx === -1) selectedInviteUsers.value.push(user)
+  else selectedInviteUsers.value.splice(idx, 1)
+}
+
+function inviteMembers() {
+  selectedInviteUsers.value.forEach(user => {
+    const newId = Math.max(...members.value.map(m => m.id), 0) + 1
+    members.value.push({
+      id: newId,
+      name: user.fullName,
+      email: user.email,
+      role: 'Member',
+      position: 'Developer',
+      status: 'Active',
+      joined: new Date().toISOString().split('T')[0],
+      tasks: 0,
+      avatar: user.fullName.charAt(0).toUpperCase(),
+      contact: '', telegram: '', google: '', slack: '', language: 'English', country: 'United States', department: user.department || 'Engineering', team: user.team || 'Frontend',
+    })
+  })
+  selectedInviteUsers.value = []
+  inviteSearch.value = ''
+  isInviteDialogVisible.value = false
+}
 
 function deleteMember(member: any) {
   deletingMember.value = member
@@ -70,7 +114,7 @@ const headers = [
       <div>
         <h4 class="text-h4">{{ name }} - Member</h4>
       </div>
-      <VBtn prepend-icon="bx-user-plus" color="primary">Add Member</VBtn>
+      <VBtn prepend-icon="bx-user-plus" color="primary" @click="isInviteDialogVisible = true">Invite Member</VBtn>
     </div>
 
     <VCard>
@@ -157,6 +201,40 @@ const headers = [
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
           <VBtn color="error" @click="confirmDelete">Remove</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Invite Member Dialog -->
+    <VDialog v-model="isInviteDialogVisible" max-width="600">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Invite Member</VCardTitle>
+          <VBtn icon variant="text" @click="isInviteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
+        <VCardText>
+          <VTextField v-model="inviteSearch" placeholder="Search by name or email" density="comfortable" class="mb-4" variant="outlined" prepend-inner-icon="bx-search" clearable />
+          <VList v-if="availableUsers.length" max-height="250" class="border rounded" style="overflow-y: auto;">
+            <VListItem v-for="user in availableUsers.slice(0, 10)" :key="user.id" @click="toggleUser(user)" class="cursor-pointer">
+              <template #prepend>
+                <VAvatar size="34" variant="tonal" color="primary" class="me-3">
+                  <span class="text-sm font-weight-medium">{{ user.fullName.charAt(0) }}</span>
+                </VAvatar>
+              </template>
+              <VListItemTitle>{{ user.fullName }}</VListItemTitle>
+              <VListItemSubtitle>{{ user.email }}</VListItemSubtitle>
+              <template #append>
+                <VCheckbox :model-value="isUserSelected(user)" density="compact" hide-details />
+              </template>
+            </VListItem>
+          </VList>
+          <p v-else-if="inviteSearch" class="text-body-2 text-medium-emphasis text-center py-4">No users found</p>
+          <VDivider class="my-4" />
+          <p v-if="selectedInviteUsers.length" class="text-body-2 text-medium-emphasis mb-2">{{ selectedInviteUsers.length }} user(s) selected</p>
+        </VCardText>
+        <VCardActions class="justify-end">
+          <VBtn color="primary" :disabled="!selectedInviteUsers.length" @click="inviteMembers">Invite</VBtn>
+          <VBtn variant="tonal" @click="isInviteDialogVisible = false">Cancel</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
