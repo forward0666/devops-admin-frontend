@@ -4,17 +4,22 @@ import VerticalNavGroup from "@layouts/components/VerticalNavGroup.vue";
 import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
 
 const authStore = useAuthStore()
-const projectStore = useProjectStore()
-const projectList = computed(() => [...projectStore.projects])
+const projectStore = ref<any>(null)
+const projectList = computed(() => projectStore.value?.projects || [])
 const projectKey = ref(0)
-const route = useRoute()
 
-watch(() => projectStore.projects.length, () => {
-  projectKey.value++
-})
+if (import.meta.client) {
+  projectStore.value = useProjectStore()
+  watch(() => projectStore.value?.projects.length, () => {
+    projectKey.value++
+  })
+}
 
-const isProjectActive = (projectId: number) => route.path.includes(`/user/project/${projectId}/`)
-</script>
+const isProjectActive = (projectId: number) => {
+  if (!import.meta.client) return false
+  const route = useRoute()
+  return route.path.includes(`/user/project/${projectId}/`)
+}</script>
 
 <template>
   <template v-if="authStore.isReady">
@@ -43,6 +48,8 @@ const isProjectActive = (projectId: number) => route.path.includes(`/user/projec
       <VerticalNavLink :item="{ title: 'User List', to: '/system/user/list' }" />
       <VerticalNavLink :item="{ title: 'User View', to: '/system/user/view' }" />
       <VerticalNavLink :item="{ title: 'Permission', to: '/system/permission' }" />
+      <VerticalNavLink :item="{ title: 'Project List', to: '/user/project/list' }" />
+      <VerticalNavLink :item="{ title: 'Project Permission', to: '/user/project/permission' }" />
     </VerticalNavGroup>
 
     <VerticalNavLink
@@ -129,16 +136,6 @@ const isProjectActive = (projectId: number) => route.path.includes(`/user/projec
         to: '/user/profile',
       }"
     />
-
-      <VerticalNavGroup
-        :item="{
-          title: 'Menu & Permission',
-          icon: 'bx-list-check',
-        }"
-      >
-        <VerticalNavLink :item="{ title: 'Project List', to: '/user/project/list' }" />
-        <VerticalNavLink :item="{ title: 'Permission', to: '/user/project/permission' }" />
-      </VerticalNavGroup>
 
       <VerticalNavGroup
         :item="{
