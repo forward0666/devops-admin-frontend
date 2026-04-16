@@ -138,7 +138,6 @@ const passwordRequirements = [
               </VCardText>
               <VCardText class="d-flex justify-center gap-x-4">
                 <VBtn variant="elevated" color="primary" @click="openEditDialog">Edit</VBtn>
-                <VBtn variant="tonal" color="error" @click="isConfirmDeleteDialogVisible = !isConfirmDeleteDialogVisible">Suspend</VBtn>
               </VCardText>
             </VCard>
           </VCol>
@@ -244,63 +243,49 @@ const passwordRequirements = [
           </VCard>
 
           <!-- Two-steps verification -->
-          <VCard title="Two-steps verification" subtitle="Keep your account secure with authentication step." class="mt-6">
+          <VCard title="Two-steps verification" class="mt-6">
             <VCardText>
-              <VRadioGroup v-model="verifyMethod" density="compact" hide-details class="mb-4">
-                <VRadio value="phone" color="primary">
-                  <template #label>
-                    <div class="d-flex align-center gap-x-2">
-                      <VIcon icon="bx-phone" size="18" />
-                      <span class="font-weight-medium">Phone Number (SMS)</span>
+              <div class="d-flex flex-column gap-y-4">
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center gap-x-3">
+                    <VAvatar variant="tonal" color="primary" rounded size="38"><VIcon icon="bx-phone" size="20" /></VAvatar>
+                    <div>
+                      <h6 class="text-h6">Phone Number (SMS)</h6>
+                      <span class="text-body-2 text-medium-emphasis">+1(968) 819-2547</span>
                     </div>
-                  </template>
-                </VRadio>
-                <VRadio value="email" color="primary">
-                  <template #label>
-                    <div class="d-flex align-center gap-x-2">
-                      <VIcon icon="bx-envelope" size="18" />
-                      <span class="font-weight-medium">Google Email</span>
+                  </div>
+                  <VChip v-if="verifyMethod === 'phone'" variant="tonal" color="success" size="small" prepend-icon="bx-check">bind</VChip>
+                  <VChip v-else variant="tonal" color="grey" size="small" prepend-icon="bx-x">unbind</VChip>
+                </div>
+                <VDivider />
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center gap-x-3">
+                    <VAvatar variant="tonal" color="info" rounded size="38"><VIcon icon="bx-envelope" size="20" /></VAvatar>
+                    <div>
+                      <h6 class="text-h6">Google Email</h6>
+                      <span class="text-body-2 text-medium-emphasis">john@gmail.com</span>
                     </div>
-                  </template>
-                </VRadio>
-                <VRadio value="authenticator" color="primary">
-                  <template #label>
-                    <div class="d-flex align-center gap-x-2">
-                      <VIcon icon="bx-qr" size="18" />
-                      <span class="font-weight-medium">Authenticator App</span>
+                  </div>
+                  <VChip v-if="verifyMethod === 'email'" variant="tonal" color="success" size="small" prepend-icon="bx-check">bind</VChip>
+                  <VChip v-else variant="tonal" color="grey" size="small" prepend-icon="bx-x">unbind</VChip>
+                </div>
+                <VDivider />
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center gap-x-3">
+                    <VAvatar variant="tonal" color="warning" rounded size="38"><VIcon icon="bx-qr" size="20" /></VAvatar>
+                    <div>
+                      <h6 class="text-h6">Authenticator App</h6>
+                      <span class="text-body-2 text-medium-emphasis">Google Authenticator</span>
                     </div>
-                  </template>
-                </VRadio>
-              </VRadioGroup>
-
-              <div v-if="verifyMethod === 'phone'">
-                <h6 class="text-h6 mb-1">SMS</h6>
-                <div class="d-flex align-center gap-x-4">
-                  <VTextField v-model="phoneNumber" placeholder="+1(968) 819-2547" density="comfortable" class="flex-grow-1" />
-                  <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
-                  <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
+                  </div>
+                  <VChip v-if="verifyMethod === 'authenticator'" variant="tonal" color="success" size="small" prepend-icon="bx-check">bind</VChip>
+                  <VChip v-else variant="tonal" color="grey" size="small" prepend-icon="bx-x">unbind</VChip>
                 </div>
-              </div>
-
-              <div v-if="verifyMethod === 'email'">
-                <h6 class="text-h6 mb-1">Google Email</h6>
-                <div class="d-flex align-center gap-x-4">
-                  <VTextField v-model="emailAddress" placeholder="Enter Google email" density="comfortable" class="flex-grow-1" />
-                  <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
-                  <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
-                </div>
-              </div>
-
-              <div v-if="verifyMethod === 'authenticator'">
-                <h6 class="text-h6 mb-1">Authenticator App</h6>
-                <div class="d-flex align-center gap-x-4">
-                  <VTextField label="Enter 6-digit code" placeholder="000000" maxlength="6" density="comfortable" class="flex-grow-1" />
-                  <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
-                  <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
-                </div>
-                <VBtn variant="elevated" color="primary" prepend-icon="bx-qr" class="mt-3">Show QR Code</VBtn>
               </div>
             </VCardText>
+            <VCardActions class="justify-end">
+              <VBtn variant="tonal" color="error" prepend-icon="bx-refresh" size="small">Reset</VBtn>
+            </VCardActions>
           </VCard>
 
           <!-- Recent Devices -->
@@ -374,7 +359,7 @@ const passwordRequirements = [
       </VCol>
     </VRow>
 
-    <ConfirmDialog v-model:is-dialog-visible="isConfirmDeleteDialogVisible" title="Suspend User" message="Are you sure you want to suspend this user account?" confirm-text="Yes, Suspend" cancel-text="Cancel" @confirm="isConfirmDeleteDialogVisible = false" @cancel="isConfirmDeleteDialogVisible = false" />
+
 
     <!-- Edit User Dialog -->
     <VDialog v-model="isEditDialogVisible" max-width="500">
