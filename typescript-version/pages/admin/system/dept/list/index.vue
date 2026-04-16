@@ -18,7 +18,7 @@ const departments = ref([
   {
     id: 1, name: 'Headquarters', type: 'office', leader: 'admin', children: [
       {
-        id: 2, name: 'R&D Department', type: 'department', leader: 'John', children: [
+        id: 2, name: 'Research Department', type: 'department', leader: 'John', children: [
           { id: 3, name: 'Frontend Team', type: 'team', leader: 'Mary', children: [] },
           { id: 4, name: 'Backend Team', type: 'team', leader: 'Tom', children: [] },
         ],
@@ -126,6 +126,7 @@ const form = ref({ name: '', parentId: '', leader: '', type: 'department' })
           <div class="d-flex gap-1">
             <IconBtn v-if="item.type !== 'team'" size="small"><VIcon icon="bx-plus" size="18" /></IconBtn>
             <div v-else style="inline-size: 32px; visibility: hidden;"><IconBtn size="small"><VIcon icon="bx-plus" size="18" /></IconBtn></div>
+            <NuxtLink :to="`/admin/system/dept/view?name=${item.name}`"><IconBtn size="small"><VIcon icon="bx-show" size="18" /></IconBtn></NuxtLink>
             <IconBtn size="small"><VIcon icon="bx-edit" size="18" /></IconBtn>
             <IconBtn size="small" color="error"><VIcon icon="bx-trash" size="18" /></IconBtn>
           </div>
