@@ -156,6 +156,7 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavGroup :item="{ title: project.name, icon: 'bx-detail' }" :open="isProjectActive(project.id)">
           <VerticalNavLink :item="{ title: 'Info', to: `/user/project/${project.id}/info` }" />
           <VerticalNavLink :item="{ title: 'Asset', to: `/user/project/${project.id}/assets` }" />
+          <VerticalNavLink :item="{ title: 'Member', to: `/user/project/${project.id}/members` }" />
         </VerticalNavGroup>
       </template>
       </VerticalNavGroup>
