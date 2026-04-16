@@ -7,9 +7,9 @@ const authStore = useAuthStore()
 const name = computed(() => projectStore.projects.find(p => String(p.id) === projectId.value)?.name || 'Unknown Project')
 
 const canInvite = computed(() => {
+  if (!authStore.isReady) return false
   const allowedLoginRoles = ['sys_admin', 'admin']
   if (allowedLoginRoles.includes(authStore.loginRole)) return true
-  // Check if current user is a leader in this project
   return members.value.some(m => m.role === 'Leader' && m.name.toLowerCase().includes(authStore.userName?.toLowerCase() || ''))
 })
 

@@ -7,4 +7,6 @@ export default defineNuxtPlugin(() => {
     if (savedLoginRole) authStore.loginRole = savedLoginRole as any
   }
   authStore.$patch({ _ready: true })
+  const savedName = localStorage.getItem('auth-username')
+  if (savedName) authStore.setUserName(savedName)
 })

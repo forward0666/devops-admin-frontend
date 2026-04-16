@@ -43,6 +43,7 @@ export const useAuthStore = defineStore('auth', {
     },
     setUserName(name: string) {
       this.userName = name
+      localStorage.setItem('auth-username', name)
     },
   },
 })
