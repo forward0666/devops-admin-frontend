@@ -30,7 +30,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'Dashboard',
         icon: 'bx-home-smile',
-        to: '/dashboard',
+        to: '/admin/dashboard',
       }"
     />
 
@@ -45,9 +45,9 @@ const isProjectActive = (projectId: number) => {
         icon: 'bx-user',
       }"
     >
-      <VerticalNavLink :item="{ title: 'User List', to: '/system/user/list' }" />
-      <VerticalNavLink :item="{ title: 'User View', to: '/system/user/view' }" />
-      <VerticalNavLink :item="{ title: 'Permission', to: '/system/permission' }" />
+      <VerticalNavLink :item="{ title: 'User List', to: '/admin/system/user/list' }" />
+      <VerticalNavLink :item="{ title: 'User View', to: '/admin/system/user/view' }" />
+      <VerticalNavLink :item="{ title: 'Permission', to: '/admin/system/permission' }" />
       <VerticalNavLink :item="{ title: 'Project List', to: '/user/project/list' }" />
       <VerticalNavLink :item="{ title: 'Project Permission', to: '/user/project/permission' }" />
     </VerticalNavGroup>
@@ -56,7 +56,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'Menu',
         icon: 'bx-menu',
-        to: '/system/menu',
+        to: '/admin/system/menu',
       }"
     />
 
@@ -64,7 +64,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'Department',
         icon: 'bx-buildings',
-        to: '/system/dept',
+        to: '/admin/system/dept',
       }"
     />
 
@@ -77,7 +77,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'Online Users',
         icon: 'bx-user-circle',
-        to: '/monitor/online',
+        to: '/admin/monitor/online',
       }"
     />
 
@@ -85,7 +85,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'Operation Log',
         icon: 'bx-list-ul',
-        to: '/monitor/log',
+        to: '/admin/monitor/log',
       }"
     />
 
@@ -93,7 +93,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'Login Log',
         icon: 'bx-log-in',
-        to: '/monitor/login-log',
+        to: '/admin/monitor/login-log',
       }"
     />
 
@@ -106,7 +106,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'System API',
         icon: 'bx-code-block',
-        to: '/tools/api',
+        to: '/admin/tools/api',
       }"
     />
 
@@ -114,7 +114,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'System Config',
         icon: 'bx-cog',
-        to: '/tools/config',
+        to: '/admin/tools/config',
       }"
     />
   </template>

@@ -6,12 +6,12 @@ export default defineNuxtRouteMiddleware((to) => {
   // Redirect root
   if (to.path === '/' || to.path === '') {
     const saved = import.meta.client ? localStorage.getItem('auth-role') : null
-    const home = saved === 'user' ? '/user/dashboard' : '/dashboard'
+    const home = saved === 'user' ? '/user/dashboard' : '/admin/dashboard'
     return navigateTo(home)
   }
 
   // Admin-only routes
-  const adminRoutes = ['/system/', '/monitor/', '/tools/', '/dashboard']
+  const adminRoutes = ['/admin/system/', '/admin/monitor/', '/admin/tools/', '/admin/dashboard']
   const saved = import.meta.client ? localStorage.getItem('auth-role') : null
 
   if (saved === 'user' && adminRoutes.some(r => to.path.startsWith(r))) {

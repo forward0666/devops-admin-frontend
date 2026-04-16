@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('auth', {
     isReady: (state) => state._ready,
     homeRoute: (state) => {
       if (state.role === 'user') return '/user/dashboard'
-      return '/dashboard'
+      return '/admin/dashboard'
     },
   },
 

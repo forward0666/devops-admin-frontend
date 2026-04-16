@@ -16,22 +16,22 @@ const headers = [
 ]
 
 const menus = ref([
-  { id: 1, name: 'Dashboard', icon: 'bx-home-smile', sort: 1, path: '/dashboard', type: 'Directory', status: 'active', created: '2024-01-01' },
-  { id: 2, name: 'User Management', icon: 'bx-user', sort: 2, path: '/system/user', type: 'Directory', status: 'active', created: '2024-01-01' },
-  { id: 3, name: 'User List', icon: '', sort: 1, path: '/system/user/list', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 4, name: 'User View', icon: '', sort: 2, path: '/system/user/view', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 5, name: 'Roles & Permissions', icon: 'bx-check-shield', sort: 3, path: '/system/role', type: 'Directory', status: 'active', created: '2024-01-01' },
-  { id: 6, name: 'Roles', icon: '', sort: 1, path: '/system/role', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 7, name: 'Permissions', icon: '', sort: 2, path: '/system/permission', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 8, name: 'Menu Management', icon: 'bx-menu', sort: 4, path: '/system/menu', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 9, name: 'Department', icon: 'bx-buildings', sort: 5, path: '/system/dept', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 10, name: 'Dictionary', icon: 'bx-book-open', sort: 6, path: '/system/dict', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 11, name: 'Operation Log', icon: 'bx-list-ul', sort: 1, path: '/monitor/log', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 12, name: 'Login Log', icon: 'bx-log-in', sort: 2, path: '/monitor/login-log', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 13, name: 'Online Users', icon: 'bx-user-circle', sort: 3, path: '/monitor/online', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 14, name: 'Code Generator', icon: 'bx-code-alt', sort: 1, path: '/tools/gen', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 15, name: 'System API', icon: 'bx-code-block', sort: 2, path: '/tools/api', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 16, name: 'System Config', icon: 'bx-cog', sort: 3, path: '/tools/config', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 1, name: 'Dashboard', icon: 'bx-home-smile', sort: 1, path: '/admin/dashboard', type: 'Directory', status: 'active', created: '2024-01-01' },
+  { id: 2, name: 'User Management', icon: 'bx-user', sort: 2, path: '/admin/system/user', type: 'Directory', status: 'active', created: '2024-01-01' },
+  { id: 3, name: 'User List', icon: '', sort: 1, path: '/admin/system/user/list', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 4, name: 'User View', icon: '', sort: 2, path: '/admin/system/user/view', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 5, name: 'Roles & Permissions', icon: 'bx-check-shield', sort: 3, path: '/admin/system/role', type: 'Directory', status: 'active', created: '2024-01-01' },
+  { id: 6, name: 'Roles', icon: '', sort: 1, path: '/admin/system/role', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 7, name: 'Permissions', icon: '', sort: 2, path: '/admin/system/permission', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 8, name: 'Menu Management', icon: 'bx-menu', sort: 4, path: '/admin/system/menu', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 9, name: 'Department', icon: 'bx-buildings', sort: 5, path: '/admin/system/dept', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 10, name: 'Dictionary', icon: 'bx-book-open', sort: 6, path: '/admin/system/dict', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 11, name: 'Operation Log', icon: 'bx-list-ul', sort: 1, path: '/admin/monitor/log', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 12, name: 'Login Log', icon: 'bx-log-in', sort: 2, path: '/admin/monitor/login-log', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 13, name: 'Online Users', icon: 'bx-user-circle', sort: 3, path: '/admin/monitor/online', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 14, name: 'Code Generator', icon: 'bx-code-alt', sort: 1, path: '/admin/tools/gen', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 15, name: 'System API', icon: 'bx-code-block', sort: 2, path: '/admin/tools/api', type: 'Menu', status: 'active', created: '2024-01-01' },
+  { id: 16, name: 'System Config', icon: 'bx-cog', sort: 3, path: '/admin/tools/config', type: 'Menu', status: 'active', created: '2024-01-01' },
 ])
 
 const form = ref({ name: '', icon: '', sort: 1, path: '', type: 'Menu', status: 'active', parentId: null, permission: '' })

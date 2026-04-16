@@ -3,16 +3,16 @@ import { useAuthStore, type UserRole } from '~/stores/auth'
 
 // Admin-only routes (sys_admin, admin)
 const adminRoutes = [
-  '/system/user/list',
-  '/system/user/view',
-  '/system/permission',
-  '/system/dept',
-  '/system/menu',
-  '/monitor/online',
-  '/monitor/log',
-  '/monitor/login-log',
-  '/tools/api',
-  '/tools/config',
+  '/admin/system/user/list',
+  '/admin/system/user/view',
+  '/admin/system/permission',
+  '/admin/system/dept',
+  '/admin/system/menu',
+  '/admin/monitor/online',
+  '/admin/monitor/log',
+  '/admin/monitor/login-log',
+  '/admin/tools/api',
+  '/admin/tools/config',
 ]
 
 // User routes (user role)

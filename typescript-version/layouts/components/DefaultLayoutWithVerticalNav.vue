@@ -18,7 +18,7 @@ watch(() => authStore.isReady, (ready) => {
 const switchToAdmin = () => {
   currentRole.value = 'sys_admin'
   authStore.setRole('sys_admin')
-  navigateTo('/dashboard')
+  navigateTo('/admin/dashboard')
 }
 
 const switchToUser = () => {
