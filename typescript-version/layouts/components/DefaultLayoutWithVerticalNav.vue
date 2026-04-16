@@ -61,7 +61,8 @@ const switchToUser = () => {
 
 
         <!-- 👉 Role Switch (admin only) -->
-        <VBtnToggle v-if="authStore.isAdmin" :model-value="currentRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;">
+        <ClientOnly>
+          <VBtnToggle v-if="authStore.isAdmin" :model-value="currentRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;">
           <VBtn size="small" style="flex: 1;" :variant="currentRole === 'sys_admin' ? 'flat' : 'outlined'" @click="switchToAdmin">
             <VIcon start icon="bx-shield" size="16" />Admin
           </VBtn>
@@ -69,6 +70,7 @@ const switchToUser = () => {
             <VIcon start icon="bx-user" size="16" />User
           </VBtn>
         </VBtnToggle>
+        </ClientOnly>
 
         <IconBtn>
           <VIcon icon="bx-bell" />

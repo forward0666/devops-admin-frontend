@@ -11,7 +11,6 @@ interface UserState {
 }
 
 export const useAuthStore = defineStore('auth', {
-  serializable: false,
   state: (): UserState => ({
     role: 'sys_admin',
     loginRole: 'sys_admin',

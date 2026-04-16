@@ -12,7 +12,6 @@ interface Project {
 }
 
 export const useProjectStore = defineStore('projects', {
-  serializable: false,
   state: () => ({
     projects: [
       { id: 1, name: 'Dashboard Design', type: 'Vuejs Project', status: 'active', progress: 62, leader: 'Keith', created: '2024-01-01' },
