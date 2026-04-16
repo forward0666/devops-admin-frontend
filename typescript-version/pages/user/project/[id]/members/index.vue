@@ -3,7 +3,15 @@ const route = useRoute()
 const projectId = computed(() => route.params.id as string)
 
 const projectStore = useProjectStore()
+const authStore = useAuthStore()
 const name = computed(() => projectStore.projects.find(p => String(p.id) === projectId.value)?.name || 'Unknown Project')
+
+const canInvite = computed(() => {
+  const allowedLoginRoles = ['sys_admin', 'admin']
+  if (allowedLoginRoles.includes(authStore.loginRole)) return true
+  // Check if current user is a leader in this project
+  return members.value.some(m => m.role === 'Leader' && m.name.toLowerCase().includes(authStore.userName?.toLowerCase() || ''))
+})
 
 const itemsPerPage = ref(10)
 const searchQuery = ref('')
@@ -114,7 +122,7 @@ const headers = [
       <div>
         <h4 class="text-h4">{{ name }} - Member</h4>
       </div>
-      <VBtn prepend-icon="bx-user-plus" color="primary" @click="isInviteDialogVisible = true">Invite Member</VBtn>
+      <VBtn prepend-icon="bx-user-plus" color="primary" :disabled="!canInvite" @click="isInviteDialogVisible = true">Invite Member</VBtn>
     </div>
 
     <VCard>
