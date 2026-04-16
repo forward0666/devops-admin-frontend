@@ -1,22 +1,28 @@
 <script setup lang="ts">
 const activeTab = ref('overview')
 const isConfirmDeleteDialogVisible = ref(false)
+const route = useRoute()
 
-const projectData = {
-  name: 'Dashboard Design',
-  type: 'Vuejs Project',
-  status: 'Active',
-  progress: 62,
-  leader: 'Keith',
-  created: '2024-01-01',
-  team: 'Frontend Team',
-  department: 'Engineering',
-  description: 'A comprehensive admin dashboard design system with reusable components and responsive layouts.',
-  taskDone: '1.23k',
-  totalTask: '2.1k',
-}
+const projectId = computed(() => Number(route.query.id))
+const projectStore = useProjectStore()
+const dbProject = computed(() => projectStore.projects?.find((p: any) => p.id === projectId.value))
+const isUnknown = computed(() => !dbProject.value)
 
-const teamMembers = ref([
+const projectData = reactive({
+  name: dbProject.value?.name || 'Unknown Project',
+  type: dbProject.value?.type || '-',
+  status: dbProject.value?.status || 'Active',
+  progress: dbProject.value?.progress || 0,
+  leader: dbProject.value?.leader || '-',
+  created: dbProject.value?.created || '-',
+  team: dbProject.value?.team || '-',
+  department: dbProject.value?.department || '-',
+  description: dbProject.value?.description || 'No data found.',
+  taskDone: dbProject.value ? '1.23k' : '-',
+  totalTask: dbProject.value ? '2.1k' : '-',
+})
+
+const teamMembers = computed(() => isUnknown.value ? [] : [
   { name: 'Keith', role: 'Project Lead', status: 'Active', avatar: 'K' },
   { name: 'Eileen', role: 'Senior Developer', status: 'Active', avatar: 'E' },
   { name: 'Owen', role: 'UI Designer', status: 'Active', avatar: 'O' },
@@ -24,7 +30,7 @@ const teamMembers = ref([
   { name: 'Harmonia', role: 'QA Engineer', status: 'Active', avatar: 'H' },
 ])
 
-const activityTimeline = ref([
+const activityTimeline = computed(() => isUnknown.value ? [] : [
   { text: 'Created project "Dashboard Design"', time: '2 min ago', icon: 'bx-folder-plus', color: 'primary' },
   { text: 'Added team member Eileen to project', time: '1 hour ago', icon: 'bx-user-plus', color: 'success' },
   { text: 'Completed task "Update API endpoints"', time: '3 hours ago', icon: 'bx-check-circle', color: 'info' },

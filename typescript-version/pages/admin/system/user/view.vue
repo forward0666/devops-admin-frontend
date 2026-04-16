@@ -28,27 +28,29 @@ const userStore = useUserStore()
 const userId = computed(() => Number(route.query.id))
 const dbUser = computed(() => userStore.users.find(u => u.id === userId.value))
 
+const isUnknown = computed(() => !dbUser.value)
+
 const userData = reactive({
-  fullName: dbUser.value?.fullName || 'Selina Kyle',
-  username: dbUser.value?.fullName || 'Selina Kyle',
-  email: dbUser.value?.email || 'irena.dubrovna@wayne.com',
-  role: dbUser.value?.role || 'admin',
-  status: dbUser.value?.status || 'Active',
-  contact: '(829) 537-0057',
-  telegram: '@johndoe',
-  google: 'john@gmail.com',
-  slack: 'john-doe',
-  language: 'English',
-  country: 'United States',
-  department: dbUser.value?.department || 'Engineering',
-  team: dbUser.value?.team || 'Backend',
-  taskDone: '1.23k',
-  projectDone: '568',
+  fullName: dbUser.value?.fullName || 'Unknown User',
+  username: dbUser.value?.fullName || '-',
+  email: dbUser.value?.email || '-',
+  role: dbUser.value?.role || '-',
+  status: dbUser.value?.status || '-',
+  contact: dbUser.value ? '(829) 537-0057' : '-',
+  telegram: dbUser.value ? `@${dbUser.value.fullName.toLowerCase()}` : '-',
+  google: dbUser.value ? `${dbUser.value.fullName.toLowerCase()}@gmail.com` : '-',
+  slack: dbUser.value ? `${dbUser.value.fullName.toLowerCase()}-dev` : '-',
+  language: dbUser.value ? 'English' : '-',
+  country: dbUser.value ? 'United States' : '-',
+  department: dbUser.value?.department || '-',
+  team: dbUser.value?.team || '-',
+  taskDone: dbUser.value ? '1.23k' : '-',
+  projectDone: dbUser.value ? '568' : '-',
 })
 
 const itemsPerPage = ref(5)
 
-const projects = ref([
+const projects = computed(() => isUnknown.value ? [] : [
   { name: 'BGC eCommerce App', type: 'React Project', leader: 'Eileen', progress: 78, img: '/images/pages/react.png', team: ['avatar-1.png', 'avatar-8.png', 'avatar-6.png'], teamExtra: 3 },
   { name: 'Falcon Logo Design', type: 'Figma Project', leader: 'Owen', progress: 25, img: '/images/pages/figma.png', team: ['avatar-5.png', 'avatar-2.png'], teamExtra: 0 },
   { name: 'Dashboard Design', type: 'Vuejs Project', leader: 'Keith', progress: 62, img: '/images/pages/vuejs.png', team: ['avatar-8.png', 'avatar-2.png', 'avatar-1.png'], teamExtra: 0 },
@@ -58,13 +60,13 @@ const projects = ref([
   { name: 'Mobile App UI', type: 'Figma Project', leader: 'Olivia', progress: 40, img: '/images/pages/figma.png', team: ['avatar-7.png', 'avatar-1.png'], teamExtra: 1 },
 ])
 
-const recentDevices = ref([
+const recentDevices = computed(() => isUnknown.value ? [] : [
   { device: 'iPhone 13 Pro', browser: 'Safari', location: 'San Francisco, US', time: '10:30 AM', icon: 'bx-mobile', current: true },
   { device: 'MacBook Pro', browser: 'Chrome', location: 'New York, US', time: 'Yesterday', icon: 'bx-laptop', current: false },
   { device: 'iPad Mini', browser: 'Safari', location: 'Los Angeles, US', time: '3 days ago', icon: 'bx-tablet', current: false },
 ])
 
-const activityTimeline = ref([
+const activityTimeline = computed(() => isUnknown.value ? [] : [
   { text: 'Created project "Dashboard Design"', time: '2 min ago', icon: 'bx-folder-plus', color: 'primary' },
   { text: 'Added team member to "BGC eCommerce App"', time: '1 hour ago', icon: 'bx-user-plus', color: 'success' },
   { text: 'Completed task "Update API endpoints"', time: '3 hours ago', icon: 'bx-check-circle', color: 'info' },
@@ -76,7 +78,7 @@ const activityTimeline = ref([
 const twoFactorEnabled = ref(false)
 const phoneNumber = ref('+1 (234) 567-8901')
 const emailAddress = ref('')
-const verifyMethod = ref('phone')
+const verifyMethod = computed(() => isUnknown.value ? '' : 'phone')
 
 const isNewPasswordVisible = ref(false)
 const isConfirmPasswordVisible = ref(false)
