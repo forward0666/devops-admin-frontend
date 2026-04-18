@@ -22,6 +22,7 @@ const isRowExpanded = (item: any) => {
 
 const authStore = useAuthStore()
 const canViewSensitive = computed(() => authStore.isReady && ['admin', 'devops', 'leader'].includes(authStore.loginRole || ''))
+const canManage = computed(() => authStore.isReady && ['sys_admin', 'admin', 'devops'].includes(authStore.loginRole || ''))
 
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')
 const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-flask', dev: 'bx-code' }[env] || 'bx-globe')
@@ -207,9 +208,9 @@ function confirmDelete() {
         <div class="d-flex align-center gap-3">
           <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = true">Expand</VBtn>
           <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows = new Set()">Collapse</VBtn>
-          <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="isAddDialogVisible = true">Add Domain</VBtn>
-          <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" @click="isImportDialogVisible = true">Import</VBtn>
-          <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" @click="exportDomains">Export</VBtn>
+          <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
+          <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
+          <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
         </div>
       </VCardText>
       <VDivider />
@@ -241,8 +242,8 @@ function confirmDelete() {
               <td><span class="text-body-1">{{ domain.remark || '-' }}</span></td>
               <td>
                 <div class="d-flex gap-1">
-                  <IconBtn size="small" @click="openEditDialog(domain)"><VIcon icon="bx-edit" size="18" /></IconBtn>
-                  <IconBtn size="small" color="error" @click="deletingItem = domain; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
+                  <IconBtn size="small" :disabled="!canManage" @click="openEditDialog(domain)"><VIcon icon="bx-edit" size="18" /></IconBtn>
+                  <IconBtn size="small" color="error" :disabled="!canManage" @click="deletingItem = domain; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
                 </div>
               </td>
             </tr>
