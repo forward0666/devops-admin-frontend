@@ -7,6 +7,23 @@ const editFormRef = ref<any>(null)
 const isDeleteDialogVisible = ref(false)
 const isExpandAll = ref<boolean | null>(null)
 const expandedRows = ref<Set<number>>(new Set())
+
+const deptStorageKey = 'dept-list-expanded'
+
+function loadExpandedState() {
+  if (import.meta.client) {
+    const saved = localStorage.getItem(deptStorageKey)
+    if (saved) {
+      try { expandedRows.value = new Set(JSON.parse(saved)) } catch { /* ignore */ }
+    }
+  }
+}
+
+watch(expandedRows, (val) => {
+  if (import.meta.client) localStorage.setItem(deptStorageKey, JSON.stringify([...val]))
+}, { deep: true })
+
+onMounted(loadExpandedState)
 const editingItem = ref<any>(null)
 const deletingItem = ref<any>(null)
 
