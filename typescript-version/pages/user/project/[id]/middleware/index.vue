@@ -18,7 +18,8 @@ function loadExpandedState() {
     if (saved) {
       try {
         const ids = JSON.parse(saved)
-        expandedRows.value = JSON.parse(saved)
+        const ids = JSON.parse(saved)
+        expandedRows.value = Array.isArray(ids) ? ids : Object.keys(ids).map(Number)
       } catch { /* ignore */ }
     }
   }
