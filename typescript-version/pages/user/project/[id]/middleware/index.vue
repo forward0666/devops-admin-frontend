@@ -18,7 +18,7 @@ function loadExpandedState() {
     if (saved) {
       try {
         const ids = JSON.parse(saved)
-        expandedRows.value = new Set(ids)
+        expandedRows.value = JSON.parse(saved)
       } catch { /* ignore */ }
     }
   }
@@ -33,8 +33,8 @@ watch(() => expandedRows.value, (val) => {
 onMounted(loadExpandedState)
 
 const toggleExpand = (item: any) => {
-  if (expandedRows.value.includes(item.id)) expandedRows.value.delete(item.id)
-  else expandedRows.value.add(item.id)
+  if (expandedRows.value.includes(item.id)) { const i = expandedRows.value.indexOf(item.id); expandedRows.value.splice(i, 1) }
+  else expandedRows.value.push(item.id)
 }
 
 const isRowExpanded = (item: any) => {
