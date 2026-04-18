@@ -90,6 +90,7 @@ const resolveAvatarColor = (name: string) => {
 </script>
 
 <template>
+  <ClientOnly>
   <div>
     <VRow>
       <!-- Left Column -->
@@ -100,7 +101,6 @@ const resolveAvatarColor = (name: string) => {
               <span class="text-h2 font-weight-medium">{{ userData.fullName.charAt(0) }}</span>
             </VAvatar>
             <h5 class="text-h5 mt-4">{{ userData.fullName }}</h5>
-            <VChip variant="tonal" color="secondary" size="small" label class="text-capitalize mt-4">{{ userData.role }}</VChip>
           </VCardText>
           <VCardText>
             <div class="d-flex justify-space-around gap-x-6 gap-y-2 flex-wrap mb-6">
@@ -376,6 +376,7 @@ const resolveAvatarColor = (name: string) => {
       </VCard>
     </VDialog>
   </div>
+  </ClientOnly>
 </template>
 
 <style>
