@@ -10,7 +10,7 @@ const canInvite = computed(() => {
   if (!authStore.isReady) return false
   const allowedLoginRoles = ['sys_admin', 'admin']
   if (allowedLoginRoles.includes(authStore.loginRole)) return true
-  return members.value.some(m => m.role === 'Leader' && m.name.toLowerCase().includes(authStore.userName?.toLowerCase() || ''))
+  if (authStore.loginRole === 'leader') return true
 })
 
 const itemsPerPage = ref(10)
