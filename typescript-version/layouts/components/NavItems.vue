@@ -105,18 +105,6 @@ const isProjectActive = (projectId: number) => {
     />
 
     <!-- 👉 System Tools -->
-    <VerticalNavSectionTitle
-      :item="{ heading: 'System Tools' }"
-    />
-
-    <VerticalNavLink
-      :item="{
-        title: 'System API',
-        icon: 'bx-code-block',
-        to: '/admin/tools/api',
-      }"
-    />
-
     <VerticalNavLink
       :item="{
         title: 'System Config',
