@@ -18,6 +18,7 @@ definePageMeta({ layout: 'blank' })
 const mockUsers = [
   { email: 'admin@jhdevops.com', password: 'admin123', role: 'sys_admin', name: 'Admin' },
   { email: 'manager@jhdevops.com', password: 'admin123', role: 'admin', name: 'Manager' },
+  { email: 'leader@jhdevops.com', password: 'leader123', role: 'leader', name: 'Leader' },
   { email: 'john@jhdevops.com', password: 'user123', role: 'user', name: 'John' },
 ]
 

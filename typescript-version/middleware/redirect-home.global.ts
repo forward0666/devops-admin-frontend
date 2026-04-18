@@ -2,13 +2,14 @@ export default defineNuxtRouteMiddleware((to) => {
   if (to.path === '/login' || to.path === '/register') return
 
   const loginRole = useCookie('auth-login-role').value
+  const adminRoles = ['sys_admin', 'admin', 'devops']
 
   if (to.path === '/' || to.path === '') {
-    const home = loginRole === 'user' ? '/user/dashboard' : '/admin/dashboard'
+    const home = adminRoles.includes(loginRole || '') ? '/admin/dashboard' : '/user/dashboard'
     return navigateTo(home)
   }
 
-  if (loginRole === 'user' && to.path.startsWith('/admin')) {
+  if (!adminRoles.includes(loginRole || '') && to.path.startsWith('/admin')) {
     return navigateTo('/user/dashboard')
   }
 })

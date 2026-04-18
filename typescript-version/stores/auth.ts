@@ -1,7 +1,7 @@
 // useAuthStore - 角色和路由管理
 import { defineStore } from 'pinia'
 
-export type UserRole = 'sys_admin' | 'admin' | 'user'
+export type UserRole = 'sys_admin' | 'admin' | 'user' | 'leader' | 'devops'
 
 interface UserState {
   role: UserRole

@@ -21,7 +21,7 @@ const isRowExpanded = (item: any) => {
 }
 
 const authStore = useAuthStore()
-const canViewSensitive = computed(() => ['admin', 'devops', 'leader'].includes(authStore.loginRole || ''))
+const canViewSensitive = computed(() => authStore.isReady && ['admin', 'devops', 'leader'].includes(authStore.loginRole || ''))
 
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')
 const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-flask', dev: 'bx-code' }[env] || 'bx-globe')
@@ -86,6 +86,13 @@ const headers = [
 ]
 
 const typeColor = (type: string) => ({ web: 'primary', admin: 'warning', callback: 'info', api: 'success' }[type] || 'grey')
+
+function getVisibleChildren(env: any) {
+  return env.children.filter((c: any) => {
+    if (c.env === 'prod' && (c.type === 'callback' || c.type === 'api') && !canViewSensitive.value) return false
+    return true
+  })
+}
 
 const isAddDialogVisible = ref(false)
 const isEditDialogVisible = ref(false)
@@ -211,7 +218,7 @@ function confirmDelete() {
             <VIcon :icon="isRowExpanded(env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
             <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
             <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
-            <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ env.children.length }}</VChip>
+            <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
           </div>
           <VTable v-show="isExpandAll === true || isRowExpanded(env)" class="text-no-wrap" hover>
             <thead>
@@ -223,7 +230,7 @@ function confirmDelete() {
               </tr>
             </thead>
             <tbody>
-            <tr v-for="domain in env.children" :key="domain.id" class="table-row-hover">
+            <tr v-for="domain in getVisibleChildren(env)" :key="domain.id" class="table-row-hover">
               <td style="padding-left: 50px;">
                 <div class="d-flex align-center gap-x-2">
                   <VIcon icon="bx-globe" color="primary" size="18" />
