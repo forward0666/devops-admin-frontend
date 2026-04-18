@@ -44,7 +44,7 @@ const isRowExpanded = (item: any) => {
 }
 
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')
-const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-flask', dev: 'bx-code' }[env] || 'bx-globe')
+const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-test-tube', dev: 'bx-code' }[env] || 'bx-globe')
 
 const middlewares = ref([
   { id: 1, env: 'prod', type: 'environment', children: [

@@ -47,7 +47,7 @@ const canViewSensitive = computed(() => authStore.isReady && ['admin', 'devops',
 const canManage = computed(() => authStore.isReady && ['sys_admin', 'admin', 'devops'].includes(authStore.loginRole || ''))
 
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')
-const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-flask', dev: 'bx-code' }[env] || 'bx-globe')
+const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-test-tube', dev: 'bx-code' }[env] || 'bx-globe')
 
 const domains = ref([
   { id: 1, env: 'prod', type: 'environment', children: [
@@ -85,7 +85,7 @@ const flatDomains = computed(() => {
       result.push({ ...item, depth })
       if (item.children?.length) {
         const visibleChildren = item.children.filter((c: any) => {
-          if (c.env === 'prod' && (c.type === 'callback' || c.type === 'api') && !canViewSensitive.value) return false
+          if (c.env === 'prod' && (c.type === 'callback' || c.type === 'api' || c.type === 'admin') && !canViewSensitive.value) return false
           return true
         })
         flatten(visibleChildren, depth + 1, expanded)
@@ -112,7 +112,7 @@ const typeColor = (type: string) => ({ web: 'primary', admin: 'warning', callbac
 
 function getVisibleChildren(env: any) {
   return env.children.filter((c: any) => {
-    if (c.env === 'prod' && (c.type === 'callback' || c.type === 'api') && !canViewSensitive.value) return false
+    if (c.env === 'prod' && (c.type === 'callback' || c.type === 'api' || c.type === 'admin') && !canViewSensitive.value) return false
     return true
   })
 }
