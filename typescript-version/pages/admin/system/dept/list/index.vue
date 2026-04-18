@@ -5,7 +5,6 @@ const isEditDialogVisible = ref(false)
 const addFormRef = ref<any>(null)
 const editFormRef = ref<any>(null)
 const isDeleteDialogVisible = ref(false)
-const isExpandAll = ref<boolean | null>(null)
 const expandedRows = ref<number[]>([])
 
 const deptStorageKey = 'dept-list-expanded'
@@ -33,8 +32,6 @@ const toggleExpand = (item: any) => {
 }
 
 const isRowExpanded = (item: any) => {
-  if (isExpandAll.value === true) return true
-  if (isExpandAll.value === false) return false
   return expandedRows.value.includes(item.id)
 }
 
@@ -93,7 +90,7 @@ const flatDepts = computed(() => {
   const flatten = (items: any[], depth: number, parentExpanded: boolean) => {
     items.forEach(item => {
       if (!parentExpanded) return
-      const expanded = isExpandAll.value || isRowExpanded(item)
+      const expanded = isRowExpanded(item)
       result.push({ ...item, depth })
       if (item.children?.length) flatten(item.children, depth + 1, expanded)
     })
@@ -218,8 +215,6 @@ function deleteFromTree(items: any[], name: string): boolean {
       <VCol cols="12" md="6"><h4 class="text-h4">Department</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end align-center gap-3">
         <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="openAddDialog">Add</VBtn>
-        <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = true">Expand</VBtn>
-        <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows.value = []; flatDepts">Collapse</VBtn>
       </VCol>
     </VRow>
 

@@ -6,7 +6,6 @@ const projectStore = useProjectStore()
 const name = computed(() => projectStore.projects.find(p => String(p.id) === projectId.value)?.name || 'Unknown Project')
 
 const searchQuery = ref('')
-const isExpandAll = ref<boolean | null>(null)
 const expandedRows = ref<number[]>([])
 
 const storageKey = computed(() => `domain-expanded-${projectId.value}`)
@@ -37,14 +36,12 @@ const toggleExpand = (item: any) => {
 }
 
 const isRowExpanded = (item: any) => {
-  if (isExpandAll.value === true) return true
-  if (isExpandAll.value === false) return false
   return expandedRows.value.includes(item.id)
 }
 
 const authStore = useAuthStore()
-const canViewSensitive = computed(() => authStore.isReady && ['admin', 'devops', 'leader'].includes(authStore.loginRole || ''))
-const canManage = computed(() => authStore.isReady && ['sys_admin', 'admin', 'devops'].includes(authStore.loginRole || ''))
+const canViewSensitive = computed(() => ['sys_admin', 'admin', 'devops', 'leader'].includes(authStore.loginRole || ''))
+const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.loginRole || ''))
 
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')
 const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-test-tube', dev: 'bx-code' }[env] || 'bx-globe')
@@ -81,7 +78,6 @@ const flatDomains = computed(() => {
   const flatten = (items: any[], depth: number, parentExpanded: boolean) => {
     items.forEach(item => {
       if (!parentExpanded) return
-      const expanded = isExpandAll.value === true || isRowExpanded(item)
       result.push({ ...item, depth })
       if (item.children?.length) {
         const visibleChildren = item.children.filter((c: any) => {
@@ -228,8 +224,6 @@ function confirmDelete() {
       <VCardText class="d-flex justify-space-between align-center flex-wrap gap-3">
         <h4 class="text-h4">Domain</h4>
         <div class="d-flex align-center gap-3">
-          <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = true">Expand</VBtn>
-          <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows.value = []">Collapse</VBtn>
           <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
           <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
           <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
@@ -243,7 +237,7 @@ function confirmDelete() {
             <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
             <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
           </div>
-          <VTable v-show="isExpandAll === true || isRowExpanded(env)" class="text-no-wrap" hover>
+          <VTable v-show="isRowExpanded(env)" class="text-no-wrap" hover>
             <thead>
               <tr class="text-caption text-medium-emphasis">
                 <th style="padding-left: 50px;">Domain</th>

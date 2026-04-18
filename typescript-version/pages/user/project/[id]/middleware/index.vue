@@ -4,10 +4,9 @@ const projectId = computed(() => route.params.id as string)
 
 const projectStore = useProjectStore()
 const authStore = useAuthStore()
-const canManage = computed(() => authStore.isReady && ['sys_admin', 'admin', 'devops'].includes(authStore.loginRole || ''))
+const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.loginRole || ''))
 const name = computed(() => projectStore.projects.find(p => String(p.id) === projectId.value)?.name || 'Unknown Project')
 
-const isExpandAll = ref<boolean | null>(null)
 const expandedRows = ref<number[]>([])
 
 const storageKey = computed(() => `middleware-expanded-${projectId.value}`)
@@ -38,8 +37,6 @@ const toggleExpand = (item: any) => {
 }
 
 const isRowExpanded = (item: any) => {
-  if (isExpandAll.value === true) return true
-  if (isExpandAll.value === false) return false
   return expandedRows.value.includes(item.id)
 }
 
@@ -182,8 +179,6 @@ function exportMiddlewares() {
       <VCardText class="d-flex justify-space-between align-center flex-wrap gap-3">
         <h4 class="text-h4">Middleware</h4>
         <div class="d-flex align-center gap-3">
-          <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = true">Expand</VBtn>
-          <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows.value = []">Collapse</VBtn>
           <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Middleware</VBtn>
           <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
           <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportMiddlewares">Export</VBtn>
@@ -197,7 +192,7 @@ function exportMiddlewares() {
             <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
             <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ env.children.length }}</VChip>
           </div>
-          <VTable v-show="isExpandAll === true || isRowExpanded(env)" class="text-no-wrap" hover>
+          <VTable v-show="isRowExpanded(env)" class="text-no-wrap" hover>
             <thead>
               <tr class="text-caption text-medium-emphasis">
                 <th style="padding-left: 50px;">Name</th>
