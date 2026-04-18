@@ -9,6 +9,28 @@ const searchQuery = ref('')
 const isExpandAll = ref<boolean | null>(null)
 const expandedRows = ref<Set<number>>(new Set())
 
+const storageKey = computed(() => `domain-expanded-${projectId.value}`)
+
+function loadExpandedState() {
+  if (import.meta.client) {
+    const saved = localStorage.getItem(storageKey.value)
+    if (saved) {
+      try {
+        const ids = JSON.parse(saved)
+        expandedRows.value = new Set(ids)
+      } catch { /* ignore */ }
+    }
+  }
+}
+
+watch(() => expandedRows.value, (val) => {
+  if (import.meta.client) {
+    localStorage.setItem(storageKey.value, JSON.stringify([...val]))
+  }
+}, { deep: true })
+
+onMounted(loadExpandedState)
+
 const toggleExpand = (item: any) => {
   if (expandedRows.value.has(item.id)) expandedRows.value.delete(item.id)
   else expandedRows.value.add(item.id)
