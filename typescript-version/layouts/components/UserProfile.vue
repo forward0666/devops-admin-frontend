@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import avatar1 from '@images/avatars/avatar-1.png'
 const authStore = useAuthStore()
+
+const avatarLetter = computed(() => (authStore.userName || 'U').charAt(0).toUpperCase())
+
+const resolveAvatarColor = (name: string) => {
+  const colors = ['primary', 'secondary', 'success', 'info', 'warning', 'error']
+  return colors[(name.charCodeAt(0) || 0) % colors.length]
+}
+
+const avatarColor = computed(() => resolveAvatarColor(authStore.userName || 'User'))
 </script>
 
 <template>
@@ -14,10 +22,10 @@ const authStore = useAuthStore()
   >
     <VAvatar
       class="cursor-pointer"
-      color="primary"
+      :color="avatarColor"
       variant="tonal"
     >
-      <VImg :src="avatar1" />
+      {{ avatarLetter }}
 
       <!-- SECTION Menu -->
       <VMenu
@@ -39,10 +47,10 @@ const authStore = useAuthStore()
                   color="success"
                 >
                   <VAvatar
-                    color="primary"
+                    :color="avatarColor"
                     variant="tonal"
                   >
-                    <VImg :src="avatar1" />
+                    {{ avatarLetter }}
                   </VAvatar>
                 </VBadge>
               </VListItemAction>
@@ -78,32 +86,6 @@ const authStore = useAuthStore()
             </template>
 
             <VListItemTitle>Settings</VListItemTitle>
-          </VListItem>
-
-          <!-- 👉 Pricing -->
-          <VListItem link>
-            <template #prepend>
-              <VIcon
-                class="me-2"
-                icon="bx-dollar"
-                size="22"
-              />
-            </template>
-
-            <VListItemTitle>Pricing</VListItemTitle>
-          </VListItem>
-
-          <!-- 👉 FAQ -->
-          <VListItem link>
-            <template #prepend>
-              <VIcon
-                class="me-2"
-                icon="bx-help-circle"
-                size="22"
-              />
-            </template>
-
-            <VListItemTitle>FAQ</VListItemTitle>
           </VListItem>
 
           <!-- Divider -->

@@ -7,7 +7,7 @@ const name = computed(() => projectStore.projects.find(p => String(p.id) === pro
 
 const searchQuery = ref('')
 const isExpandAll = ref<boolean | null>(null)
-const expandedRows = ref<Set<number>>(new Set())
+const expandedRows = ref<number[]>([])
 
 const storageKey = computed(() => `domain-expanded-${projectId.value}`)
 
@@ -25,21 +25,21 @@ function loadExpandedState() {
 
 watch(() => expandedRows.value, (val) => {
   if (import.meta.client) {
-    localStorage.setItem(storageKey.value, JSON.stringify([...val]))
+    localStorage.setItem(storageKey.value, JSON.stringify(val))
   }
 }, { deep: true })
 
 onMounted(loadExpandedState)
 
 const toggleExpand = (item: any) => {
-  if (expandedRows.value.has(item.id)) expandedRows.value.delete(item.id)
+  if (expandedRows.value.includes(item.id)) expandedRows.value.delete(item.id)
   else expandedRows.value.add(item.id)
 }
 
 const isRowExpanded = (item: any) => {
   if (isExpandAll.value === true) return true
   if (isExpandAll.value === false) return false
-  return expandedRows.value.has(item.id)
+  return expandedRows.value.includes(item.id)
 }
 
 const authStore = useAuthStore()
@@ -229,7 +229,7 @@ function confirmDelete() {
         <h4 class="text-h4">Domain</h4>
         <div class="d-flex align-center gap-3">
           <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = true">Expand</VBtn>
-          <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows = new Set()">Collapse</VBtn>
+          <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows.value = []">Collapse</VBtn>
           <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
           <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
           <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>

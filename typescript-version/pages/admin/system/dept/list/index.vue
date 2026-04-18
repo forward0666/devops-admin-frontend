@@ -6,7 +6,7 @@ const addFormRef = ref<any>(null)
 const editFormRef = ref<any>(null)
 const isDeleteDialogVisible = ref(false)
 const isExpandAll = ref<boolean | null>(null)
-const expandedRows = ref<Set<number>>(new Set())
+const expandedRows = ref<number[]>([])
 
 const deptStorageKey = 'dept-list-expanded'
 
@@ -14,13 +14,13 @@ function loadExpandedState() {
   if (import.meta.client) {
     const saved = localStorage.getItem(deptStorageKey)
     if (saved) {
-      try { expandedRows.value = new Set(JSON.parse(saved)) } catch { /* ignore */ }
+      try { expandedRows.value = JSON.parse(saved) } catch { /* ignore */ }
     }
   }
 }
 
 watch(expandedRows, (val) => {
-  if (import.meta.client) localStorage.setItem(deptStorageKey, JSON.stringify([...val]))
+  if (import.meta.client) localStorage.setItem(deptStorageKey, JSON.stringify(val))
 }, { deep: true })
 
 onMounted(loadExpandedState)
@@ -28,14 +28,14 @@ const editingItem = ref<any>(null)
 const deletingItem = ref<any>(null)
 
 const toggleExpand = (item: any) => {
-  if (expandedRows.value.has(item.id)) expandedRows.value.delete(item.id)
+  if (expandedRows.value.includes(item.id)) expandedRows.value.delete(item.id)
   else expandedRows.value.add(item.id)
 }
 
 const isRowExpanded = (item: any) => {
   if (isExpandAll.value === true) return true
   if (isExpandAll.value === false) return false
-  return expandedRows.value.has(item.id)
+  return expandedRows.value.includes(item.id)
 }
 
 const departments = ref([
@@ -219,7 +219,7 @@ function deleteFromTree(items: any[], name: string): boolean {
       <VCol cols="12" md="6" class="d-flex justify-end align-center gap-3">
         <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="openAddDialog">Add</VBtn>
         <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = true">Expand</VBtn>
-        <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows = new Set(); flatDepts">Collapse</VBtn>
+        <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary" size="small" @click="isExpandAll = false; expandedRows.value = []; flatDepts">Collapse</VBtn>
       </VCol>
     </VRow>
 
