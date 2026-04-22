@@ -1,7 +1,11 @@
 <script setup lang="ts">
+const menuStore = useMenuStore()
+const snackbar = ref({ show: false, text: '', color: 'success' })
+
 const search = ref('')
 const isDialogVisible = ref(false)
 const dialogTitle = ref('Add Menu')
+const editingId = ref<number | null>(null)
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
@@ -10,64 +14,123 @@ const headers = [
   { title: 'Sort', key: 'sort', sortable: true },
   { title: 'Path', key: 'path' },
   { title: 'Type', key: 'type' },
-  { title: 'Status', key: 'status' },
-  { title: 'Created', key: 'created', sortable: true },
+  { title: 'Status', key: 'active' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const menus = ref([
-  { id: 1, name: 'Dashboard', icon: 'bx-home-smile', sort: 1, path: '/admin/dashboard', type: 'Directory', status: 'active', created: '2024-01-01' },
-  { id: 2, name: 'User Management', icon: 'bx-user', sort: 2, path: '/admin/system/user', type: 'Directory', status: 'active', created: '2024-01-01' },
-  { id: 3, name: 'User List', icon: '', sort: 1, path: '/admin/system/user/list', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 4, name: 'User View', icon: '', sort: 2, path: '/admin/system/user/view', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 5, name: 'Roles & Permissions', icon: 'bx-check-shield', sort: 3, path: '/admin/system/role', type: 'Directory', status: 'active', created: '2024-01-01' },
-  { id: 6, name: 'Roles', icon: '', sort: 1, path: '/admin/system/role', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 7, name: 'Permissions', icon: '', sort: 2, path: '/admin/system/permission', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 8, name: 'Menu Management', icon: 'bx-menu', sort: 4, path: '/admin/system/menu', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 9, name: 'Department', icon: 'bx-buildings', sort: 5, path: '/admin/system/dept', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 10, name: 'Dictionary', icon: 'bx-book-open', sort: 6, path: '/admin/system/dict', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 11, name: 'Operation Log', icon: 'bx-list-ul', sort: 1, path: '/admin/monitor/log', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 12, name: 'Login Log', icon: 'bx-log-in', sort: 2, path: '/admin/monitor/login-log', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 13, name: 'Online Users', icon: 'bx-user-circle', sort: 3, path: '/admin/monitor/online', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 14, name: 'Code Generator', icon: 'bx-code-alt', sort: 1, path: '/admin/tools/gen', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 15, name: 'System API', icon: 'bx-code-block', sort: 2, path: '/admin/tools/api', type: 'Menu', status: 'active', created: '2024-01-01' },
-  { id: 16, name: 'System Config', icon: 'bx-cog', sort: 3, path: '/admin/tools/config', type: 'Menu', status: 'active', created: '2024-01-01' },
-])
+const form = ref({ name: '', icon: '', sort: 1, path: '', type: 'menu', status: true, parentId: null as number | null, permission: '' })
 
-const form = ref({ name: '', icon: '', sort: 1, path: '', type: 'Menu', status: 'active', parentId: null, permission: '' })
+onMounted(() => menuStore.fetchMenus())
+
+// Flatten tree for table display
+const flatMenus = computed(() => {
+  const result: any[] = []
+  const flatten = (items: any[], depth: number) => {
+    items.forEach(item => {
+      result.push({ ...item, depth, _hasChildren: !!item.children?.length })
+      if (item.children?.length) flatten(item.children, depth + 1)
+    })
+  }
+  flatten(menuStore.menus, 0)
+  return result
+})
+
+function openAddDialog(parentId?: number) {
+  editingId.value = null
+  dialogTitle.value = 'Add Menu'
+  form.value = { name: '', icon: '', sort: 1, path: '', type: 'menu', status: true, parentId: parentId || null, permission: '' }
+  isDialogVisible.value = true
+}
+
+function openEditDialog(item: any) {
+  editingId.value = item.id
+  dialogTitle.value = 'Edit Menu'
+  form.value = {
+    name: item.name,
+    icon: item.icon || '',
+    sort: item.sort || 0,
+    path: item.path || '',
+    type: item.type || 'menu',
+    status: item.active !== false,
+    parentId: item.parentId,
+    permission: item.permission || '',
+  }
+  isDialogVisible.value = true
+}
+
+async function submitForm() {
+  try {
+    const data = { ...form.value, status: form.value.status }
+    if (editingId.value) {
+      await menuStore.updateMenu(editingId.value, data)
+      snackbar.value = { show: true, text: 'Menu updated', color: 'success' }
+    } else {
+      await menuStore.createMenu(data)
+      snackbar.value = { show: true, text: 'Menu created', color: 'success' }
+    }
+    isDialogVisible.value = false
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Operation failed', color: 'error' }
+  }
+}
+
+async function deleteMenu(id: number) {
+  try {
+    await menuStore.deleteMenu(id)
+    snackbar.value = { show: true, text: 'Menu deleted', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Delete failed', color: 'error' }
+  }
+}
+
+const parentOptions = computed(() => {
+  const items: { title: string; value: number | null }[] = [{ title: 'None (Top Level)', value: null }]
+  const collect = (menus: any[]) => {
+    menus.forEach((m: any) => {
+      items.push({ title: m.name, value: m.id })
+      if (m.children?.length) collect(m.children)
+    })
+  }
+  collect(menuStore.menus)
+  return items
+})
 </script>
 
 <template>
   <div>
     <VRow class="mb-4">
-      <VCol cols="12" md="6"><h4 class="text-h4">Menu</h4></VCol>
+      <VCol cols="12" md="6"><h4 class="text-h4">Menu Management</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-plus" color="primary" @click="dialogTitle = 'Add Menu'; isDialogVisible = true">Add</VBtn>
-        <VBtn prepend-icon="bx-expand-alt" variant="tonal" color="secondary">Expand All</VBtn>
-        <VBtn prepend-icon="bx-collapse-alt" variant="tonal" color="secondary">Collapse All</VBtn>
+        <VBtn prepend-icon="bx-plus" color="primary" @click="openAddDialog()">Add</VBtn>
       </VCol>
     </VRow>
 
-    <VCard>
+    <VCard :loading="menuStore.loading">
       <VCardText>
         <AppTextField v-model="search" placeholder="Search menu" prepend-inner-icon="bx-search" density="compact" hide-details />
       </VCardText>
-      <VDataTable :headers="headers" :items="menus" :search="search" :items-per-page="10" class="text-no-wrap">
+      <VDataTable :headers="headers" :items="flatMenus" :search="search" :items-per-page="10" class="text-no-wrap">
+        <template #item.name="{ item }">
+          <div class="d-flex align-center" :style="{ paddingLeft: `${(item.depth || 0) * 24}px` }">
+            <VIcon v-if="item._hasChildren" :icon="item.depth === 0 ? 'bx-folder-open' : 'bx-folder'" size="18" class="me-2 text-medium-emphasis" />
+            <span class="font-weight-medium">{{ item.name }}</span>
+          </div>
+        </template>
         <template #item.icon="{ item }">
           <VIcon v-if="item.icon" :icon="item.icon" size="20" />
           <span v-else class="text-body-2 text-medium-emphasis">—</span>
         </template>
         <template #item.type="{ item }">
-          <VChip variant="tonal" :color="item.type === 'Directory' ? 'info' : 'primary'" size="small" label>{{ item.type }}</VChip>
+          <VChip variant="tonal" :color="item.type === 'directory' ? 'info' : item.type === 'button' ? 'warning' : 'primary'" size="small" label class="text-capitalize">{{ item.type }}</VChip>
         </template>
-        <template #item.status="{ item }">
-          <VChip variant="tonal" :color="item.status === 'active' ? 'success' : 'error'" size="small" label>{{ item.status === 'active' ? 'Active' : 'Inactive' }}</VChip>
+        <template #item.active="{ item }">
+          <VChip variant="tonal" :color="item.active !== false ? 'success' : 'error'" size="small" label>{{ item.active !== false ? 'Active' : 'Inactive' }}</VChip>
         </template>
-        <template #item.actions>
+        <template #item.actions="{ item }">
           <div class="d-flex gap-1">
-            <IconBtn size="small"><VIcon icon="bx-plus" size="18" /></IconBtn>
-            <IconBtn size="small"><VIcon icon="bx-edit" size="18" /></IconBtn>
-            <IconBtn size="small" color="error"><VIcon icon="bx-trash" size="18" /></IconBtn>
+            <IconBtn size="small" @click="openAddDialog(item.id)"><VIcon icon="bx-plus" size="18" /></IconBtn>
+            <IconBtn size="small" @click="openEditDialog(item)"><VIcon icon="bx-edit" size="18" /></IconBtn>
+            <IconBtn size="small" color="error" @click="deleteMenu(item.id)"><VIcon icon="bx-trash" size="18" /></IconBtn>
           </div>
         </template>
       </VDataTable>
@@ -77,21 +140,23 @@ const form = ref({ name: '', icon: '', sort: 1, path: '', type: 'Menu', status: 
       <VCard :title="dialogTitle">
         <VCardText>
           <VForm>
-            <AppSelect v-model="form.parentId" label="Parent Menu" :items="['None', 'System Management', 'System Monitor', 'System Tools']" class="mb-3" />
-            <AppSelect v-model="form.type" label="Type" :items="['Directory', 'Menu', 'Button']" class="mb-3" />
+            <AppSelect v-model="form.parentId" label="Parent Menu" :items="parentOptions" item-title="title" item-value="value" class="mb-3" />
+            <AppSelect v-model="form.type" label="Type" :items="['directory', 'menu', 'button']" class="mb-3" />
             <AppTextField v-model="form.name" label="Menu Name" class="mb-3" />
             <AppTextField v-model="form.icon" label="Icon" placeholder="e.g. bx-home-smile" class="mb-3" />
             <AppTextField v-model="form.path" label="Route Path" placeholder="e.g. /system/user" class="mb-3" />
             <AppTextField v-model="form.permission" label="Permission Key" placeholder="e.g. system:user:list" class="mb-3" />
-            <AppTextField v-model="form.sort" label="Sort Order" type="number" class="mb-3" />
-            <AppSelect v-model="form.status" label="Status" :items="['active', 'inactive']" />
+            <AppTextField v-model.number="form.sort" label="Sort Order" type="number" class="mb-3" />
+            <AppSelect v-model="form.status" label="Status" :items="[{ title: 'Active', value: true }, { title: 'Inactive', value: false }]" item-title="title" item-value="value" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary">Submit</VBtn>
+          <VBtn color="primary" :loading="menuStore.loading" @click="submitForm">Submit</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>

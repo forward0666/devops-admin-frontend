@@ -1,30 +1,57 @@
 <script setup lang="ts">
-const search = ref('')
-const isDialogVisible = ref(false)
+const settingsStore = useSettingsStore()
+const snackbar = ref({ show: false, text: '', color: 'success' })
 
-const headers = [
-  { title: 'ID', key: 'id', sortable: true },
-  { title: 'Config Name', key: 'name', sortable: true },
-  { title: 'Config Key', key: 'key' },
-  { title: 'Config Value', key: 'value' },
-  { title: 'Type', key: 'type' },
-  { title: 'Remark', key: 'remark' },
-  { title: 'Created', key: 'created', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false },
-]
+const activeTab = ref('system')
 
-const configs = ref([
-  { id: 1, name: 'Account Register', key: 'sys.account.registerUser', value: 'false', type: 'Y/N', remark: 'Whether to allow user self-registration', created: '2024-01-01' },
-  { id: 2, name: 'User Initial Password', key: 'sys.user.initPassword', value: '123456', type: 'String', remark: 'Default password for new users', created: '2024-01-01' },
-  { id: 3, name: 'Main Frame Skin', key: 'sys.index.skinName', value: 'skin-blue', type: 'String', remark: 'Skin theme name', created: '2024-01-01' },
-  { id: 4, name: 'Side Menu Style', key: 'sys.index.sideTheme', value: 'theme-dark', type: 'String', remark: 'Side navigation theme', created: '2024-01-01' },
-  { id: 5, name: 'Captcha Enabled', key: 'sys.account.captchaEnabled', value: 'true', type: 'Y/N', remark: 'Whether to enable captcha on login', created: '2024-01-01' },
-  { id: 6, name: 'Login Session Timeout', key: 'sys.session.timeout', value: '30', type: 'Number', remark: 'Session timeout in minutes', created: '2024-01-01' },
-  { id: 7, name: 'Max Retry Count', key: 'sys.login.maxRetryCount', value: '5', type: 'Number', remark: 'Max password retry before lock', created: '2024-01-01' },
-  { id: 8, name: 'Lock Duration', key: 'sys.login.lockDuration', value: '10', type: 'Number', remark: 'Account lock duration in minutes', created: '2024-01-01' },
-])
+onMounted(async () => {
+  await Promise.all([
+    settingsStore.fetchSystemConfig(),
+    settingsStore.fetchSecurity(),
+    settingsStore.fetchPasswordPolicy(),
+    settingsStore.fetchLoginSettings(),
+    settingsStore.fetchIpControl(),
+  ])
+})
 
-const form = ref({ name: '', key: '', value: '', type: 'String', remark: '' })
+async function save(tab: string) {
+  try {
+    switch (tab) {
+      case 'system':
+        if (settingsStore.systemConfig) await settingsStore.updateSystemConfig(settingsStore.systemConfig)
+        break
+      case 'security':
+        if (settingsStore.securityConfig) await settingsStore.updateSecurity(settingsStore.securityConfig)
+        break
+      case 'password':
+        if (settingsStore.passwordPolicy) await settingsStore.updatePasswordPolicy(settingsStore.passwordPolicy)
+        break
+      case 'login':
+        if (settingsStore.loginSettings) await settingsStore.updateLoginSettings(settingsStore.loginSettings)
+        break
+      case 'ip':
+        if (settingsStore.ipControl) await settingsStore.updateIpControl(settingsStore.ipControl)
+        break
+    }
+    snackbar.value = { show: true, text: 'Saved successfully', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Save failed', color: 'error' }
+  }
+}
+
+async function clearCache() {
+  try {
+    await settingsStore.clearAllCache()
+    snackbar.value = { show: true, text: 'Cache cleared', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to clear cache', color: 'error' }
+  }
+}
+
+// Reactive form helpers
+function updateField(obj: any, key: string, value: any) {
+  if (obj) obj[key] = value
+}
 </script>
 
 <template>
@@ -32,57 +59,118 @@ const form = ref({ name: '', key: '', value: '', type: 'String', remark: '' })
     <VRow class="mb-4">
       <VCol cols="12" md="6"><h4 class="text-h4">System Config</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-plus" color="primary" @click="isDialogVisible = true">Add</VBtn>
-        <VBtn prepend-icon="bx-refresh" variant="tonal" color="secondary">Refresh Cache</VBtn>
+        <VBtn prepend-icon="bx-refresh" variant="tonal" color="secondary" :loading="settingsStore.loading" @click="clearCache">Clear Cache</VBtn>
       </VCol>
     </VRow>
 
-    <VCard>
-      <VCardText>
-        <VRow align="center">
-          <VCol cols="12" sm="6" md="4">
-            <AppTextField v-model="search" placeholder="Search config name or key" prepend-inner-icon="bx-search" density="compact" hide-details />
-          </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <AppSelect placeholder="Type" :items="['String', 'Number', 'Y/N', 'Boolean']" density="compact" hide-details clearable />
-          </VCol>
-        </VRow>
-      </VCardText>
-      <VDataTable :headers="headers" :items="configs" :search="search" :items-per-page="10" class="text-no-wrap">
-        <template #item.value="{ item }">
-          <code class="text-body-2 text-primary">{{ item.value }}</code>
-        </template>
-        <template #item.key="{ item }">
-          <code class="text-body-2 text-medium-emphasis">{{ item.key }}</code>
-        </template>
-        <template #item.type="{ item }">
-          <VChip variant="tonal" color="info" size="small" label>{{ item.type }}</VChip>
-        </template>
-        <template #item.actions>
-          <div class="d-flex gap-1">
-            <IconBtn size="small" @click="isDialogVisible = true"><VIcon icon="bx-edit" size="18" /></IconBtn>
-            <IconBtn size="small" color="error"><VIcon icon="bx-trash" size="18" /></IconBtn>
-          </div>
-        </template>
-      </VDataTable>
-    </VCard>
+    <VTabs v-model="activeTab">
+      <VTab value="system">System</VTab>
+      <VTab value="security">Security</VTab>
+      <VTab value="password">Password Policy</VTab>
+      <VTab value="login">Login Settings</VTab>
+      <VTab value="ip">IP Control</VTab>
+    </VTabs>
 
-    <VDialog v-model="isDialogVisible" max-width="550">
-      <VCard title="System Config">
+    <!-- System Tab -->
+    <div v-show="activeTab === 'system'" class="mt-6">
+      <VCard :loading="settingsStore.loading">
+        <VCardItem><VCardTitle>System Settings</VCardTitle></VCardItem>
+        <VDivider />
         <VCardText>
-          <VForm>
-            <AppTextField v-model="form.name" label="Config Name" class="mb-3" />
-            <AppTextField v-model="form.key" label="Config Key" placeholder="e.g. sys.user.initPassword" class="mb-3" />
-            <AppTextField v-model="form.value" label="Config Value" class="mb-3" />
-            <AppSelect v-model="form.type" label="Type" :items="['String', 'Number', 'Y/N', 'Boolean']" class="mb-3" />
-            <AppTextarea v-model="form.remark" label="Remark" />
-          </VForm>
+          <VRow v-if="settingsStore.systemConfig">
+            <VCol v-for="(value, key) in settingsStore.systemConfig" :key="key" cols="12" md="6">
+              <VTextField :label="String(key)" :model-value="value" density="comfortable" variant="outlined" @update:model-value="updateField(settingsStore.systemConfig, String(key), $event)" />
+            </VCol>
+          </VRow>
+          <div v-else class="text-center py-6 text-medium-emphasis">No system config loaded</div>
         </VCardText>
-        <VCardActions class="justify-end">
-          <VBtn variant="tonal" @click="isDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary">Submit</VBtn>
+        <VDivider />
+        <VCardActions class="justify-end pa-4">
+          <VBtn color="primary" :loading="settingsStore.loading" @click="save('system')">Save</VBtn>
         </VCardActions>
       </VCard>
-    </VDialog>
+    </div>
+
+    <!-- Security Tab -->
+    <div v-show="activeTab === 'security'" class="mt-6">
+      <VCard :loading="settingsStore.loading">
+        <VCardItem><VCardTitle>Security Settings</VCardTitle></VCardItem>
+        <VDivider />
+        <VCardText>
+          <VRow v-if="settingsStore.securityConfig">
+            <VCol v-for="(value, key) in settingsStore.securityConfig" :key="key" cols="12" md="6">
+              <VTextField :label="String(key)" :model-value="value" density="comfortable" variant="outlined" @update:model-value="updateField(settingsStore.securityConfig, String(key), $event)" />
+            </VCol>
+          </VRow>
+          <div v-else class="text-center py-6 text-medium-emphasis">No security config loaded</div>
+        </VCardText>
+        <VDivider />
+        <VCardActions class="justify-end pa-4">
+          <VBtn color="primary" :loading="settingsStore.loading" @click="save('security')">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </div>
+
+    <!-- Password Policy Tab -->
+    <div v-show="activeTab === 'password'" class="mt-6">
+      <VCard :loading="settingsStore.loading">
+        <VCardItem><VCardTitle>Password Policy</VCardTitle></VCardItem>
+        <VDivider />
+        <VCardText>
+          <VRow v-if="settingsStore.passwordPolicy">
+            <VCol v-for="(value, key) in settingsStore.passwordPolicy" :key="key" cols="12" md="6">
+              <VTextField :label="String(key)" :model-value="value" density="comfortable" variant="outlined" @update:model-value="updateField(settingsStore.passwordPolicy, String(key), $event)" />
+            </VCol>
+          </VRow>
+          <div v-else class="text-center py-6 text-medium-emphasis">No password policy loaded</div>
+        </VCardText>
+        <VDivider />
+        <VCardActions class="justify-end pa-4">
+          <VBtn color="primary" :loading="settingsStore.loading" @click="save('password')">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </div>
+
+    <!-- Login Settings Tab -->
+    <div v-show="activeTab === 'login'" class="mt-6">
+      <VCard :loading="settingsStore.loading">
+        <VCardItem><VCardTitle>Login Settings</VCardTitle></VCardItem>
+        <VDivider />
+        <VCardText>
+          <VRow v-if="settingsStore.loginSettings">
+            <VCol v-for="(value, key) in settingsStore.loginSettings" :key="key" cols="12" md="6">
+              <VTextField :label="String(key)" :model-value="value" density="comfortable" variant="outlined" @update:model-value="updateField(settingsStore.loginSettings, String(key), $event)" />
+            </VCol>
+          </VRow>
+          <div v-else class="text-center py-6 text-medium-emphasis">No login settings loaded</div>
+        </VCardText>
+        <VDivider />
+        <VCardActions class="justify-end pa-4">
+          <VBtn color="primary" :loading="settingsStore.loading" @click="save('login')">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </div>
+
+    <!-- IP Control Tab -->
+    <div v-show="activeTab === 'ip'" class="mt-6">
+      <VCard :loading="settingsStore.loading">
+        <VCardItem><VCardTitle>IP Control</VCardTitle></VCardItem>
+        <VDivider />
+        <VCardText>
+          <VRow v-if="settingsStore.ipControl">
+            <VCol v-for="(value, key) in settingsStore.ipControl" :key="key" cols="12" md="6">
+              <VTextField :label="String(key)" :model-value="value" density="comfortable" variant="outlined" @update:model-value="updateField(settingsStore.ipControl, String(key), $event)" />
+            </VCol>
+          </VRow>
+          <div v-else class="text-center py-6 text-medium-emphasis">No IP control config loaded</div>
+        </VCardText>
+        <VDivider />
+        <VCardActions class="justify-end pa-4">
+          <VBtn color="primary" :loading="settingsStore.loading" @click="save('ip')">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </div>
+
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>

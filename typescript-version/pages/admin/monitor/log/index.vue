@@ -1,31 +1,43 @@
 <script setup lang="ts">
+const logStore = useOperationLogStore()
+const snackbar = ref({ show: false, text: '', color: 'success' })
+
 const search = ref('')
-const dateRange = ref('')
+const filterModule = ref('')
+const filterType = ref('')
+const filterStatus = ref('')
+const isDetailDialogVisible = ref(false)
+const selectedLog = ref<any>(null)
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
   { title: 'Module', key: 'module' },
-  { title: 'Type', key: 'type' },
-  { title: 'Operator', key: 'operator' },
+  { title: 'Action', key: 'action' },
+  { title: 'Username', key: 'username' },
   { title: 'IP', key: 'ip' },
+  { title: 'Path', key: 'path' },
   { title: 'Status', key: 'status' },
-  { title: 'Time', key: 'time', sortable: true },
+  { title: 'Time', key: 'createdAt', sortable: true },
   { title: 'Detail', key: 'actions', sortable: false },
 ]
 
-const logs = ref([
-  { id: 1, module: 'User Management', type: 'INSERT', operator: 'admin', ip: '192.168.1.100', status: 'success', time: '2024-12-14 10:30:00', detail: 'Created user "jack"' },
-  { id: 2, module: 'Role Management', type: 'UPDATE', operator: 'admin', ip: '192.168.1.100', status: 'success', time: '2024-12-14 10:25:00', detail: 'Updated role "editor" permissions' },
-  { id: 3, module: 'Menu Management', type: 'DELETE', operator: 'admin', ip: '192.168.1.100', status: 'success', time: '2024-12-14 10:20:00', detail: 'Deleted menu "Legacy Page"' },
-  { id: 4, module: 'Dictionary', type: 'INSERT', operator: 'john', ip: '192.168.1.101', status: 'success', time: '2024-12-14 09:15:00', detail: 'Added dict type "sys_job_group"' },
-  { id: 5, module: 'Department', type: 'UPDATE', operator: 'admin', ip: '192.168.1.100', status: 'error', time: '2024-12-14 09:00:00', detail: 'Failed to update dept: duplicate name' },
-  { id: 6, module: 'User Management', type: 'UPDATE', operator: 'admin', ip: '192.168.1.100', status: 'success', time: '2024-12-14 08:30:00', detail: 'Updated user "mary" status' },
-  { id: 7, module: 'System Config', type: 'UPDATE', operator: 'admin', ip: '192.168.1.100', status: 'success', time: '2024-12-13 17:00:00', detail: 'Updated config "sys.index.skinName"' },
-  { id: 8, module: 'Code Generator', type: 'INSERT', operator: 'john', ip: '192.168.1.101', status: 'success', time: '2024-12-13 16:30:00', detail: 'Generated code for "sys_dept"' },
-])
+const filteredLogs = computed(() => {
+  let items = logStore.logs
+  if (search.value) items = items.filter((l: any) => (l.module || '').toLowerCase().includes(search.value.toLowerCase()) || (l.username || '').toLowerCase().includes(search.value.toLowerCase()))
+  if (filterType.value) items = items.filter((l: any) => l.action === filterType.value)
+  if (filterStatus.value) items = items.filter((l: any) => l.status === filterStatus.value)
+  return items
+})
 
-const isDetailDialogVisible = ref(false)
-const selectedLog = ref<any>(null)
+onMounted(() => logStore.fetchLogs())
+
+async function refresh() {
+  try {
+    await logStore.fetchLogs()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to load logs', color: 'error' }
+  }
+}
 </script>
 
 <template>
@@ -33,42 +45,48 @@ const selectedLog = ref<any>(null)
     <VRow class="mb-4">
       <VCol cols="12" md="6"><h4 class="text-h4">Operation Log</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-trash" variant="tonal" color="error">Clear All</VBtn>
-        <VBtn prepend-icon="bx-export" variant="tonal" color="secondary">Export</VBtn>
+        <VBtn prepend-icon="bx-refresh" variant="tonal" color="secondary" @click="refresh">Refresh</VBtn>
       </VCol>
     </VRow>
 
-    <VCard>
+    <VCard :loading="logStore.loading">
       <VCardText>
         <VRow align="center">
           <VCol cols="12" sm="6" md="3">
-            <AppTextField v-model="search" placeholder="Search module" prepend-inner-icon="bx-search" density="compact" hide-details />
+            <AppTextField v-model="search" placeholder="Search module / username" prepend-inner-icon="bx-search" density="compact" hide-details clearable @update:model-value="" />
           </VCol>
           <VCol cols="12" sm="6" md="2">
-            <AppSelect placeholder="Type" :items="['INSERT', 'UPDATE', 'DELETE', 'OTHER']" density="compact" hide-details clearable />
+            <AppSelect v-model="filterType" placeholder="Action" :items="['INSERT', 'UPDATE', 'DELETE', 'SELECT', 'OTHER']" density="compact" hide-details clearable />
           </VCol>
           <VCol cols="12" sm="6" md="2">
-            <AppSelect placeholder="Status" :items="['Success', 'Error']" density="compact" hide-details clearable />
-          </VCol>
-          <VCol cols="12" sm="6" md="3">
-            <AppTextField v-model="dateRange" placeholder="Date range" prepend-inner-icon="bx-calendar" density="compact" hide-details />
+            <AppSelect v-model="filterStatus" placeholder="Status" :items="['success', 'error']" density="compact" hide-details clearable />
           </VCol>
           <VCol cols="12" md="2">
-            <VBtn color="primary" block prepend-icon="bx-search" size="small">Search</VBtn>
+            <VBtn color="primary" block prepend-icon="bx-search" size="small" @click="refresh">Search</VBtn>
           </VCol>
         </VRow>
       </VCardText>
-      <VDataTable :headers="headers" :items="logs" :search="search" :items-per-page="10" class="text-no-wrap">
-        <template #item.type="{ item }">
-          <VChip variant="tonal" :color="item.type === 'INSERT' ? 'success' : item.type === 'UPDATE' ? 'info' : item.type === 'DELETE' ? 'error' : 'secondary'" size="small" label>{{ item.type }}</VChip>
+      <VDataTable :headers="headers" :items="filteredLogs" :items-per-page="10" class="text-no-wrap">
+        <template #item.action="{ item }">
+          <VChip v-if="item.action" variant="tonal" :color="item.action === 'INSERT' ? 'success' : item.action === 'UPDATE' ? 'info' : item.action === 'DELETE' ? 'error' : 'secondary'" size="small" label>{{ item.action }}</VChip>
+          <span v-else class="text-body-2 text-medium-emphasis">-</span>
         </template>
         <template #item.status="{ item }">
-          <VChip variant="tonal" :color="item.status === 'success' ? 'success' : 'error'" size="small" label>{{ item.status === 'success' ? 'Success' : 'Error' }}</VChip>
+          <VChip v-if="item.status" variant="tonal" :color="item.status === 'success' ? 'success' : 'error'" size="small" label>{{ item.status }}</VChip>
+          <span v-else class="text-body-2 text-medium-emphasis">-</span>
+        </template>
+        <template #item.createdAt="{ item }">
+          <span class="text-body-2">{{ item.createdAt || item.time || '-' }}</span>
         </template>
         <template #item.actions="{ item }">
           <IconBtn size="small" @click="selectedLog = item; isDetailDialogVisible = true">
             <VIcon icon="bx-show" size="18" />
           </IconBtn>
+        </template>
+        <template #bottom>
+          <div v-if="!filteredLogs.length && !logStore.loading" class="text-center py-6 text-medium-emphasis">
+            No logs found
+          </div>
         </template>
       </VDataTable>
     </VCard>
@@ -77,15 +95,14 @@ const selectedLog = ref<any>(null)
       <VCard title="Operation Detail">
         <VCardText v-if="selectedLog">
           <VList density="compact" lines="one">
-            <VListItem><VListItemTitle><strong>Module:</strong> {{ selectedLog.module }}</VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><strong>Type:</strong> {{ selectedLog.type }}</VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><strong>Operator:</strong> {{ selectedLog.operator }}</VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><strong>IP:</strong> {{ selectedLog.ip }}</VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><strong>Status:</strong> {{ selectedLog.status }}</VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><strong>Time:</strong> {{ selectedLog.time }}</VListItemTitle></VListItem>
-            <VDivider class="my-3" />
-            <VListItem><VListItemTitle><strong>Detail:</strong></VListItemTitle></VListItem>
-            <VCard variant="outlined" class="pa-3 mt-2"><code class="text-body-2">{{ selectedLog.detail }}</code></VCard>
+            <VListItem v-if="selectedLog.module"><VListItemTitle><strong>Module:</strong> {{ selectedLog.module }}</VListItemTitle></VListItem>
+            <VListItem v-if="selectedLog.action"><VListItemTitle><strong>Action:</strong> {{ selectedLog.action }}</VListItemTitle></VListItem>
+            <VListItem v-if="selectedLog.username"><VListItemTitle><strong>Operator:</strong> {{ selectedLog.username }}</VListItemTitle></VListItem>
+            <VListItem v-if="selectedLog.userId"><VListItemTitle><strong>User ID:</strong> {{ selectedLog.userId }}</VListItemTitle></VListItem>
+            <VListItem v-if="selectedLog.ip"><VListItemTitle><strong>IP:</strong> {{ selectedLog.ip }}</VListItemTitle></VListItem>
+            <VListItem v-if="selectedLog.path"><VListItemTitle><strong>Path:</strong> {{ selectedLog.path }}</VListItemTitle></VListItem>
+            <VListItem v-if="selectedLog.status"><VListItemTitle><strong>Status:</strong> {{ selectedLog.status }}</VListItemTitle></VListItem>
+            <VListItem v-if="selectedLog.createdAt"><VListItemTitle><strong>Time:</strong> {{ selectedLog.createdAt }}</VListItemTitle></VListItem>
           </VList>
         </VCardText>
         <VCardActions class="justify-end">
@@ -93,5 +110,7 @@ const selectedLog = ref<any>(null)
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>

@@ -1,86 +1,72 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
+const userStore = useUserStore()
+const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const activeTab = ref('account')
 
+const user = computed(() => authStore.user)
+
 const userData = reactive({
-  fullName: authStore.userName || 'User',
-  username: authStore.userName || 'User',
-  email: `${(authStore.userName || 'user').toLowerCase()}@jhdevops.com`,
-  role: authStore.loginRole || 'user',
-  status: 'Active',
-  contact: '(555) 123-4567',
-  telegram: `@${(authStore.userName || 'user').toLowerCase()}`,
-  google: `${(authStore.userName || 'user').toLowerCase()}@gmail.com`,
-  slack: `${authStore.userName || 'user'}-dev`,
-  language: 'English',
-  country: 'United States',
-  taskDone: '128',
-  projectDone: '4',
+  fullName: user.value?.fullName || user.value?.username || 'User',
+  username: user.value?.username || 'User',
+  email: user.value?.email || '-',
+  role: user.value?.role || 'user',
+  status: user.value?.active !== false ? 'Active' : 'Inactive',
+  department: user.value?.department || '-',
+  phone: user.value?.phone || '-',
+  position: user.value?.position || '-',
+  emailVerified: user.value?.emailVerified || false,
+  phoneVerified: user.value?.phoneVerified || false,
 })
 
-const itemsPerPage = ref(5)
-
-const projects = ref([
-  { name: 'BGC eCommerce App', type: 'React Project', leader: 'Eileen', progress: 78, team: ['E', 'K', 'M'], teamExtra: 3 },
-  { name: 'Falcon Logo Design', type: 'Figma Project', leader: 'Owen', progress: 25, team: ['O', 'M'], teamExtra: 0 },
-  { name: 'Dashboard Design', type: 'Vuejs Project', leader: 'Keith', progress: 62, team: ['K', 'M', 'T'], teamExtra: 0 },
-  { name: 'Foodista Mobile App', type: 'Xamarin Project', leader: 'Merline', progress: 8, team: ['M', 'J', 'H'], teamExtra: 8 },
-])
-
-const recentDevices = ref([
-  { device: 'iPhone 13 Pro', browser: 'Safari', location: 'San Francisco, US', time: '10:30 AM', icon: 'bx-mobile', current: true },
-  { device: 'MacBook Pro', browser: 'Chrome', location: 'New York, US', time: 'Yesterday', icon: 'bx-laptop', current: false },
-  { device: 'iPad Mini', browser: 'Safari', location: 'Los Angeles, US', time: '3 days ago', icon: 'bx-tablet', current: false },
-])
-
-const activityTimeline = ref([
-  { text: 'Created project "Dashboard Design"', time: '2 min ago', icon: 'bx-folder-plus', color: 'primary' },
-  { text: 'Added team member to "BGC eCommerce App"', time: '1 hour ago', icon: 'bx-user-plus', color: 'success' },
-  { text: 'Completed task "Update API endpoints"', time: '3 hours ago', icon: 'bx-check-circle', color: 'info' },
-  { text: 'Commented on "Falcon Logo Design"', time: '5 hours ago', icon: 'bx-message-dots', color: 'warning' },
-  { text: 'Updated project status for "Foodista mobile app"', time: 'Yesterday', icon: 'bx-edit', color: 'error' },
-  { text: 'Pushed 3 commits to "Dashboard Design"', time: 'Yesterday', icon: 'bx-git-commit', color: 'primary' },
-])
-
-const twoFactorEnabled = ref(false)
-const phoneNumber = ref('')
-const emailAddress = ref('')
-const verifyMethod = ref('phone')
-
-const isNewPasswordVisible = ref(false)
-const isConfirmPasswordVisible = ref(false)
-const newPassword = ref('')
-const confirmPassword = ref('')
-
 const isEditDialogVisible = ref(false)
-const editForm = ref({ fullName: '', contact: '', telegram: '', google: '', slack: '', language: '', country: '' })
+const editForm = ref({ fullName: '', email: '', phone: '' })
 
 function openEditDialog() {
-  editForm.value = {
-    fullName: userData.fullName,
-    contact: userData.contact,
-    telegram: userData.telegram,
-    google: userData.google,
-    slack: userData.slack,
-    language: userData.language,
-    country: userData.country,
-  }
+  editForm.value = { fullName: userData.fullName, email: userData.email, phone: userData.phone }
   isEditDialogVisible.value = true
 }
 
-function saveProfile() {
-  authStore.setUserName(editForm.value.fullName)
-  userData.fullName = editForm.value.fullName
-  userData.username = editForm.value.fullName
-  userData.email = `${editForm.value.fullName.toLowerCase()}@jhdevops.com`
-  userData.contact = editForm.value.contact
-  userData.telegram = editForm.value.telegram
-  userData.google = editForm.value.google
-  userData.slack = editForm.value.slack
-  userData.language = editForm.value.language
-  userData.country = editForm.value.country
-  isEditDialogVisible.value = false
+async function saveProfile() {
+  if (!user.value?.id) return
+  try {
+    await userStore.updateUser(user.value.id, {
+      fullName: editForm.value.fullName,
+      email: editForm.value.email,
+      phone: editForm.value.phone,
+    })
+    userData.fullName = editForm.value.fullName
+    userData.email = editForm.value.email
+    userData.phone = editForm.value.phone
+    isEditDialogVisible.value = false
+    snackbar.value = { show: true, text: 'Profile updated', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to update profile', color: 'error' }
+  }
+}
+
+const isNewPasswordVisible = ref(false)
+const isConfirmPasswordVisible = ref(false)
+const oldPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+
+async function changePassword() {
+  if (!user.value?.id) return
+  if (newPassword.value !== confirmPassword.value) {
+    snackbar.value = { show: true, text: 'Passwords do not match', color: 'error' }
+    return
+  }
+  try {
+    await userStore.changePassword(user.value.id, { oldPassword: oldPassword.value, newPassword: newPassword.value })
+    oldPassword.value = ''
+    newPassword.value = ''
+    confirmPassword.value = ''
+    snackbar.value = { show: true, text: 'Password changed', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to change password', color: 'error' }
+  }
 }
 
 const resolveAvatarColor = (name: string) => {
@@ -101,41 +87,22 @@ const resolveAvatarColor = (name: string) => {
               <span class="text-h2 font-weight-medium">{{ userData.fullName.charAt(0) }}</span>
             </VAvatar>
             <h5 class="text-h5 mt-4">{{ userData.fullName }}</h5>
+            <VChip variant="tonal" :color="resolveAvatarColor(userData.role)" size="small" label class="mt-2">{{ userData.role }}</VChip>
           </VCardText>
           <VCardText>
-            <div class="d-flex justify-space-around gap-x-6 gap-y-2 flex-wrap mb-6">
-              <div class="d-flex align-center me-8">
-                <VAvatar variant="tonal" color="primary" rounded size="40" class="me-4"><VIcon icon="bx-check" size="24" /></VAvatar>
-                <div>
-                  <h5 class="text-h5">{{ userData.taskDone }}</h5>
-                  <span class="text-body-1 d-inline-block">Task Done</span>
-                </div>
-              </div>
-              <div class="d-flex align-center me-4">
-                <VAvatar variant="tonal" color="primary" rounded size="38" class="me-4"><VIcon icon="bx-customize" size="24" /></VAvatar>
-                <div>
-                  <h5 class="text-h5">{{ userData.projectDone }}</h5>
-                  <span class="text-body-1 d-inline-block">Project Done</span>
-                </div>
-              </div>
-            </div>
             <h5 class="text-h5">Details</h5>
             <VDivider class="my-4" />
             <VList class="card-list mt-2" density="compact" lines="one">
               <VListItem><VListItemTitle><h6 class="text-h6">Username: <span class="text-body-1 d-inline-block">{{ userData.username }}</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Status: <span class="text-body-1 text-capitalize d-inline-block">{{ userData.status }}</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Contact: <span class="text-body-1 d-inline-block">{{ userData.contact }}</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ userData.telegram }}</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Google: <span class="text-body-1 d-inline-block">{{ userData.google }}</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Slack: <span class="text-body-1 d-inline-block">{{ userData.slack }}</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Department: <span class="text-body-1 d-inline-block">Engineering</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Team: <span class="text-body-1 d-inline-block">Frontend</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Language: <span class="text-body-1 d-inline-block">{{ userData.language }}</span></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Country: <span class="text-body-1 d-inline-block">{{ userData.country }}</span></h6></VListItemTitle></VListItem>
+              <VListItem><VListItemTitle><h6 class="text-h6">Email: <span class="text-body-1 d-inline-block">{{ userData.email }}</span> <VChip v-if="userData.emailVerified" variant="tonal" color="success" size="x-small" label class="ml-1">✓</VChip></h6></VListItemTitle></VListItem>
+              <VListItem><VListItemTitle><h6 class="text-h6">Phone: <span class="text-body-1 d-inline-block">{{ userData.phone }}</span> <VChip v-if="userData.phoneVerified" variant="tonal" color="success" size="x-small" label class="ml-1">✓</VChip></h6></VListItemTitle></VListItem>
+              <VListItem><VListItemTitle><h6 class="text-h6">Department: <span class="text-body-1 d-inline-block">{{ userData.department }}</span></h6></VListItemTitle></VListItem>
+              <VListItem><VListItemTitle><h6 class="text-h6">Position: <span class="text-body-1 d-inline-block">{{ userData.position }}</span></h6></VListItemTitle></VListItem>
+              <VListItem><VListItemTitle><h6 class="text-h6">Status: <VChip variant="tonal" :color="userData.status === 'Active' ? 'success' : 'error'" size="small" label class="ml-1">{{ userData.status }}</VChip></h6></VListItemTitle></VListItem>
             </VList>
           </VCardText>
           <VCardText class="d-flex justify-center gap-x-4">
-            <VBtn variant="elevated" color="primary" @click="openEditDialog">Edit</VBtn>
+            <VBtn variant="elevated" color="primary" @click="openEditDialog">Edit Profile</VBtn>
           </VCardText>
         </VCard>
       </VCol>
@@ -145,209 +112,64 @@ const resolveAvatarColor = (name: string) => {
         <VTabs v-model="activeTab">
           <VTab value="account"><VIcon icon="bx-user" size="18" class="me-1" />Account</VTab>
           <VTab value="security"><VIcon icon="bx-lock-alt" size="18" class="me-1" />Security</VTab>
-          <VTab value="notifications"><VIcon icon="bx-bell" size="18" class="me-1" />Notifications</VTab>
-          <VTab value="connections"><VIcon icon="bx-link" size="18" class="me-1" />Connections</VTab>
         </VTabs>
 
         <!-- Account Tab -->
         <div v-show="activeTab === 'account'" class="mt-6">
           <VCard>
-            <VCardItem><VCardTitle>Projects List</VCardTitle></VCardItem>
-            <VDataTable show-select :items="projects" :items-per-page="itemsPerPage" :headers="[{ title: 'PROJECT', key: 'project' }, { title: 'LEADER', key: 'leader' }, { title: 'TEAM', key: 'team' }, { title: 'PROGRESS', key: 'progress' }, { title: 'Action', key: 'action', sortable: false }]" class="text-no-wrap">
-              <template #item.project="{ item }">
-                <div class="d-flex align-center gap-x-3">
-                  <VAvatar size="34" rounded variant="tonal" :color="resolveAvatarColor(item.name)"><span class="text-sm font-weight-medium">{{ item.name.charAt(0) }}</span></VAvatar>
-                  <div>
-                    <h6 class="text-h6 text-no-wrap">{{ item.name }}</h6>
-                    <div class="text-body-2">{{ item.type }}</div>
-                  </div>
-                </div>
-              </template>
-              <template #item.leader="{ item }"><div class="text-base text-high-emphasis">{{ item.leader }}</div></template>
-              <template #item.team="{ item }">
-                <div class="d-flex">
-                  <VAvatarGroup size="26">
-                    <VAvatar v-for="(avatar, i) in item.team" :key="i" size="26" variant="tonal" color="primary"><span class="text-caption font-weight-medium">{{ avatar }}</span></VAvatar>
-                    <VAvatar v-if="item.teamExtra" size="26" color="grey-light"><span class="text-caption text-high-emphasis">+{{ item.teamExtra }}</span></VAvatar>
-                  </VAvatarGroup>
-                </div>
-              </template>
-              <template #item.progress="{ item }">
-                <div class="d-flex align-center gap-3">
-                  <div class="flex-grow-1"><VProgressLinear :model-value="item.progress" color="primary" rounded height="6" /></div>
-                  <div class="text-body-1 text-high-emphasis">{{ item.progress }}%</div>
-                </div>
-              </template>
-              <template #item.action><IconBtn><VIcon icon="bx-dots-vertical-rounded" /></IconBtn></template>
-            </VDataTable>
-          </VCard>
-          <VCard class="mt-6">
-            <VCardItem><VCardTitle>Activity Timeline</VCardTitle></VCardItem>
+            <VCardItem><VCardTitle>Account Information</VCardTitle></VCardItem>
             <VDivider />
             <VCardText>
-              <VTimeline side="end" align="start" truncate-line="both" density="compact">
-                <VTimelineItem v-for="(item, index) in activityTimeline" :key="index" :dot-color="item.color" size="x-small">
-                  <div class="d-flex align-start justify-space-between flex-wrap gap-x-4">
-                    <div>
-                      <h6 class="text-h6 mb-1">{{ item.text }}</h6>
-                      <span class="text-body-2 text-medium-emphasis">{{ item.time }}</span>
-                    </div>
-                    <VIcon :icon="item.icon" size="20" class="text-medium-emphasis" />
-                  </div>
-                </VTimelineItem>
-              </VTimeline>
+              <VRow>
+                <VCol cols="12" md="6">
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Full Name</span><h6 class="text-h6">{{ userData.fullName }}</h6></div>
+                </VCol>
+                <VCol cols="12" md="6">
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Username</span><h6 class="text-h6">{{ userData.username }}</h6></div>
+                </VCol>
+                <VCol cols="12" md="6">
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Email</span><h6 class="text-h6">{{ userData.email }}</h6></div>
+                </VCol>
+                <VCol cols="12" md="6">
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Phone</span><h6 class="text-h6">{{ userData.phone }}</h6></div>
+                </VCol>
+                <VCol cols="12" md="6">
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Role</span><VChip variant="tonal" color="primary" size="small" label>{{ userData.role }}</VChip></div>
+                </VCol>
+                <VCol cols="12" md="6">
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Department</span><h6 class="text-h6">{{ userData.department }}</h6></div>
+                </VCol>
+                <VCol cols="12" md="6">
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Position</span><h6 class="text-h6">{{ userData.position }}</h6></div>
+                </VCol>
+              </VRow>
             </VCardText>
           </VCard>
         </div>
 
         <!-- Security Tab -->
         <div v-show="activeTab === 'security'" class="mt-6">
-          <!-- Change Password -->
           <VCard title="Change Password" class="change-password-card">
-            <VForm @submit.prevent>
+            <VForm @submit.prevent="changePassword">
               <VCardText class="pt-0">
                 <VAlert variant="tonal" color="warning" density="comfortable" class="mb-4">
                   <template #prepend><VIcon icon="bx-info-circle" /></template>
                   Minimum 8 characters long, uppercase & symbol
                 </VAlert>
                 <VRow>
-                  <VCol cols="12" md="6">
+                  <VCol cols="12" md="4">
+                    <VTextField v-model="oldPassword" :type="isNewPasswordVisible ? 'text' : 'password'" label="Current Password" placeholder="············" />
+                  </VCol>
+                  <VCol cols="12" md="4">
                     <VTextField v-model="newPassword" :type="isNewPasswordVisible ? 'text' : 'password'" label="New Password" placeholder="············" :append-inner-icon="isNewPasswordVisible ? 'bx-hide' : 'bx-show'" @click:append-inner="isNewPasswordVisible = !isNewPasswordVisible" />
                   </VCol>
-                  <VCol cols="12" md="6">
+                  <VCol cols="12" md="4">
                     <VTextField v-model="confirmPassword" :type="isConfirmPasswordVisible ? 'text' : 'password'" label="Confirm Password" placeholder="············" autocomplete="confirm-password" :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'" @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible" />
                   </VCol>
                 </VRow>
-                <VBtn type="submit" variant="elevated" color="primary" class="mt-4">Change Password</VBtn>
+                <VBtn type="submit" variant="elevated" color="primary" class="mt-4" :loading="userStore.loading">Change Password</VBtn>
               </VCardText>
             </VForm>
-          </VCard>
-
-          <!-- Two-steps verification -->
-          <VCard title="Two-steps verification" subtitle="Keep your account secure with authentication step." class="mt-6">
-            <VCardText>
-              <VRadioGroup v-model="verifyMethod" density="compact" hide-details class="mb-4">
-                <VRadio value="phone" color="primary">
-                  <template #label>
-                    <div class="d-flex align-center gap-x-2">
-                      <VIcon icon="bx-phone" size="18" />
-                      <span class="font-weight-medium">Phone Number (SMS)</span>
-                    </div>
-                  </template>
-                </VRadio>
-                <VRadio value="email" color="primary">
-                  <template #label>
-                    <div class="d-flex align-center gap-x-2">
-                      <VIcon icon="bx-envelope" size="18" />
-                      <span class="font-weight-medium">Google Email</span>
-                    </div>
-                  </template>
-                </VRadio>
-                <VRadio value="authenticator" color="primary">
-                  <template #label>
-                    <div class="d-flex align-center gap-x-2">
-                      <VIcon icon="bx-qr" size="18" />
-                      <span class="font-weight-medium">Authenticator App</span>
-                    </div>
-                  </template>
-                </VRadio>
-              </VRadioGroup>
-
-              <div v-if="verifyMethod === 'phone'">
-                <h6 class="text-h6 mb-1">SMS</h6>
-                <div class="d-flex align-center gap-x-4">
-                  <VTextField v-model="phoneNumber" placeholder="+1(968) 819-2547" density="comfortable" class="flex-grow-1" />
-                  <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
-                  <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
-                </div>
-              </div>
-
-              <div v-if="verifyMethod === 'email'">
-                <h6 class="text-h6 mb-1">Google Email</h6>
-                <div class="d-flex align-center gap-x-4">
-                  <VTextField v-model="emailAddress" placeholder="Enter Google email" density="comfortable" class="flex-grow-1" />
-                  <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
-                  <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
-                </div>
-              </div>
-
-              <div v-if="verifyMethod === 'authenticator'">
-                <h6 class="text-h6 mb-1">Authenticator App</h6>
-                <div class="d-flex align-center gap-x-4">
-                  <VTextField label="Enter 6-digit code" placeholder="000000" maxlength="6" density="comfortable" class="flex-grow-1" />
-                  <IconBtn color="secondary"><VIcon icon="bx-edit" size="22" /></IconBtn>
-                  <IconBtn color="secondary"><VIcon icon="bx-user-plus" size="22" /></IconBtn>
-                </div>
-                <VBtn variant="elevated" color="primary" prepend-icon="bx-qr" class="mt-3">Show QR Code</VBtn>
-              </div>
-            </VCardText>
-          </VCard>
-
-          <!-- Recent Devices -->
-          <VCard title="Recent devices" class="mt-6">
-            <VDivider />
-            <VDataTable :items="recentDevices" :headers="[{ title: 'BROWSER', key: 'browser' }, { title: 'DEVICE', key: 'device' }, { title: 'LOCATION', key: 'location' }, { title: 'RECENT ACTIVITY', key: 'time' }]" class="text-no-wrap" :items-per-page="3" hide-default-footer>
-              <template #item.browser="{ item }">
-                <div class="d-flex align-center gap-x-4">
-                  <VIcon :icon="item.icon" :color="item.current ? 'error' : 'info'" size="22" />
-                  <span class="text-body-1 text-high-emphasis">Chrome on {{ item.device }}</span>
-                </div>
-              </template>
-              <template #item.device="{ item }"><span>{{ item.device }}</span></template>
-              <template #item.location="{ item }"><span>{{ item.location }}</span></template>
-              <template #item.time="{ item }"><span>{{ item.time }}</span></template>
-            </VDataTable>
-          </VCard>
-        </div>
-
-        <!-- Notifications Tab -->
-        <div v-show="activeTab === 'notifications'" class="mt-6">
-          <VCard>
-            <VCardText>
-              <div class="d-flex align-center justify-space-between mb-4">
-                <div><h5 class="text-h5">Email Notifications</h5><p class="text-body-2 text-medium-emphasis">Receive email notifications for important updates</p></div>
-                <VSwitch color="primary" />
-              </div>
-              <VDivider class="mb-4" />
-              <div class="d-flex align-center justify-space-between mb-4">
-                <div><h5 class="text-h5">Push Notifications</h5><p class="text-body-2 text-medium-emphasis">Receive push notifications on your device</p></div>
-                <VSwitch color="primary" />
-              </div>
-              <VDivider class="mb-4" />
-              <div class="d-flex align-center justify-space-between mb-4">
-                <div><h5 class="text-h5">Activity Alerts</h5><p class="text-body-2 text-medium-emphasis">Get notified about account activity</p></div>
-                <VSwitch color="primary" />
-              </div>
-            </VCardText>
-          </VCard>
-        </div>
-
-        <!-- Connections Tab -->
-        <div v-show="activeTab === 'connections'" class="mt-6">
-          <VCard>
-            <VCardText>
-              <div class="d-flex align-center justify-space-between mb-4">
-                <div><h5 class="text-h5">Connected Accounts</h5><p class="text-body-2 text-medium-emphasis">Manage your connected third-party accounts</p></div>
-              </div>
-              <VDivider class="mb-4" />
-              <VList>
-                <VListItem>
-                  <template #prepend><VAvatar color="#0088cc" variant="tonal" size="40" rounded><VIcon icon="bxl-telegram" /></VAvatar></template>
-                  <VListItemTitle>Telegram</VListItemTitle><VListItemSubtitle>Connected</VListItemSubtitle>
-                  <template #append><VBtn variant="tonal" color="error" size="small">Disconnect</VBtn></template>
-                </VListItem>
-                <VListItem>
-                  <template #prepend><VAvatar color="#db4437" variant="tonal" size="40" rounded><VIcon icon="bxl-google" /></VAvatar></template>
-                  <VListItemTitle>Google</VListItemTitle><VListItemSubtitle>Connected</VListItemSubtitle>
-                  <template #append><VBtn variant="tonal" color="error" size="small">Disconnect</VBtn></template>
-                </VListItem>
-                <VListItem>
-                  <template #prepend><VAvatar color="#4a154b" variant="tonal" size="40" rounded><VIcon icon="bxl-slack" /></VAvatar></template>
-                  <VListItemTitle>Slack</VListItemTitle><VListItemSubtitle>Not Connected</VListItemSubtitle>
-                  <template #append><VBtn variant="tonal" color="primary" size="small">Connect</VBtn></template>
-                </VListItem>
-              </VList>
-            </VCardText>
           </VCard>
         </div>
       </VCol>
@@ -362,19 +184,17 @@ const resolveAvatarColor = (name: string) => {
         </VCardItem>
         <VCardText>
           <VTextField v-model="editForm.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editForm.contact" label="Contact" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editForm.telegram" label="Telegram" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editForm.google" label="Google" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editForm.slack" label="Slack" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editForm.language" label="Language" :items="['English', 'Chinese', 'Japanese']" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editForm.country" label="Country" density="comfortable" variant="outlined" />
+          <VTextField v-model="editForm.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editForm.phone" label="Phone" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" @click="saveProfile">Save</VBtn>
+          <VBtn color="primary" :loading="userStore.loading" @click="saveProfile">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
   </ClientOnly>
 </template>

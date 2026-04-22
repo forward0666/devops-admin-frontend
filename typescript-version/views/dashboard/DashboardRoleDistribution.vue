@@ -1,18 +1,27 @@
 <script setup lang="ts">
 import { useTheme } from 'vuetify'
-import { hexToRgb } from '@core/utils/colorConverter'
 
 const vuetifyTheme = useTheme()
+const dashboardStore = useDashboardStore()
 
-const roleData = [
-  { label: '超级管理员', count: 12, pct: 45 },
-  { label: '管理员', count: 58, pct: 25 },
-  { label: '编辑', count: 156, pct: 15 },
-  { label: '审核员', count: 203, pct: 10 },
-  { label: '普通用户', count: 855, pct: 5 },
-]
+onMounted(() => dashboardStore.fetchStats())
 
-const series = roleData.map(r => r.pct)
+const roleData = computed(() => {
+  const s = dashboardStore.stats?.roleDistribution
+  if (s && Array.isArray(s)) {
+    return s.map((r: any) => ({ label: r.role || r.label, count: r.count || 0, pct: r.percentage || r.pct || 0 }))
+  }
+  // Fallback empty
+  return [
+    { label: '超级管理员', count: 0, pct: 0 },
+    { label: '管理员', count: 0, pct: 0 },
+    { label: '编辑', count: 0, pct: 0 },
+    { label: '审核员', count: 0, pct: 0 },
+    { label: '普通用户', count: 0, pct: 0 },
+  ]
+})
+
+const series = computed(() => roleData.value.map(r => r.pct))
 
 const chartOptions = computed(() => {
   const currentTheme = vuetifyTheme.current.value.colors
@@ -22,21 +31,12 @@ const chartOptions = computed(() => {
       sparkline: { enabled: true },
       animations: { enabled: false },
     },
-    stroke: {
-      width: 6,
-      colors: [currentTheme.surface],
-    },
+    stroke: { width: 6, colors: [currentTheme.surface] },
     legend: { show: false },
     tooltip: { enabled: false },
     dataLabels: { enabled: false },
-    labels: ['超级管理员', '管理员', '编辑', '审核员', '普通用户'],
-    colors: [
-      currentTheme.primary,
-      currentTheme.success,
-      currentTheme.warning,
-      currentTheme.info,
-      currentTheme.secondary,
-    ],
+    labels: roleData.value.map(r => r.label),
+    colors: [currentTheme.primary, currentTheme.success, currentTheme.warning, currentTheme.info, currentTheme.secondary],
   }
 })
 </script>
@@ -46,26 +46,11 @@ const chartOptions = computed(() => {
     <VCardText>
       <div class="d-flex align-center gap-4">
         <div style="width: 130px; height: 130px;">
-          <VueApexCharts
-            type="donut"
-            :options="chartOptions"
-            :series="series"
-          />
+          <VueApexCharts type="donut" :options="chartOptions" :series="series" />
         </div>
         <div class="flex-grow-1">
-          <div
-            v-for="(role, i) in roleData"
-            :key="role.label"
-            class="d-flex align-center mb-2"
-          >
-            <div
-              class="rounded-circle me-2"
-              :style="{
-                width: '10px',
-                height: '10px',
-                backgroundColor: chartOptions.colors[i],
-              }"
-            />
+          <div v-for="(role, i) in roleData" :key="role.label" class="d-flex align-center mb-2">
+            <div class="rounded-circle me-2" :style="{ width: '10px', height: '10px', backgroundColor: chartOptions.colors[i] }" />
             <span class="text-body-2 flex-grow-1">{{ role.label }}</span>
             <span class="text-body-2 font-weight-medium">{{ role.count }} ({{ role.pct }}%)</span>
           </div>

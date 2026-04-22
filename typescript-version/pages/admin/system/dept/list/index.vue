@@ -1,4 +1,7 @@
 <script setup lang="ts">
+const departmentStore = useDepartmentStore()
+const snackbar = ref({ show: false, text: '', color: 'success' })
+
 const search = ref('')
 const isDialogVisible = ref(false)
 const isEditDialogVisible = ref(false)
@@ -22,7 +25,18 @@ watch(expandedRows, (val) => {
   if (import.meta.client) localStorage.setItem(deptStorageKey, JSON.stringify(val))
 }, { deep: true })
 
-onMounted(loadExpandedState)
+onMounted(async () => {
+  loadExpandedState()
+  await departmentStore.fetchDepartments()
+})
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+watch(search, (val) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  if (!val) { departmentStore.fetchDepartments(); return }
+  searchTimer = setTimeout(() => departmentStore.searchDepartments(val), 300)
+})
+
 const editingItem = ref<any>(null)
 const deletingItem = ref<any>(null)
 
@@ -35,53 +49,13 @@ const isRowExpanded = (item: any) => {
   return expandedRows.value.includes(item.id)
 }
 
-const departments = ref([
-  {
-    id: 1, name: 'Headquarters', type: 'office', children: [
-      {
-        id: 2, name: 'Research Department', type: 'department', children: [
-          { id: 3, name: 'Frontend Team', type: 'team', leader: 'Mary', children: [] },
-          { id: 4, name: 'Backend Team', type: 'team', leader: 'Tom', children: [] },
-        ],
-      },
-      {
-        id: 5, name: 'Operations Department', type: 'department', children: [
-          { id: 8, name: 'DevOps Team', type: 'team', leader: 'Jerry', children: [] },
-          { id: 9, name: 'SRE Team', type: 'team', leader: 'Anna', children: [] },
-        ],
-      },
-      {
-        id: 6, name: 'Finance Department', type: 'department', children: [
-          { id: 10, name: 'Accounting Team', type: 'team', leader: 'Bob', children: [] },
-        ],
-      },
-      {
-        id: 7, name: 'Marketing Department', type: 'department', children: [
-          { id: 11, name: 'Growth Team', type: 'team', leader: 'Diana', children: [] },
-        ],
-      },
-    ],
-  },
-  {
-    id: 12, name: 'Branch Office', type: 'office', children: [
-      {
-        id: 13, name: 'Sales Department', type: 'department', children: [
-          { id: 14, name: 'Domestic Sales Team', type: 'team', leader: 'Liam', children: [] },
-          { id: 15, name: 'Overseas Sales Team', type: 'team', leader: 'Noah', children: [] },
-        ],
-      },
-      {
-        id: 16, name: 'Support Department', type: 'department', children: [
-          { id: 17, name: 'CS Team', type: 'team', leader: 'Oliver', children: [] },
-        ],
-      },
-    ],
-  },
-])
+const departments = computed(() => departmentStore.departments)
 
 const headers = [
-  { title: 'Office / Department / Team', key: 'name' },
-  { title: 'Leader', key: 'leader' },
+  { title: 'Department', key: 'name' },
+  { title: 'Manager', key: 'managerId' },
+  { title: 'Members', key: 'userCount' },
+  { title: 'Description', key: 'description' },
   { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const },
 ]
 
@@ -99,93 +73,56 @@ const flatDepts = computed(() => {
   return result
 })
 
-const typeIcon = (type: string) => {
+const typeIcon = (type?: string) => {
   const map: Record<string, string> = { office: 'bx-building', department: 'bx-briefcase', team: 'bx-group' }
-  return map[type] || 'bx-folder'
+  return map[type || 'department'] || 'bx-folder'
 }
 
-const typeColor = (type: string) => {
+const typeColor = (type?: string) => {
   const map: Record<string, string> = { office: 'primary', department: 'info', team: 'success' }
-  return map[type] || 'grey'
+  return map[type || 'department'] || 'grey'
 }
 
-const officeOptions = computed(() => departments.value.filter(d => d.type === 'office').map(d => d.name))
-const deptOptions = computed(() => {
-  const names: string[] = []
- const collect = (items: any[]) => {
-    items.forEach(item => {
-      if (item.type === 'department') { names.push(item.name) }
-      if (item.children?.length) collect(item.children)
-    })
-  }
-  collect(departments.value)
-  return names
-})
-
-const parentOptions = computed(() => {
-  if (form.value.type === 'office') return ['None (Top Level)']
-  if (form.value.type === 'department') return officeOptions.value
-  if (form.value.type === 'team') return deptOptions.value
-  return ['None (Top Level)']
-})
-
-const form = ref({ name: '', parentId: 'None (Top Level)', leader: '', type: 'department' })
+const form = ref({ name: '', parentId: null as number | null, managerId: null as number | null, description: '', type: 'department' })
 
 function openAddDialog() {
-  form.value = { name: '', parentId: '', leader: '', type: 'department' }
-  isDialogVisible.value = true
-}
-
-function onTypeChange() {
-  form.value.parentId = parentOptions.value[0] || ''
-}
-
-function addChildTo(item: any) {
-  form.value = { name: '', parentId: item.name, leader: '', type: item.type === 'office' ? 'department' : 'team' }
+  form.value = { name: '', parentId: null, managerId: null, description: '', type: 'department' }
   isDialogVisible.value = true
 }
 
 function addItem() {
-  addFormRef.value?.validate().then(({ valid }: any) => {
+  addFormRef.value?.validate().then(async ({ valid }: any) => {
     if (!valid) return
-    const newId = Date.now()
-    const newItem = { id: newId, name: form.value.name, type: form.value.type, leader: form.value.leader, children: [] }
-    if (form.value.parentId === 'None (Top Level)') {
-      departments.value.push(newItem)
-    } else {
-      const parent = findInTree(departments.value, form.value.parentId)
-      if (parent) {
-        if (!parent.children) parent.children = []
-        parent.children.push(newItem)
-      }
+    try {
+      await departmentStore.createDepartment(form.value)
+      isDialogVisible.value = false
+      snackbar.value = { show: true, text: 'Department created successfully', color: 'success' }
+    } catch (e: any) {
+      snackbar.value = { show: true, text: e.message || 'Failed to create department', color: 'error' }
     }
-    isDialogVisible.value = false
   })
 }
 
-function findInTree(items: any[], name: string): any {
-  for (const item of items) {
-    if (item.name === name) return item
-    if (item.children) { const found = findInTree(item.children, name); if (found) return found }
-  }
-  return null
-}
-
 function openEditDialog(item: any) {
-  editingItem.value = { ...item }
+  editingItem.value = { id: item.id, name: item.name, managerId: item.managerId, description: item.description, type: item.type, parentId: item.parentId }
   isEditDialogVisible.value = true
 }
 
 function saveEdit() {
-  editFormRef.value?.validate().then(({ valid }: any) => {
+  editFormRef.value?.validate().then(async ({ valid }: any) => {
     if (!valid) return
     if (!editingItem.value) return
-    const target = findInTree(departments.value, editingItem.value._originalName)
-    if (target) {
-      target.name = editingItem.value.name
-      target.leader = editingItem.value.leader
+    try {
+      await departmentStore.updateDepartment(editingItem.value.id, {
+        name: editingItem.value.name,
+        managerId: editingItem.value.managerId,
+        description: editingItem.value.description,
+      })
+      isEditDialogVisible.value = false
+      snackbar.value = { show: true, text: 'Department updated successfully', color: 'success' }
+    } catch (e: any) {
+      snackbar.value = { show: true, text: e.message || 'Failed to update department', color: 'error' }
     }
-    isEditDialogVisible.value = false
   })
 }
 
@@ -194,18 +131,15 @@ function openDeleteDialog(item: any) {
   isDeleteDialogVisible.value = true
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   if (!deletingItem.value) return
-  deleteFromTree(departments.value, deletingItem.value.name)
-  isDeleteDialogVisible.value = false
-}
-
-function deleteFromTree(items: any[], name: string): boolean {
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].name === name) { items.splice(i, 1); return true }
-    if (items[i].children && deleteFromTree(items[i].children, name)) return true
+  try {
+    await departmentStore.deleteDepartment(deletingItem.value.id)
+    isDeleteDialogVisible.value = false
+    snackbar.value = { show: true, text: 'Department deleted successfully', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to delete department', color: 'error' }
   }
-  return false
 }
 </script>
 
@@ -218,9 +152,9 @@ function deleteFromTree(items: any[], name: string): boolean {
       </VCol>
     </VRow>
 
-    <VCard>
+    <VCard :loading="departmentStore.loading">
       <VCardText>
-        <VTextField v-model="search" placeholder="Search" prepend-inner-icon="bx-search" density="compact" hide-details variant="outlined" style="max-inline-size: 280px;" />
+        <VTextField v-model="search" placeholder="Search" prepend-inner-icon="bx-search" density="compact" hide-details variant="outlined" style="max-inline-size: 280px;" @update:model-value="" />
       </VCardText>
       <VDivider />
       <VDataTable :headers="headers" :items="flatDepts" :search="search" :items-per-page="10" class="text-no-wrap">
@@ -238,9 +172,13 @@ function deleteFromTree(items: any[], name: string): boolean {
             <span class="font-weight-medium">{{ item.name }}</span>
           </div>
         </template>
+        <template #item.userCount="{ item }">
+          <VChip v-if="item.userCount" variant="tonal" color="primary" size="small">{{ item.userCount }}</VChip>
+          <span v-else class="text-body-2 text-medium-emphasis">0</span>
+        </template>
         <template #item.actions="{ item }">
-          <NuxtLink :to="`/admin/system/dept/view?name=${item.name}`"><IconBtn><VIcon icon="bx-show" /></IconBtn></NuxtLink>
-          <IconBtn @click="openEditDialog({ ...item, _originalName: item.name })"><VIcon icon="bx-edit" /></IconBtn>
+          <NuxtLink :to="`/admin/system/dept/view?id=${item.id}`"><IconBtn><VIcon icon="bx-show" /></IconBtn></NuxtLink>
+          <IconBtn @click="openEditDialog(item)"><VIcon icon="bx-edit" /></IconBtn>
           <IconBtn color="error" @click="openDeleteDialog(item)"><VIcon icon="bx-trash" /></IconBtn>
         </template>
       </VDataTable>
@@ -250,20 +188,19 @@ function deleteFromTree(items: any[], name: string): boolean {
     <VDialog v-model="isDialogVisible" max-width="500">
       <VCard>
         <VCardItem>
-          <VCardTitle>Add New</VCardTitle>
+          <VCardTitle>Add New Department</VCardTitle>
           <VBtn icon variant="text" @click="isDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
           <VForm ref="addFormRef">
-            <VSelect v-model="form.type" label="Type" :items="['office', 'department', 'team']" density="comfortable" class="mb-3" variant="outlined" @update:model-value="onTypeChange" />
-          <VSelect v-model="form.parentId" label="Parent" :items="parentOptions" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="form.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
-          <VTextField v-model="form.leader" label="Leader" density="comfortable" variant="outlined" />
+            <VTextField v-model="form.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
+            <VTextField v-model="form.description" label="Description" density="comfortable" class="mb-3" variant="outlined" />
+            <VTextField v-model.number="form.managerId" label="Manager ID" density="comfortable" type="number" class="mb-3" variant="outlined" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" @click="addItem">Submit</VBtn>
+          <VBtn color="primary" :loading="departmentStore.loading" @click="addItem">Submit</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -272,19 +209,19 @@ function deleteFromTree(items: any[], name: string): boolean {
     <VDialog v-model="isEditDialogVisible" max-width="500">
       <VCard>
         <VCardItem>
-          <VCardTitle>Edit</VCardTitle>
+          <VCardTitle>Edit Department</VCardTitle>
           <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
           <VForm ref="editFormRef">
-            <VTextField :model-value="editingItem?.type" label="Type" density="comfortable" class="mb-3" variant="outlined" readonly />
-          <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
-          <VTextField v-model="editingItem.leader" label="Leader" density="comfortable" variant="outlined" />
+            <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
+            <VTextField v-model="editingItem.description" label="Description" density="comfortable" class="mb-3" variant="outlined" />
+            <VTextField v-model.number="editingItem.managerId" label="Manager ID" density="comfortable" type="number" variant="outlined" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" @click="saveEdit">Save</VBtn>
+          <VBtn color="primary" :loading="departmentStore.loading" @click="saveEdit">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -296,12 +233,15 @@ function deleteFromTree(items: any[], name: string): boolean {
           <VCardTitle>Delete</VCardTitle>
           <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
-        <VCardText>Are you sure you want to delete <strong>{{ deletingItem?.name }}</strong>? This will also remove all children.</VCardText>
+        <VCardText>Are you sure you want to delete <strong>{{ deletingItem?.name }}</strong>?</VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
-          <VBtn color="error" @click="confirmDelete">Delete</VBtn>
+          <VBtn color="error" :loading="departmentStore.loading" @click="confirmDelete">Delete</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- Snackbar -->
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>

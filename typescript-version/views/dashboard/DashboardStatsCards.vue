@@ -1,34 +1,43 @@
 <script setup lang="ts">
-const stats = [
-  {
-    title: '用户总数',
-    value: '1,284',
-    icon: 'tabler-users',
-    color: 'primary',
-    subtitle: '较上月 +12.5%',
-  },
-  {
-    title: '活跃用户',
-    value: '986',
-    icon: 'tabler-user-check',
-    color: 'success',
-    subtitle: '占比 76.8%',
-  },
-  {
-    title: '禁用用户',
-    value: '42',
-    icon: 'tabler-user-x',
-    color: 'error',
-    subtitle: '较上月 +3',
-  },
-  {
-    title: '今日新增',
-    value: '18',
-    icon: 'tabler-user-plus',
-    color: 'info',
-    subtitle: '本周累计 67',
-  },
-]
+const dashboardStore = useDashboardStore()
+
+onMounted(() => dashboardStore.fetchStats())
+
+const rawStats = computed(() => dashboardStore.stats)
+
+const stats = computed(() => {
+  const s = rawStats.value
+  return [
+    {
+      title: '用户总数',
+      value: s?.totalUsers != null ? String(s.totalUsers) : '-',
+      icon: 'tabler-users',
+      color: 'primary',
+      subtitle: '',
+    },
+    {
+      title: '活跃用户',
+      value: s?.activeUsers != null ? String(s.activeUsers) : '-',
+      icon: 'tabler-user-check',
+      color: 'success',
+      subtitle: '',
+    },
+    {
+      title: '禁用用户',
+      value: s?.disabledUsers != null ? String(s.disabledUsers) : '-',
+      icon: 'tabler-user-x',
+      color: 'error',
+      subtitle: '',
+    },
+    {
+      title: '今日新增',
+      value: s?.newUsersToday != null ? String(s.newUsersToday) : '-',
+      icon: 'tabler-user-plus',
+      color: 'info',
+      subtitle: '',
+    },
+  ]
+})
 </script>
 
 <template>
@@ -62,10 +71,6 @@ const stats = [
               {{ stat.value }}
             </div>
           </div>
-        </VCardText>
-        <VDivider />
-        <VCardText class="text-caption text-medium-emphasis py-2">
-          {{ stat.subtitle }}
         </VCardText>
       </VCard>
     </VCol>
