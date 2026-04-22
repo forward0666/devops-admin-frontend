@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const searchQuery = ref('')
 const selectedRole = ref()
-const selectedTeam = ref()
 const selectedStatus = ref()
 const itemsPerPage = ref(10)
 const selectedUsers = ref<any[]>([])
@@ -12,18 +11,37 @@ const isEditUserDialogVisible = ref(false)
 const isDeleteDialogVisible = ref(false)
 const editingUser = ref<any>(null)
 const deletingUser = ref<any>(null)
+const snackMessage = ref('')
+const snackColor = ref('success')
+
 const userStore = useUserStore()
+const departmentStore = useDepartmentStore()
+
+onMounted(() => {
+  userStore.fetchUsers()
+  departmentStore.fetchDepartments()
+})
+
+function showSnack(msg: string, color = 'success') {
+  snackMessage.value = msg
+  snackColor.value = color
+}
 
 function openEditDialog(user: any) {
   editingUser.value = { ...user }
   isEditUserDialogVisible.value = true
 }
 
-function saveEditUser() {
-  if (editingUser.value) {
-    const idx = userStore.users.findIndex(u => u.id === editingUser.value.id)
-    if (idx !== -1) userStore.users[idx] = { ...editingUser.value }
+async function saveEditUser() {
+  if (!editingUser.value) return
+  try {
+    await userStore.updateUser(editingUser.value.id, editingUser.value)
     isEditUserDialogVisible.value = false
+    showSnack('User updated')
+    await userStore.fetchUsers()
+  }
+  catch (e: any) {
+    showSnack(e.message || 'Update failed', 'error')
   }
 }
 
@@ -32,108 +50,107 @@ function openDeleteDialog(user: any) {
   isDeleteDialogVisible.value = true
 }
 
-function confirmDelete() {
-  if (deletingUser.value) {
-    userStore.users = userStore.users.filter(u => u.id !== deletingUser.value.id)
+async function confirmDelete() {
+  if (!deletingUser.value) return
+  try {
+    await userStore.deleteUser(deletingUser.value.id)
     isDeleteDialogVisible.value = false
+    showSnack('User deleted')
+    await userStore.fetchUsers()
+  }
+  catch (e: any) {
+    showSnack(e.message || 'Delete failed', 'error')
   }
 }
 
-function addUser() {
-  const maxId = Math.max(...userStore.users.map(u => u.id), 0)
-  userStore.users.push({
-    id: maxId + 1,
-    fullName: newUser.value.fullName,
-    email: newUser.value.email,
-    role: newUser.value.role,
-    team: newUser.value.team,
-    department: newUser.value.department,
-    status: newUser.value.status,
-    avatar: Math.floor(Math.random() * 6) + 1,
-  })
-  newUser.value = { fullName: '', email: '', role: '', team: '', department: '', status: 'active' }
-  isAddUserDialogVisible.value = false
+async function addUser() {
+  try {
+    await userStore.createUser({
+      username: newUser.value.username,
+      password: newUser.value.password,
+      fullName: newUser.value.fullName,
+      email: newUser.value.email,
+      role: newUser.value.role,
+      departmentId: newUser.value.departmentId,
+      position: newUser.value.position,
+    })
+    newUser.value = { username: '', password: '', fullName: '', email: '', role: 'viewer', departmentId: null, position: '' }
+    isAddUserDialogVisible.value = false
+    showSnack('User created')
+    await userStore.fetchUsers()
+  }
+  catch (e: any) {
+    showSnack(e.message || 'Create failed', 'error')
+  }
 }
 
 const newUser = ref({
+  username: '',
+  password: '',
   fullName: '',
   email: '',
-  role: '',
-  team: '',
-  department: '',
-  status: 'active',
+  role: 'viewer' as string,
+  departmentId: null as number | null,
+  position: '',
 })
 
 const resolveUserRoleIcon = (role: string) => {
   const roleIcons: Record<string, { icon: string; color: string }> = {
+    sys_admin: { icon: 'bx-crown', color: 'primary' },
     admin: { icon: 'bx-crown', color: 'primary' },
+    devops_admin: { icon: 'bx-crown', color: 'info' },
     editor: { icon: 'bx-edit', color: 'warning' },
-    subscriber: { icon: 'bx-user', color: 'success' },
-    maintainer: { icon: 'bx-pie-chart-alt', color: 'info' },
-    author: { icon: 'bx-desktop', color: 'error' },
+    viewer: { icon: 'bx-user', color: 'success' },
   }
 
   return roleIcons[role] || { icon: 'bx-user', color: 'primary' }
 }
 
-const resolveUserStatusVariant = (status: string) => {
-  const statusColor: Record<string, string> = {
-    active: 'success',
-    inactive: 'secondary',
-    pending: 'warning',
-  }
-
-  return statusColor[status] || 'secondary'
-}
-
-const resolveAvatarUrl = (avatarNum: number) => `/images/avatars/avatar-${avatarNum}.png`
+const resolveUserStatusVariant = (status: boolean) => status ? 'success' : 'error'
 
 const resolveAvatarColor = (name: string) => {
   const colors = ['primary', 'secondary', 'success', 'info', 'warning', 'error']
-  const index = name.charCodeAt(0) % colors.length
-
+  const index = (name?.charCodeAt(0) || 0) % colors.length
   return colors[index]
 }
 
-const users = computed(() => userStore.users)
-
 const filteredUsers = computed(() => {
   const query = searchQuery.value.toLowerCase()
-  return users.value.filter(user => {
+  return userStore.users.filter((user: any) => {
     const matchRole = !selectedRole.value || user.role === selectedRole.value
-    const matchTeam = !selectedTeam.value || user.team === selectedTeam.value
-    const matchStatus = !selectedStatus.value || user.status === selectedStatus.value.toLowerCase()
-    const matchSearch = !query || user.fullName.toLowerCase().includes(query) || user.email.toLowerCase().includes(query)
-
-    return matchRole && matchTeam && matchStatus && matchSearch
+    const matchStatus = !selectedStatus.value || (selectedStatus.value === 'active' ? user.active : !user.active)
+    const matchSearch = !query
+      || user.username?.toLowerCase().includes(query)
+      || user.fullName?.toLowerCase().includes(query)
+      || user.email?.toLowerCase().includes(query)
+    return matchRole && matchStatus && matchSearch
   })
 })
 
 const userHeaders = [
   { title: 'User', key: 'user', sortable: true },
   { title: 'Role', key: 'role', sortable: true },
-  { title: 'Team', key: 'team', sortable: true },
+  { title: 'Position', key: 'position', sortable: true },
   { title: 'Department', key: 'department', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
+
+const roleOptions = ['sys_admin', 'devops_admin', 'admin', 'editor', 'viewer']
 </script>
 
 <template>
   <div>
-    <!-- Stat Cards -->
     <VRow class="mb-6">
       <VCol cols="12" sm="6" md="3">
         <VCard>
           <VCardText>
             <div class="d-flex justify-space-between">
               <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Session</div>
+                <div class="text-body-1 text-high-emphasis">Total Users</div>
                 <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">21,459</h4>
-                  <div class="text-base text-success"> (+29%) </div>
+                  <h4 class="text-h4">{{ userStore.users.length }}</h4>
                 </div>
-                <div class="text-sm">Total Users</div>
               </div>
               <VAvatar color="primary" variant="tonal" rounded size="40">
                 <VIcon icon="bx-group" size="24" />
@@ -147,12 +164,10 @@ const userHeaders = [
           <VCardText>
             <div class="d-flex justify-space-between">
               <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Active Users</div>
+                <div class="text-body-1 text-high-emphasis">Active</div>
                 <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">19,860</h4>
-                  <div class="text-base text-success"> (+14%) </div>
+                  <h4 class="text-h4">{{ userStore.users.filter((u: any) => u.active).length }}</h4>
                 </div>
-                <div class="text-sm">Last Week Analytics</div>
               </div>
               <VAvatar color="success" variant="tonal" rounded size="40">
                 <VIcon icon="bx-user-check" size="24" />
@@ -166,12 +181,10 @@ const userHeaders = [
           <VCardText>
             <div class="d-flex justify-space-between">
               <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Block Users</div>
+                <div class="text-body-1 text-high-emphasis">Inactive</div>
                 <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">4,567</h4>
-                  <div class="text-base text-error"> (-18%) </div>
+                  <h4 class="text-h4">{{ userStore.users.filter((u: any) => !u.active).length }}</h4>
                 </div>
-                <div class="text-sm">Last Week Analytics</div>
               </div>
               <VAvatar color="error" variant="tonal" rounded size="40">
                 <VIcon icon="bx-user-x" size="24" />
@@ -185,15 +198,13 @@ const userHeaders = [
           <VCardText>
             <div class="d-flex justify-space-between">
               <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Pending Users</div>
+                <div class="text-body-1 text-high-emphasis">Departments</div>
                 <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">237</h4>
-                  <div class="text-base text-success"> (+42%) </div>
+                  <h4 class="text-h4">{{ departmentStore.departments.length }}</h4>
                 </div>
-                <div class="text-sm">Last Week Analytics</div>
               </div>
               <VAvatar color="warning" variant="tonal" rounded size="40">
-                <VIcon icon="bx-user-voice" size="24" />
+                <VIcon icon="bx-building" size="24" />
               </VAvatar>
             </div>
           </VCardText>
@@ -201,7 +212,7 @@ const userHeaders = [
       </VCol>
     </VRow>
 
-    <!-- Filters Card -->
+    <!-- Filters -->
     <VCard class="mb-6">
       <VCardItem class="pb-4">
         <VCardTitle>Filters</VCardTitle>
@@ -209,13 +220,10 @@ const userHeaders = [
       <VCardText class="pt-0">
         <VRow>
           <VCol cols="12" sm="4">
-            <VSelect v-model="selectedRole" placeholder="Select Role" :items="['admin', 'user']" density="comfortable" clearable hide-details variant="outlined" />
+            <VSelect v-model="selectedRole" placeholder="Select Role" :items="roleOptions" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
           <VCol cols="12" sm="4">
-            <VSelect v-model="selectedTeam" placeholder="Select Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" clearable hide-details variant="outlined" />
-          </VCol>
-          <VCol cols="12" sm="4">
-            <VSelect v-model="selectedStatus" placeholder="Select Status" :items="['Active', 'Inactive', 'Pending']" density="comfortable" clearable hide-details variant="outlined" />
+            <VSelect v-model="selectedStatus" placeholder="Select Status" :items="['active', 'inactive']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
         </VRow>
       </VCardText>
@@ -223,29 +231,15 @@ const userHeaders = [
       <VCardText class="d-flex flex-wrap gap-4">
         <VTextField v-model="searchQuery" placeholder="Search User" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
         <VSpacer />
-          <VBtn prepend-icon="bx-export" variant="tonal" color="secondary">
-            Export
-          </VBtn>
-          <VBtn prepend-icon="bx-import" variant="tonal" color="secondary" @click="isImportDialogVisible = true">
-            Import
-          </VBtn>
-          <VBtn prepend-icon="bx-plus" color="primary" @click="isAddUserDialogVisible = true">
-            Add New User
-          </VBtn>
+        <VBtn prepend-icon="bx-plus" color="primary" @click="isAddUserDialogVisible = true">
+          Add New User
+        </VBtn>
       </VCardText>
       <VDivider />
-      <!-- Batch Action Bar -->
       <VExpandTransition>
         <VCardText v-if="selectedUsers.length > 0" class="d-flex align-center gap-3 bg-primary-lighten-4 rounded-lg ma-3">
           <VIcon icon="bx-check-double" color="primary" size="20" />
           <span class="text-body-1 font-weight-medium">{{ selectedUsers.length }} user(s) selected</span>
-          <VSpacer />
-          <VBtn size="small" variant="tonal" color="error" prepend-icon="bx-trash">
-            Delete Selected
-          </VBtn>
-          <VBtn size="small" variant="tonal" color="warning" prepend-icon="bx-block">
-            Block Selected
-          </VBtn>
         </VCardText>
       </VExpandTransition>
       <VDataTable
@@ -253,21 +247,22 @@ const userHeaders = [
         :headers="userHeaders"
         :items="filteredUsers"
         :items-per-page="itemsPerPage"
+        :loading="userStore.loading"
         show-select
         class="text-no-wrap"
       >
         <template #item.user="{ item }">
           <div class="d-flex align-center gap-x-4">
-            <VAvatar size="34" variant="tonal" :color="resolveAvatarColor(item.fullName)">
-              <span class="text-sm font-weight-medium">{{ item.fullName.charAt(0) }}</span>
+            <VAvatar size="34" variant="tonal" :color="resolveAvatarColor(item.fullName || item.username)">
+              <span class="text-sm font-weight-medium">{{ (item.fullName || item.username)?.charAt(0)?.toUpperCase() }}</span>
             </VAvatar>
             <div class="d-flex flex-column" style="min-inline-size: 180px;">
               <h6 class="text-base">
-                <NuxtLink :to="`/system/user/view?id=${item.id}`" class="font-weight-medium text-link">
-                  {{ item.fullName }}
+                <NuxtLink :to="`/admin/system/user/view?id=${item.id}`" class="font-weight-medium text-link">
+                  {{ item.fullName || item.username }}
                 </NuxtLink>
               </h6>
-              <div class="text-sm">{{ item.email }}</div>
+              <div class="text-sm text-medium-emphasis">{{ item.email || item.username }}</div>
             </div>
           </div>
         </template>
@@ -279,17 +274,17 @@ const userHeaders = [
           </div>
         </template>
 
-        <template #item.team="{ item }">
-          <div class="text-body-1 text-high-emphasis">{{ item.team }}</div>
+        <template #item.position="{ item }">
+          <div class="text-body-1 text-high-emphasis">{{ item.position || '-' }}</div>
         </template>
 
         <template #item.department="{ item }">
-          <div class="text-body-1">{{ item.department }}</div>
+          <div class="text-body-1">{{ item.department || '-' }}</div>
         </template>
 
         <template #item.status="{ item }">
-          <VChip variant="tonal" :color="resolveUserStatusVariant(item.status)" size="small" label class="text-capitalize">
-            {{ item.status }}
+          <VChip variant="tonal" :color="resolveUserStatusVariant(item.active)" size="small" label>
+            {{ item.active ? 'Active' : 'Inactive' }}
           </VChip>
         </template>
 
@@ -317,41 +312,17 @@ const userHeaders = [
           </VBtn>
         </VCardItem>
         <VCardText>
+          <VTextField v-model="newUser.username" label="Username" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="newUser.password" label="Password" type="password" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="newUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="newUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newUser.role" label="Role" :items="['admin', 'user']" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newUser.team" label="Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newUser.department" label="Department" :items="['Engineering', 'Marketing', 'Operations', 'IT', 'Analytics', 'Customer Success']" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newUser.status" label="Status" :items="['active', 'inactive', 'pending']" density="comfortable" variant="outlined" />
+          <VSelect v-model="newUser.role" label="Role" :items="roleOptions" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newUser.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="newUser.position" label="Position" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isAddUserDialogVisible = false">Cancel</VBtn>
           <VBtn color="primary" @click="addUser">Add User</VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
-
-    <!-- Import Dialog -->
-    <VDialog v-model="isImportDialogVisible" max-width="500">
-      <VCard>
-        <VCardItem>
-          <VCardTitle>Import Users</VCardTitle>
-          <VBtn icon variant="text" @click="isImportDialogVisible = false">
-            <VIcon icon="bx-x" />
-          </VBtn>
-        </VCardItem>
-        <VCardText>
-          <div class="drop-zone pa-8 text-center border-dashed border-2 border-primary rounded-lg" @dragover.prevent @drop.prevent>
-            <VIcon icon="bx-cloud-upload" size="48" color="primary" class="mb-3" />
-            <h6 class="text-h6 mb-1">Drag & Drop files here</h6>
-            <p class="text-body-2 text-medium-emphasis mb-3">or click to browse</p>
-            <VBtn variant="tonal" color="primary" size="small">Browse Files</VBtn>
-            <p class="text-body-2 text-medium-emphasis mt-3">Supports CSV, XLS, XLSX format</p>
-          </div>
-        </VCardText>
-        <VCardActions class="justify-end">
-          <VBtn variant="tonal" @click="isImportDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" @click="isImportDialogVisible = false">Import</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -366,10 +337,10 @@ const userHeaders = [
         <VCardText>
           <VTextField v-model="editingUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingUser.role" label="Role" :items="['admin', 'user']" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingUser.team" label="Team" :items="['Product', 'Design', 'Backend', 'Frontend', 'DevOps', 'QA', 'Mobile', 'Data', 'Security', 'Support']" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingUser.department" label="Department" :items="['Engineering', 'Marketing', 'Operations', 'IT', 'Analytics', 'Customer Success']" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingUser.status" label="Status" :items="['active', 'inactive', 'pending']" density="comfortable" variant="outlined" />
+          <VTextField v-model="editingUser.phone" label="Phone" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingUser.role" label="Role" :items="roleOptions" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingUser.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editingUser.position" label="Position" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditUserDialogVisible = false">Cancel</VBtn>
@@ -385,12 +356,17 @@ const userHeaders = [
           <VCardTitle>Delete User</VCardTitle>
           <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
-        <VCardText>Are you sure you want to delete <strong>{{ deletingUser?.fullName }}</strong>? This action cannot be undone.</VCardText>
+        <VCardText>Are you sure you want to delete <strong>{{ deletingUser?.fullName || deletingUser?.username }}</strong>? This action cannot be undone.</VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
           <VBtn color="error" @click="confirmDelete">Delete</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- Snackbar -->
+    <VSnackbar v-model="snackMessage" :color="snackColor" :timeout="3000" location="top">
+      {{ snackMessage }}
+    </VSnackbar>
   </div>
 </template>

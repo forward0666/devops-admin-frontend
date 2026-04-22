@@ -1,33 +1,68 @@
 <script setup lang="ts">
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import logo from '@images/logo.svg?raw'
 import authV1BottomShape from '@images/svg/auth-v1-bottom-shape.svg?url'
 import authV1TopShape from '@images/svg/auth-v1-top-shape.svg?url'
 
+const authStore = useAuthStore()
+const { authService } = await import('~/services/api')
+
 const form = ref({
-  email: '',
+  username: '',
   password: '',
+  verificationCode: '',
   remember: false,
 })
 
-const authStore = useAuthStore()
 const isPasswordVisible = ref(false)
+const loading = ref(false)
+const errorMsg = ref('')
+const captchaImage = ref('')
+const captchaKey = ref('')
 
 definePageMeta({ layout: 'blank' })
 
-const mockUsers = [
-  { email: 'admin@jhdevops.com', password: 'admin123', role: 'sys_admin', name: 'Admin' },
-  { email: 'manager@jhdevops.com', password: 'admin123', role: 'admin', name: 'Manager' },
-  { email: 'leader@jhdevops.com', password: 'leader123', role: 'leader', name: 'Leader' },
-  { email: 'john@jhdevops.com', password: 'user123', role: 'user', name: 'John' },
-]
+// 获取验证码
+async function fetchCaptcha() {
+  try {
+    const res = await authService.getVerificationCode()
+    captchaKey.value = res.codeId
+    captchaImage.value = `data:image/png;base64,${res.image}`
+  }
+  catch (e: any) {
+    console.error('获取验证码失败:', e)
+  }
+}
 
-const handleLogin = () => {
-  const user = mockUsers.find(u => u.email === form.value.email && u.password === form.value.password)
-  if (user) {
-    authStore.setLoginRole(user.role as any)
-    authStore.setUserName(user.name)
-    navigateTo(authStore.homeRoute)
+onMounted(() => {
+  fetchCaptcha()
+})
+
+const handleLogin = async () => {
+  loading.value = true
+  errorMsg.value = ''
+
+  try {
+    const success = await authStore.login(
+      form.value.username,
+      form.value.password,
+      form.value.verificationCode,
+      captchaKey.value,
+    )
+
+    if (success) {
+      navigateTo(authStore.homeRoute)
+    }
+    else {
+      errorMsg.value = '登录失败，请检查用户名和密码'
+      fetchCaptcha()
+    }
+  }
+  catch (e: any) {
+    errorMsg.value = e.message || '登录失败，请稍后重试'
+    fetchCaptcha()
+  }
+  finally {
+    loading.value = false
   }
 }
 </script>
@@ -58,7 +93,6 @@ const handleLogin = () => {
             to="/"
             class="app-logo"
           >
-            <!-- eslint-disable vue/no-v-html -->
             <div
               class="d-flex"
               v-html="logo"
@@ -76,24 +110,31 @@ const handleLogin = () => {
         </VCardText>
 
         <VCardText>
+          <!-- Error message -->
+          <VAlert
+            v-if="errorMsg"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ errorMsg }}
+          </VAlert>
+
           <VForm @submit.prevent="handleLogin">
             <VRow>
-              <!-- email -->
+              <!-- username -->
               <VCol cols="12">
                 <VTextField
-                  :id="useId()"
-                  v-model="form.email"
+                  v-model="form.username"
                   autofocus
-                  label="Email or Username"
-                  type="email"
-                  placeholder="johndoe@email.com"
+                  label="Username"
+                  placeholder="admin"
                 />
               </VCol>
 
               <!-- password -->
               <VCol cols="12">
                 <VTextField
-                  :id="useId()"
                   v-model="form.password"
                   label="Password"
                   placeholder="············"
@@ -102,11 +143,40 @@ const handleLogin = () => {
                   :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
+              </VCol>
 
-                <!-- remember me checkbox -->
-                <div class="d-flex align-center justify-space-between flex-wrap my-6">
+              <!-- verification code -->
+              <VCol cols="12">
+                <div class="d-flex align-center gap-3">
+                  <VTextField
+                    v-model="form.verificationCode"
+                    label="Verification Code"
+                    placeholder="Enter code"
+                    class="flex-grow-1"
+                  />
+                  <VBtn
+                    variant="tonal"
+                    size="large"
+                    class="text-no-wrap"
+                    :disabled="!captchaImage"
+                    @click="fetchCaptcha"
+                  >
+                    <VImg
+                      v-if="captchaImage"
+                      :src="captchaImage"
+                      width="120"
+                      height="40"
+                      contain
+                    />
+                    <span v-else>Get Code</span>
+                  </VBtn>
+                </div>
+              </VCol>
+
+              <!-- remember me checkbox -->
+              <VCol cols="12">
+                <div class="d-flex align-center justify-space-between flex-wrap my-2">
                   <VCheckbox
-                    :id="useId()"
                     v-model="form.remember"
                     label="Remember me"
                   />
@@ -118,11 +188,14 @@ const handleLogin = () => {
                     Forgot Password?
                   </a>
                 </div>
+              </VCol>
 
-                <!-- login button -->
+              <!-- login button -->
+              <VCol cols="12">
                 <VBtn
                   block
                   type="submit"
+                  :loading="loading"
                 >
                   Login
                 </VBtn>
@@ -130,7 +203,6 @@ const handleLogin = () => {
 
               <!-- create account -->
               <VCol
-
                 cols="12"
                 class="d-flex align-center"
               >

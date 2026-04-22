@@ -1,39 +1,156 @@
 import { defineStore } from 'pinia'
+import { userService } from '~/services/api'
 
-interface User {
-  id: number
-  fullName: string
-  email: string
-  role: string
-  team: string
-  department: string
-  status: string
-  avatar: number
-}
+export const useUserStore = defineStore('users', () => {
+  const users = ref<any[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-export const useUserStore = defineStore('users', {
-  state: () => ({
-    users: [
-      { id: 50, fullName: 'Beverlie Krabbe', email: 'bkrabbe1d@home.pl', role: 'editor', team: 'Product', department: 'Engineering', status: 'active', avatar: 1 },
-      { id: 49, fullName: 'Paulie Durber', email: 'pdurber1c@gov.uk', role: 'subscriber', team: 'Design', department: 'Marketing', status: 'inactive', avatar: 2 },
-      { id: 48, fullName: 'Onfre Wind', email: 'owind1b@yandex.ru', role: 'admin', team: 'Backend', department: 'Engineering', status: 'pending', avatar: 3 },
-      { id: 47, fullName: 'Karena Courtliff', email: 'kcourtliff1a@bbc.co.uk', role: 'admin', team: 'DevOps', department: 'Operations', status: 'active', avatar: 6 },
-      { id: 46, fullName: 'Saunder Offner', email: 'soffner19@mac.com', role: 'maintainer', team: 'QA', department: 'Engineering', status: 'pending', avatar: 4 },
-      { id: 45, fullName: 'Corrie Perot', email: 'cperot18@goo.ne.jp', role: 'subscriber', team: 'Frontend', department: 'Engineering', status: 'pending', avatar: 5 },
-      { id: 44, fullName: 'Vladamir Koschek', email: 'vkoschek17@abc.net.au', role: 'author', team: 'Security', department: 'IT', status: 'active', avatar: 1 },
-      { id: 43, fullName: 'Micaela McNirlan', email: 'mmcnirlan16@hc360.com', role: 'admin', team: 'Data', department: 'Analytics', status: 'inactive', avatar: 2 },
-      { id: 42, fullName: 'Benedetto Rossiter', email: 'brossiter15@craigslist.org', role: 'editor', team: 'Mobile', department: 'Engineering', status: 'inactive', avatar: 1 },
-      { id: 41, fullName: 'Garvin Odem', email: 'godem14@eepurl.com', role: 'subscriber', team: 'Support', department: 'Customer Success', status: 'active', avatar: 3 },
-    ] as User[],
-  }),
+  async function fetchUsers() {
+    loading.value = true
+    error.value = null
+    try {
+      users.value = await userService.list()
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+    } finally {
+      loading.value = false
+    }
+  }
 
-  actions: {
-    addUser(user: Omit<User, 'id'>) {
-      const newId = Math.max(...this.users.map(u => u.id), 0) + 1
-      this.users.push({ ...user, id: newId })
-    },
-    deleteUser(id: number) {
-      this.users = this.users.filter(u => u.id !== id)
-    },
-  },
+  async function fetchUserById(id: number) {
+    loading.value = true
+    error.value = null
+    try {
+      return await userService.getById(id)
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function createUser(data: any) {
+    loading.value = true
+    error.value = null
+    try {
+      const user = await userService.create(data)
+      users.value.push(user)
+      return user
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateUser(id: number, data: any) {
+    loading.value = true
+    error.value = null
+    try {
+      const updated = await userService.update(id, data)
+      const idx = users.value.findIndex((u: any) => u.id === id)
+      if (idx !== -1) users.value[idx] = updated
+      return updated
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deleteUser(id: number) {
+    loading.value = true
+    error.value = null
+    try {
+      await userService.delete(id)
+      users.value = users.value.filter((u: any) => u.id !== id)
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function changePassword(id: number, data: { oldPassword: string, newPassword: string }) {
+    loading.value = true
+    error.value = null
+    try {
+      await userService.changePassword(id, data)
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function resetPassword(id: number, data: { newPassword: string }) {
+    loading.value = true
+    error.value = null
+    try {
+      await userService.resetPassword(id, data)
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function verifyEmail(id: number) {
+    loading.value = true
+    error.value = null
+    try {
+      await userService.verifyEmail(id)
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function verifyPhone(id: number) {
+    loading.value = true
+    error.value = null
+    try {
+      await userService.verifyPhone(id)
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function searchUsers(query: string) {
+    loading.value = true
+    error.value = null
+    try {
+      users.value = await userService.search(query)
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchUsersByDepartment(departmentId: number) {
+    loading.value = true
+    error.value = null
+    try {
+      users.value = await userService.getByDepartment(departmentId)
+    } catch (e: any) {
+      error.value = e.message || '请求失败'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    users, loading, error,
+    fetchUsers, fetchUserById, createUser, updateUser, deleteUser,
+    changePassword, resetPassword, verifyEmail, verifyPhone,
+    searchUsers, fetchUsersByDepartment,
+  }
 })
