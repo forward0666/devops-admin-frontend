@@ -24,7 +24,7 @@ export interface User {
   department?: string
 }
 
-export type UserRole = 'viewer' | 'editor' | 'admin' | 'devops_admin' | 'sys_admin'
+export type UserRole = 'user' | 'leader' | 'devops' | 'admin' | 'sys_admin'
 
 export interface LoginRequest {
   username: string

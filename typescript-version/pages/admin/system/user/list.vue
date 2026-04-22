@@ -74,7 +74,7 @@ async function addUser() {
       departmentId: newUser.value.departmentId,
       position: newUser.value.position,
     })
-    newUser.value = { username: '', password: '', fullName: '', email: '', role: 'viewer', departmentId: null, position: '' }
+    newUser.value = { username: '', password: '', fullName: '', email: '', role: 'user', departmentId: null, position: '' }
     isAddUserDialogVisible.value = false
     showSnack('User created')
     await userStore.fetchUsers()
@@ -89,7 +89,7 @@ const newUser = ref({
   password: '',
   fullName: '',
   email: '',
-  role: 'viewer' as string,
+  role: 'user' as string,
   departmentId: null as number | null,
   position: '',
 })
@@ -98,9 +98,9 @@ const resolveUserRoleIcon = (role: string) => {
   const roleIcons: Record<string, { icon: string; color: string }> = {
     sys_admin: { icon: 'bx-crown', color: 'primary' },
     admin: { icon: 'bx-crown', color: 'primary' },
-    devops_admin: { icon: 'bx-crown', color: 'info' },
-    editor: { icon: 'bx-edit', color: 'warning' },
-    viewer: { icon: 'bx-user', color: 'success' },
+    devops: { icon: 'bx-crown', color: 'info' },
+    leader: { icon: 'bx-star', color: 'warning' },
+    user: { icon: 'bx-user', color: 'success' },
   }
 
   return roleIcons[role] || { icon: 'bx-user', color: 'primary' }
@@ -136,7 +136,7 @@ const userHeaders = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const roleOptions = ['sys_admin', 'devops_admin', 'admin', 'editor', 'viewer']
+const roleOptions = ['sys_admin', 'admin', 'devops', 'leader', 'user']
 </script>
 
 <template>

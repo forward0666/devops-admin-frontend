@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { authService } from '~/services/api'
 
-export type UserRole = 'viewer' | 'editor' | 'admin' | 'devops_admin' | 'sys_admin'
+export type UserRole = 'user' | 'leader' | 'devops' | 'admin' | 'sys_admin'
 
 interface AuthUser {
   id: number
@@ -65,7 +65,7 @@ export const useAuthStore = defineStore('auth', {
           this.user = {
             id: response.user.id || 1,
             username: response.user.username,
-            role: (response.user.role as UserRole) || 'viewer',
+            role: (response.user.role as UserRole) || 'user',
             department: response.user.department,
             departmentId: response.user.departmentId,
             email: response.user.email,
