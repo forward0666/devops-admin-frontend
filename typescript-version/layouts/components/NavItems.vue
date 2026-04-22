@@ -24,7 +24,7 @@ const isProjectActive = (projectId: number) => {
 <template>
   <template v-if="authStore.isReady">
   <!-- 👉 Admin Navigation -->
-  <template v-if="authStore.isReady && authStore.isAdmin">
+  <template v-if="authStore.isReady && authStore.isAdmin && authStore.role !== 'user'">
     <!-- 👉 Dashboard -->
     <VerticalNavLink
       :item="{

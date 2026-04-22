@@ -90,7 +90,9 @@ const switchToUser = () => {
     </template>
 
     <!-- 👉 Pages -->
-    <slot />
+    <div :key="currentRole">
+      <slot />
+    </div>
 
     <!-- 👉 Footer -->
     <template #footer>
