@@ -5,7 +5,6 @@ import { useAuthStore, type UserRole } from '~/stores/auth'
 const adminRoutes = [
   '/admin/system/user/list',
   '/admin/system/user/view',
-  '/admin/system/permission',
   '/admin/system/dept',
   '/admin/system/menu',
   '/admin/monitor/online',

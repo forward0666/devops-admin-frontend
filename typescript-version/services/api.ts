@@ -225,22 +225,6 @@ export const positionService = {
   },
 }
 
-// ============ Permission ============
-export const permissionService = {
-  list() {
-    return request<any[]>({ method: 'get', url: '/manage/permission' })
-  },
-  getByRole(roleId: number) {
-    return request<any[]>({ method: 'get', url: `/manage/permission/role/${roleId}` })
-  },
-  updateByRole(roleId: number, data: any) {
-    return request<void>({ method: 'put', url: `/manage/permission/role/${roleId}`, data })
-  },
-  deleteByRole(roleId: number) {
-    return request<void>({ method: 'delete', url: `/manage/permission/role/${roleId}` })
-  },
-}
-
 // ============ Settings ============
 export const settingsService = {
   getSystem() {
