@@ -18,24 +18,32 @@ const loading = ref(false)
 const errorMsg = ref('')
 const captchaImage = ref('')
 const captchaKey = ref('')
+const captchaLoading = ref(false)
 
 definePageMeta({ layout: 'blank' })
 
 // 获取验证码
 async function fetchCaptcha() {
+  captchaLoading.value = true
   try {
     const res = await authService.getVerificationCode()
     captchaKey.value = res.codeId
-    captchaImage.value = `data:image/png;base64,${res.image}`
+    // 后端 imageBase64 可能已含 data:image 前缀，也可能没有
+    captchaImage.value = res.imageBase64?.startsWith('data:')
+      ? res.imageBase64
+      : res.imageBase64
+        ? `data:image/png;base64,${res.imageBase64}`
+        : ''
   }
   catch (e: any) {
     console.error('获取验证码失败:', e)
+    captchaImage.value = ''
+    captchaKey.value = ''
+  }
+  finally {
+    captchaLoading.value = false
   }
 }
-
-onMounted(() => {
-  fetchCaptcha()
-})
 
 const handleLogin = async () => {
   loading.value = true
@@ -54,12 +62,10 @@ const handleLogin = async () => {
     }
     else {
       errorMsg.value = '登录失败，请检查用户名和密码'
-      fetchCaptcha()
     }
   }
   catch (e: any) {
     errorMsg.value = e.message || '登录失败，请稍后重试'
-    fetchCaptcha()
   }
   finally {
     loading.value = false
@@ -154,21 +160,39 @@ const handleLogin = async () => {
                     placeholder="Enter code"
                     class="flex-grow-1"
                   />
+                  <!-- 验证码图片 + 刷新 -->
                   <VBtn
+                    v-if="captchaImage"
                     variant="tonal"
                     size="large"
-                    class="text-no-wrap"
-                    :disabled="!captchaImage"
+                    :loading="captchaLoading"
+                    class="flex-shrink-0"
                     @click="fetchCaptcha"
                   >
-                    <VImg
-                      v-if="captchaImage"
-                      :src="captchaImage"
-                      width="120"
-                      height="40"
-                      contain
-                    />
-                    <span v-else>Get Code</span>
+                    <div class="d-flex align-center gap-1">
+                      <VImg
+                        :src="captchaImage"
+                        width="120"
+                        height="40"
+                        contain
+                      />
+                      <VIcon
+                        size="18"
+                        color="grey"
+                        icon="bx-refresh"
+                      />
+                    </div>
+                  </VBtn>
+                  <!-- 未获取时显示 Get Code -->
+                  <VBtn
+                    v-else
+                    variant="tonal"
+                    size="large"
+                    :loading="captchaLoading"
+                    class="flex-shrink-0 text-no-wrap"
+                    @click="fetchCaptcha"
+                  >
+                    Get Code
                   </VBtn>
                 </div>
               </VCol>

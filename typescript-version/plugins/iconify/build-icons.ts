@@ -11,7 +11,10 @@
  * For Iconify Tools documentation visit https://docs.iconify.design/tools/tools2/
  */
 import { promises as fs } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, createRequire } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const require = createRequire(import.meta.url)
 
 // Installation: npm install --save-dev @iconify/tools @iconify/utils @iconify/json @iconify/iconify
 import { cleanupSVG, importDirectory, isEmptyColor, parseColors, runSVGO } from '@iconify/tools'
@@ -86,11 +89,11 @@ const sources: BundleScriptConfig = {
     // 'json/gg.json',
 
     // Iconify JSON file (@iconify/json is a package name, /json/ is directory where files are, then filename)
-    require.resolve('@iconify-json/bx/icons.json'),
-    require.resolve('@iconify-json/bxl/icons.json'),
-    require.resolve('@iconify-json/bxs/icons.json'),
+    fileURLToPath(new URL('@iconify-json/bx/icons.json', import.meta.url)),
+    fileURLToPath(new URL('@iconify-json/bxl/icons.json', import.meta.url)),
+    fileURLToPath(new URL('@iconify-json/bxs/icons.json', import.meta.url)),
     {
-      filename: require.resolve('@iconify-json/mdi/icons.json'),
+      filename: fileURLToPath(new URL('@iconify-json/mdi/icons.json', import.meta.url)),
       icons: [
         'close-circle',
         'language-javascript',

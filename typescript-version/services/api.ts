@@ -25,6 +25,11 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
 
+    // Gateway 服务间认证
+    if (!config.headers)
+      config.headers = {}
+    config.headers['X-Encrypted-Data'] = import.meta.env.VITE_GATEWAY_SECRET || ''
+
     return config
   },
   (error) => Promise.reject(error),
@@ -93,10 +98,8 @@ export const authService = {
   },
 
   async getVerificationCode() {
-    return request<{ codeId: string, image: string }>({
-      method: 'post',
-      url: '/auth/verificationCode',
-    })
+    const response = await apiClient.post<{ success: boolean, message: string, codeId: string, imageBase64: string }>('/auth/verificationCode')
+    return response.data
   },
 }
 
