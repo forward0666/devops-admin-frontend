@@ -138,7 +138,7 @@ const userHeaders = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const roleOptions = ['sys_admin', 'admin', 'devops', 'leader', 'user']
+const roleOptions = ['admin', 'devops', 'leader', 'user']
 </script>
 
 <template>
@@ -341,6 +341,7 @@ const roleOptions = ['sys_admin', 'admin', 'devops', 'leader', 'user']
           <VTextField v-model="editingUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.phone" label="Phone" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingUser.role" label="Role" :items="roleOptions" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingUser.active" label="Status" :items="[{ title: 'Active', value: true }, { title: 'Inactive', value: false }]" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingUser.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.position" label="Position" density="comfortable" variant="outlined" />
         </VCardText>
