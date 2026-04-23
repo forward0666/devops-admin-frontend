@@ -4,7 +4,7 @@ const projectId = computed(() => route.params.id as string)
 
 const projectStore = useProjectStore()
 const authStore = useAuthStore()
-const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.loginRole || ''))
+const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.role || ''))
 const name = computed(() => projectStore.projects.find(p => String(p.id) === projectId.value)?.name || 'Unknown Project')
 
 const expandedRows = ref<number[]>([])

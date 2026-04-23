@@ -9,21 +9,15 @@ import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
 
 const authStore = useAuthStore()
-const currentRole = ref('sys_admin')
-
-watch(() => authStore.isReady, (ready) => {
-  if (ready) currentRole.value = authStore.role
-})
+const consoleRole = computed(() => authStore.consoleRole)
 
 const switchToAdmin = () => {
-  currentRole.value = 'sys_admin'
-  authStore.setRole('sys_admin')
+  authStore.setConsoleRole('admin')
   navigateTo('/admin/dashboard')
 }
 
 const switchToUser = () => {
-  currentRole.value = 'user'
-  authStore.setRole('user')
+  authStore.setConsoleRole('user')
   navigateTo('/user/dashboard')
 }
 </script>
@@ -62,11 +56,11 @@ const switchToUser = () => {
 
         <!-- 👉 Role Switch (admin only) -->
         <ClientOnly>
-          <VBtnToggle v-if="authStore.isAdmin" :model-value="currentRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;">
-          <VBtn size="small" style="flex: 1;" :variant="currentRole === 'sys_admin' ? 'flat' : 'outlined'" @click="switchToAdmin">
+          <VBtnToggle v-if="authStore.isAdmin" :model-value="consoleRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;">
+          <VBtn size="small" style="flex: 1;" :variant="consoleRole === 'admin' ? 'flat' : 'outlined'" @click="switchToAdmin">
             <VIcon start icon="bx-shield" size="16" />Admin
           </VBtn>
-          <VBtn size="small" style="flex: 1;" :variant="currentRole === 'user' ? 'flat' : 'outlined'" @click="switchToUser">
+          <VBtn size="small" style="flex: 1;" :variant="consoleRole === 'user' ? 'flat' : 'outlined'" @click="switchToUser">
             <VIcon start icon="bx-user" size="16" />User
           </VBtn>
         </VBtnToggle>
@@ -86,11 +80,11 @@ const switchToUser = () => {
     </template>
 
     <template #vertical-nav-content>
-      <NavItems :key="currentRole" />
+      <NavItems :key="consoleRole" />
     </template>
 
     <!-- 👉 Pages -->
-    <div :key="currentRole">
+    <div :key="consoleRole">
       <slot />
     </div>
 

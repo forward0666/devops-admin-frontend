@@ -40,8 +40,8 @@ const isRowExpanded = (item: any) => {
 }
 
 const authStore = useAuthStore()
-const canViewSensitive = computed(() => ['sys_admin', 'admin', 'devops', 'leader'].includes(authStore.loginRole || ''))
-const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.loginRole || ''))
+const canViewSensitive = computed(() => ['sys_admin', 'admin', 'devops', 'leader'].includes(authStore.role || ''))
+const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.role || ''))
 
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')
 const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-test-tube', dev: 'bx-code' }[env] || 'bx-globe')

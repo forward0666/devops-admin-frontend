@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { authService } from '~/services/api'
 
 export type UserRole = 'user' | 'leader' | 'devops' | 'admin' | 'sys_admin'
+export type ConsoleRole = 'admin' | 'user'
 
 interface AuthUser {
   id: number
@@ -25,9 +26,10 @@ interface AuthState {
   isAuthenticated: boolean
   user: AuthUser | null
   token: string | null
-  // 兼容旧的角色切换逻辑（后续会移除）
-  loginRole: UserRole
-  currentRole: UserRole
+  // 用户真实角色（从后端获取）
+  role: UserRole
+  // 当前界面视图（admin/user，可切换）
+  consoleRole: ConsoleRole
   _ready: boolean
 }
 
@@ -36,17 +38,21 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: false,
     user: null,
     token: null,
-    loginRole: 'sys_admin',
-    currentRole: 'sys_admin',
+    role: 'user',
+    consoleRole: 'admin',
     _ready: false,
   }),
 
   getters: {
-    isAdmin: (state) => state._ready && (state.loginRole === 'sys_admin' || state.loginRole === 'admin'),
-    isUser: (state) => state._ready && state.currentRole === 'user',
+    /** 是否有 admin 界面访问权限 */
+    isAdmin: (state): boolean => state._ready && ['sys_admin', 'admin', 'devops', 'leader'].includes(state.role),
+    /** 当前是否在 user 界面 */
+    isUser: (state): boolean => state._ready && state.consoleRole === 'user',
+    /** 当前是否在 admin 界面 */
+    isConsoleAdmin: (state): boolean => state._ready && state.consoleRole === 'admin',
     isReady: (state) => state._ready,
     homeRoute: (state) => {
-      if (state.currentRole === 'user') return '/user/dashboard'
+      if (state.consoleRole === 'user') return '/user/dashboard'
       return '/admin/dashboard'
     },
     userName: (state) => state.user?.fullName || state.user?.username || '',
@@ -79,26 +85,14 @@ export const useAuthStore = defineStore('auth', {
             phoneVerified: response.user.phoneVerified,
           }
 
-          // 设置角色
-          this.loginRole = this.user.role
-          this.currentRole = this.user.role
+          // 设置用户角色
+          this.role = this.user.role
+          // admin 权限用户默认 admin 界面，纯 user 默认 user 界面
+          this.consoleRole = this.isAdmin ? 'admin' : 'user'
           this.isAuthenticated = true
           this._ready = true
 
-          // 持久化 Token（三键存储）
-          if (process.client) {
-            localStorage.setItem('auth_token', this.token)
-            localStorage.setItem('auth_user', JSON.stringify(this.user))
-            localStorage.setItem('auth', JSON.stringify({ token: this.token, user: this.user }))
-
-            // 兼容旧的角色存储
-            localStorage.setItem('auth-role', this.currentRole)
-            localStorage.setItem('auth-login-role', this.loginRole)
-            localStorage.setItem('auth-username', this.userName)
-
-            const cookie = useCookie('auth-login-role', { maxAge: 31536000, path: '/' })
-            cookie.value = this.loginRole
-          }
+          this._persist()
 
           return true
         }
@@ -124,23 +118,11 @@ export const useAuthStore = defineStore('auth', {
           fullName: 'Admin',
           department: 'IT',
         }
-        this.loginRole = 'sys_admin'
-        this.currentRole = 'sys_admin'
+        this.role = 'sys_admin'
+        this.consoleRole = 'admin'
         this.isAuthenticated = true
         this._ready = true
-
-        if (process.client) {
-          localStorage.setItem('auth_token', this.token)
-          localStorage.setItem('auth_user', JSON.stringify(this.user))
-          localStorage.setItem('auth', JSON.stringify({ token: this.token, user: this.user }))
-          localStorage.setItem('auth-role', this.currentRole)
-          localStorage.setItem('auth-login-role', this.loginRole)
-          localStorage.setItem('auth-username', 'Admin')
-
-          const cookie = useCookie('auth-login-role', { maxAge: 31536000, path: '/' })
-          cookie.value = this.loginRole
-        }
-
+        this._persist()
         return true
       }
       return false
@@ -159,6 +141,8 @@ export const useAuthStore = defineStore('auth', {
       finally {
         this.user = null
         this.token = null
+        this.role = 'user'
+        this.consoleRole = 'admin'
         this.isAuthenticated = false
         this._ready = false
 
@@ -167,6 +151,7 @@ export const useAuthStore = defineStore('auth', {
           localStorage.removeItem('auth_user')
           localStorage.removeItem('auth')
           localStorage.removeItem('auth-role')
+          localStorage.removeItem('auth-console-role')
           localStorage.removeItem('auth-login-role')
           localStorage.removeItem('auth-username')
 
@@ -183,7 +168,6 @@ export const useAuthStore = defineStore('auth', {
       if (!process.client)
         return
 
-      // 优先从 auth_token 恢复（新格式）
       const token = localStorage.getItem('auth_token')
       const userStr = localStorage.getItem('auth_user')
 
@@ -191,15 +175,14 @@ export const useAuthStore = defineStore('auth', {
         try {
           this.token = token
           this.user = JSON.parse(userStr)
-          this.loginRole = this.user?.role || 'sys_admin'
-          this.currentRole = this.loginRole
+          this.role = this.user?.role || 'user'
+
+          // 恢复界面视图
+          const savedConsole = localStorage.getItem('auth-console-role') as ConsoleRole | null
+          this.consoleRole = savedConsole || (this.isAdmin ? 'admin' : 'user')
+
           this.isAuthenticated = !!token
           this._ready = true
-
-          // 兼容旧格式
-          localStorage.setItem('auth-role', this.currentRole)
-          localStorage.setItem('auth-login-role', this.loginRole)
-          localStorage.setItem('auth-username', this.userName)
 
           return
         }
@@ -208,30 +191,36 @@ export const useAuthStore = defineStore('auth', {
         }
       }
 
-      // 旧格式兼容（纯角色切换模式，无真实登录）
+      // 旧格式兼容
       const oldRole = localStorage.getItem('auth-login-role') as UserRole | null
       if (oldRole) {
-        this.loginRole = oldRole
-        this.currentRole = oldRole
+        this.role = oldRole
+        this.consoleRole = ['sys_admin', 'admin', 'devops', 'leader'].includes(oldRole) ? 'admin' : 'user'
         this._ready = true
       }
     },
 
     /**
-     * 角色切换（兼容旧逻辑，后续会移除）
+     * 切换界面视图
      */
-    setRole(role: UserRole) {
-      this.currentRole = role
-      localStorage.setItem('auth-role', role)
+    setConsoleRole(consoleRole: ConsoleRole) {
+      this.consoleRole = consoleRole
+      if (process.client) {
+        localStorage.setItem('auth-console-role', consoleRole)
+      }
     },
 
-    setLoginRole(role: UserRole) {
-      this.loginRole = role
-      this.currentRole = role
-      localStorage.setItem('auth-role', role)
-      localStorage.setItem('auth-login-role', role)
+    _persist() {
+      if (!process.client) return
+      localStorage.setItem('auth_token', this.token || '')
+      localStorage.setItem('auth_user', JSON.stringify(this.user))
+      localStorage.setItem('auth', JSON.stringify({ token: this.token, user: this.user }))
+      localStorage.setItem('auth-role', this.role)
+      localStorage.setItem('auth-console-role', this.consoleRole)
+      localStorage.setItem('auth-username', this.userName)
+
       const cookie = useCookie('auth-login-role', { maxAge: 31536000, path: '/' })
-      cookie.value = role
+      cookie.value = this.role
     },
   },
 })

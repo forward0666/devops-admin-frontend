@@ -9,8 +9,8 @@ const name = computed(() => projectStore.projects.find(p => String(p.id) === pro
 const canInvite = computed(() => {
   if (!authStore.isReady) return false
   const allowedLoginRoles = ['sys_admin', 'admin']
-  if (allowedLoginRoles.includes(authStore.loginRole)) return true
-  if (authStore.loginRole === 'leader') return true
+  if (allowedLoginRoles.includes(authStore.role)) return true
+  if (authStore.role === 'leader') return true
 })
 
 const itemsPerPage = ref(10)
