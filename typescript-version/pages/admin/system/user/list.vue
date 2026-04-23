@@ -13,6 +13,7 @@ const editingUser = ref<any>(null)
 const deletingUser = ref<any>(null)
 const snackMessage = ref('')
 const snackColor = ref('success')
+const isSnackVisible = ref(false)
 
 const userStore = useUserStore()
 const departmentStore = useDepartmentStore()
@@ -25,6 +26,7 @@ onMounted(() => {
 function showSnack(msg: string, color = 'success') {
   snackMessage.value = msg
   snackColor.value = color
+  isSnackVisible.value = true
 }
 
 function openEditDialog(user: any) {
@@ -365,7 +367,7 @@ const roleOptions = ['sys_admin', 'admin', 'devops', 'leader', 'user']
     </VDialog>
 
     <!-- Snackbar -->
-    <VSnackbar v-model="snackMessage" :color="snackColor" :timeout="3000" location="top">
+    <VSnackbar v-model="isSnackVisible" :color="snackColor" :timeout="3000" location="top">
       {{ snackMessage }}
     </VSnackbar>
   </div>
