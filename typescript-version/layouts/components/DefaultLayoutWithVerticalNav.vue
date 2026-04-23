@@ -86,7 +86,7 @@ const switchToUser = () => {
     </template>
 
     <template #vertical-nav-content>
-      <NavItems />
+      <NavItems :key="currentRole" />
     </template>
 
     <!-- 👉 Pages -->
