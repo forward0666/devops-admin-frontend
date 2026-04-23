@@ -7,10 +7,10 @@ const recentLogs = computed(() => {
   const items = dashboardStore.recentActivities || []
   return items.map((log: any) => ({
     user: log.username || log.userId || '-',
-    action: log.action || log.module || '-',
-    ip: log.ip || '-',
-    time: log.createdAt || '-',
-    status: log.status === 'error' ? 'error' : 'success',
+    action: log.operationName || log.operationType || '-',
+    ip: log.ipAddress || '-',
+    time: log.timestamp || '-',
+    status: log.status === 'error' || log.status === 'FAIL' ? 'error' : 'success',
   }))
 })
 

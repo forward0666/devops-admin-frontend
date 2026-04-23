@@ -255,7 +255,7 @@ export const settingsService = {
 // ============ Dashboard ============
 export const dashboardService = {
   getRecentActivities() {
-    return request<any[]>({ method: 'get', url: '/manage/dashboard/recent-activities' })
+    return request<any[]>({ method: 'get', url: '/manage/dashboard/recentActivities' })
   },
   getStats() {
     return request<any>({ method: 'get', url: '/manage/dashboard/stats' })

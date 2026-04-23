@@ -8,16 +8,22 @@ onMounted(() => dashboardStore.fetchStats())
 
 const roleData = computed(() => {
   const s = dashboardStore.stats?.roleDistribution
-  if (s && Array.isArray(s)) {
-    return s.map((r: any) => ({ label: r.role || r.label, count: r.count || 0, pct: r.percentage || r.pct || 0 }))
+  if (s) {
+    // Map格式 {role: count} → 数组格式 [{label, count, pct}]
+    const entries = typeof s === 'object' && !Array.isArray(s) ? Object.entries(s) : s.map((r: any) => [r.role || r.label, r.count || 0])
+    const total = entries.reduce((sum: number, e: any) => sum + (typeof e[1] === 'number' ? e[1] : 0), 0)
+    return entries.map((e: any) => ({
+      label: e[0],
+      count: typeof e[1] === 'number' ? e[1] : 0,
+      pct: total > 0 ? Math.round((e[1] / total) * 100) : 0,
+    }))
   }
-  // Fallback empty
   return [
-    { label: '超级管理员', count: 0, pct: 0 },
-    { label: '管理员', count: 0, pct: 0 },
-    { label: '编辑', count: 0, pct: 0 },
-    { label: '审核员', count: 0, pct: 0 },
-    { label: '普通用户', count: 0, pct: 0 },
+    { label: 'sys_admin', count: 0, pct: 0 },
+    { label: 'admin', count: 0, pct: 0 },
+    { label: 'devops', count: 0, pct: 0 },
+    { label: 'leader', count: 0, pct: 0 },
+    { label: 'user', count: 0, pct: 0 },
   ]
 })
 
