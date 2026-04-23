@@ -53,7 +53,6 @@ const departments = computed(() => departmentStore.departments)
 
 const headers = [
   { title: 'Department', key: 'name' },
-  { title: 'Manager', key: 'managerId' },
   { title: 'Members', key: 'userCount' },
   { title: 'Description', key: 'description' },
   { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const },
@@ -216,7 +215,6 @@ async function confirmDelete() {
           <VForm ref="editFormRef">
             <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
             <VTextField v-model="editingItem.description" label="Description" density="comfortable" class="mb-3" variant="outlined" />
-            <VTextField v-model.number="editingItem.managerId" label="Manager ID" density="comfortable" type="number" variant="outlined" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">

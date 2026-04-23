@@ -65,14 +65,6 @@ const isProjectActive = (projectId: number) => {
       <VerticalNavLink :item="{ title: 'Permission', to: '/admin/project/permission' }" />
     </VerticalNavGroup>
 
-    <VerticalNavLink
-      :item="{
-        title: 'Menu',
-        icon: 'bx-menu',
-        to: '/admin/system/menu',
-      }"
-    />
-
 
 
     <!-- 👉 System Monitor -->

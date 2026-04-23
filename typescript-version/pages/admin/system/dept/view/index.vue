@@ -82,7 +82,6 @@ const activeTab = ref('overview')
             <VList class="card-list mt-2" density="compact" lines="one">
               <VListItem><VListItemTitle><h6 class="text-h6">Name: <span class="text-body-1 d-inline-block">{{ deptData.name }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Status: <VChip variant="tonal" :color="deptData.active !== false ? 'success' : 'error'" size="small" label class="ml-2">{{ deptData.active !== false ? 'Active' : 'Inactive' }}</VChip></h6></VListItemTitle></VListItem>
-              <VListItem><VListItemTitle><h6 class="text-h6">Manager ID: <span class="text-body-1 d-inline-block">{{ deptData.managerId || '-' }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Created: <span class="text-body-1 d-inline-block">{{ deptData.createdAt }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Description: <span class="text-body-1 d-inline-block">{{ deptData.description || '-' }}</span></h6></VListItemTitle></VListItem>
             </VList>
@@ -109,9 +108,6 @@ const activeTab = ref('overview')
                 </VCol>
                 <VCol cols="12" md="6">
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Members</span><h6 class="text-h6">{{ deptData.userCount }}</h6></div>
-                </VCol>
-                <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Manager ID</span><h6 class="text-h6">{{ deptData.managerId || '-' }}</h6></div>
                 </VCol>
                 <VCol cols="12" md="6">
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Status</span><VChip variant="tonal" :color="deptData.active !== false ? 'success' : 'error'" size="small" label>{{ deptData.active !== false ? 'Active' : 'Inactive' }}</VChip></div>

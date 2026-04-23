@@ -159,28 +159,6 @@ export const roleService = {
   },
 }
 
-// ============ Menu ============
-export const menuService = {
-  list() {
-    return request<any[]>({ method: 'get', url: '/manage/menu' })
-  },
-  getById(menuId: number) {
-    return request<any>({ method: 'get', url: `/manage/menu/${menuId}` })
-  },
-  getByParentId(parentId: number) {
-    return request<any[]>({ method: 'get', url: `/manage/menu/parent/${parentId}` })
-  },
-  create(data: any) {
-    return request<any>({ method: 'post', url: '/manage/menu', data })
-  },
-  update(id: number, data: any) {
-    return request<any>({ method: 'put', url: `/manage/menu/${id}`, data })
-  },
-  delete(id: number) {
-    return request<void>({ method: 'delete', url: `/manage/menu/${id}` })
-  },
-}
-
 // ============ Department ============
 export const departmentService = {
   list() {
