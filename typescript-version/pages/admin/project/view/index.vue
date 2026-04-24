@@ -285,7 +285,7 @@ watch(projectId, (newId) => {
                   </div>
                 </template>
                 <template #item.systemRole="{ item }">
-                  <VChip variant="tonal" :color="item.role === 'leader' ? 'success' : 'secondary'" size="small" label class="text-capitalize">{{ getSystemRole(item.userId) }}</VChip>
+                  <VChip variant="tonal" color="secondary" size="small" label class="text-capitalize">{{ getSystemRole(item.userId) }}</VChip>
                 </template>
                 <template #item.status="{ item }">
                   <VChip variant="tonal" :color="resolveMemberStatusVariant(item.status)" size="small" label class="text-capitalize">{{ item.status }}</VChip>

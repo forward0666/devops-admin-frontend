@@ -40,7 +40,7 @@ const isRowExpanded = (item: any) => {
 }
 
 const authStore = useAuthStore()
-const canViewSensitive = computed(() => ['sys_admin', 'admin', 'devops', 'leader'].includes(authStore.role || ''))
+const canViewSensitive = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.role || ''))
 const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.role || ''))
 
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')

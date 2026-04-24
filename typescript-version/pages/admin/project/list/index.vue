@@ -25,7 +25,7 @@ async function fetchLeaders() {
     const res: any = await userService.list()
     const users = Array.isArray(res) ? res : res?.data || []
     console.log('All users:', users)
-    const filtered = users.filter((u: any) => u.role === 'leader')
+    const filtered = users
     console.log('Leaders:', filtered)
     leaders.value = filtered
   } catch (e) {

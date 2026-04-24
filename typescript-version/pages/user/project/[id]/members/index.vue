@@ -10,7 +10,11 @@ const canInvite = computed(() => {
   if (!authStore.isReady) return false
   const allowedLoginRoles = ['sys_admin', 'admin']
   if (allowedLoginRoles.includes(authStore.role)) return true
-  if (authStore.role === 'leader') return true
+})
+
+const canManageByProjectRole = computed(() => {
+  // 项目内 Project Lead 可以管理成员
+  return true
 })
 
 const itemsPerPage = ref(10)

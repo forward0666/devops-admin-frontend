@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { authService } from '~/services/api'
 
-export type UserRole = 'user' | 'leader' | 'devops' | 'admin' | 'sys_admin'
+export type UserRole = 'user' | 'devops' | 'admin' | 'sys_admin'
 export type ConsoleRole = 'admin' | 'user'
 
 interface AuthUser {
@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     /** 是否有 admin 界面访问权限 */
-    isAdmin: (state): boolean => state._ready && ['sys_admin', 'admin', 'devops', 'leader'].includes(state.role),
+    isAdmin: (state): boolean => state._ready && ['sys_admin', 'admin', 'devops'].includes(state.role),
     /** 当前是否在 user 界面 */
     isUser: (state): boolean => state._ready && state.consoleRole === 'user',
     /** 当前是否在 admin 界面 */
@@ -195,7 +195,7 @@ export const useAuthStore = defineStore('auth', {
       const oldRole = localStorage.getItem('auth-login-role') as UserRole | null
       if (oldRole) {
         this.role = oldRole
-        this.consoleRole = ['sys_admin', 'admin', 'devops', 'leader'].includes(oldRole) ? 'admin' : 'user'
+        this.consoleRole = ['sys_admin', 'admin', 'devops'].includes(oldRole) ? 'admin' : 'user'
         this._ready = true
       }
     },

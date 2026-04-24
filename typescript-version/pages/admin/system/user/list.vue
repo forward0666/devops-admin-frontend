@@ -138,7 +138,7 @@ const userHeaders = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const roleOptions = ['admin', 'devops', 'leader', 'user']
+const roleOptions = ['admin', 'devops', 'user']
 </script>
 
 <template>
