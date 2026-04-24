@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { userService } from '~/services/api'
+
 const projectStore = useProjectStore()
 const searchQuery = ref('')
 const selectedStatus = ref()
