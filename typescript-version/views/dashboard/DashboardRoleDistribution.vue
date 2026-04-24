@@ -22,7 +22,6 @@ const roleData = computed(() => {
     { label: 'sys_admin', count: 0, pct: 0 },
     { label: 'admin', count: 0, pct: 0 },
     { label: 'devops', count: 0, pct: 0 },
-    { label: 'leader', count: 0, pct: 0 },
     { label: 'user', count: 0, pct: 0 },
   ]
 })

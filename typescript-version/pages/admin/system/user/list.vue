@@ -101,7 +101,6 @@ const resolveUserRoleIcon = (role: string) => {
     sys_admin: { icon: 'bx-crown', color: 'primary' },
     admin: { icon: 'bx-crown', color: 'primary' },
     devops: { icon: 'bx-crown', color: 'info' },
-    leader: { icon: 'bx-star', color: 'warning' },
     user: { icon: 'bx-user', color: 'success' },
   }
 
