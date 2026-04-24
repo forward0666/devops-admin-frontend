@@ -35,7 +35,9 @@ async function fetchMembers() {
   membersLoading.value = true
   try {
     const res: any = await projectMemberService.list(projectId.value)
+    console.log('Members response:', res)
     members.value = Array.isArray(res) ? res : res?.data || []
+    console.log('Members loaded:', members.value.length)
   } catch (e) {
     console.error('Failed to fetch members:', e)
   } finally {
@@ -53,8 +55,8 @@ async function fetchUsers() {
 }
 
 const availableUsers = computed(() => {
-  const memberUserIds = new Set(members.value.map(m => m.userId))
-  return allUsers.value.filter(u => !memberUserIds.has(u.id))
+  const memberUserIds = new Set(members.value.map((m: any) => Number(m.userId)))
+  return allUsers.value.filter(u => !memberUserIds.has(Number(u.id)))
 })
 
 async function addMember() {
@@ -72,8 +74,9 @@ async function addMember() {
     isAddMemberDialog.value = false
     newMember.value = { userId: null }
     await fetchMembers()
-  } catch (e) {
+  } catch (e: any) {
     console.error('Failed to add member:', e)
+    alert(e.message || '添加成员失败，该成员可能已存在')
   }
 }
 
