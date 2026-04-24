@@ -24,7 +24,7 @@ const isProjectActive = (projectId: number) => {
 
 <template>
   <template v-if="authStore.isReady">
-    <template v-if="authStore.isAdmin">
+    <template v-if="authStore.isConsoleAdmin">
 
       <!-- 👉 Pages -->
       <VerticalNavSectionTitle
