@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const userStore = useUserStore()
+const departmentStore = useDepartmentStore()
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const userId = computed(() => Number(route.query.id))
@@ -13,6 +14,7 @@ const resetPwdForm = ref({ newPassword: '', confirmPassword: '' })
 
 onMounted(async () => {
   if (!userId.value) return
+  departmentStore.fetchDepartments()
   loading.value = true
   try {
     dbUser.value = await userStore.fetchUserById(userId.value)
@@ -32,7 +34,7 @@ const userData = computed(() => {
     email: u.email || '-',
     role: u.role || '-',
     status: u.active !== false ? 'Active' : 'Inactive',
-    department: u.department || '-',
+    department: departmentStore.departments.find((d: any) => d.id === u.departmentId)?.name || '-',
     phone: u.phone || '-',
     position: u.position || '-',
     active: u.active !== false,
