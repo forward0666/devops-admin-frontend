@@ -183,7 +183,7 @@ onMounted(() => {
         </VCardItem>
         <VCardText>
           <VTextField v-model="newProject.name" label="Project Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newProject.leader" label="Leader" :items="leaders.map(l => ({ title: l.fullName || l.username, value: l.username }))" item-title="title" item-value="value" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newProject.leader" label="Leader" :items="leaders.map(l => l.fullName || l.username)" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newProject.status" label="Status" :items="['active', 'pending', 'completed']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model.number="newProject.progress" label="Progress (%)" type="number" density="comfortable" variant="outlined" />
         </VCardText>
@@ -203,7 +203,7 @@ onMounted(() => {
         </VCardItem>
         <VCardText>
           <VTextField v-model="editingProject.name" label="Project Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingProject.leader" label="Leader" :items="leaders.map(l => ({ title: l.fullName || l.username, value: l.username }))" item-title="title" item-value="value" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingProject.leader" label="Leader" :items="leaders.map(l => l.fullName || l.username)" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingProject.status" label="Status" :items="['active', 'pending', 'completed', 'archived']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model.number="editingProject.progress" label="Progress (%)" type="number" density="comfortable" variant="outlined" />
         </VCardText>
