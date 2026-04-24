@@ -265,7 +265,7 @@ export const dashboardService = {
 // ============ Operation Log ============
 export const operationLogService = {
   list(params?: any) {
-    return request<any[]>({ method: 'get', url: '/operationLog', params })
+    return request<any>({ method: 'get', url: '/operationLog', params })
   },
 }
 
