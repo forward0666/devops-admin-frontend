@@ -344,6 +344,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
           <VBtn icon variant="text" @click="isEditUserDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
+          <VTextField v-model="editingUser.username" label="Username" :rules="[v => !!v?.trim() || 'Username is required']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.tgUsername" label="Telegram" density="comfortable" class="mb-3" variant="outlined" />
