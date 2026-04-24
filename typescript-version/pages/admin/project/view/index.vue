@@ -18,11 +18,17 @@ const isAddMemberDialog = ref(false)
 const newMember = ref({ userId: null as number | null })
 const memberHeaders = [
   { title: 'Member', key: 'member', sortable: false },
-  { title: 'Role', key: 'role' },
+  { title: 'Project Role', key: 'role' },
+  { title: 'System Role', key: 'systemRole' },
   { title: 'Position', key: 'position' },
   { title: 'Status', key: 'status' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
+
+const getSystemRole = (userId: number) => {
+  const user = allUsers.value.find(u => u.id === userId)
+  return user?.role || '-'
+}
 
 async function fetchMembers() {
   if (!projectId.value) return
@@ -277,6 +283,9 @@ watch(projectId, (newId) => {
                       <div class="text-caption text-medium-emphasis">@{{ item.username || '-' }}</div>
                     </div>
                   </div>
+                </template>
+                <template #item.systemRole="{ item }">
+                  <VChip variant="tonal" :color="item.role === 'leader' ? 'success' : 'secondary'" size="small" label class="text-capitalize">{{ getSystemRole(item.userId) }}</VChip>
                 </template>
                 <template #item.status="{ item }">
                   <VChip variant="tonal" :color="resolveMemberStatusVariant(item.status)" size="small" label class="text-capitalize">{{ item.status }}</VChip>
