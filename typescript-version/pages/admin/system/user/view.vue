@@ -36,6 +36,7 @@ const userData = computed(() => {
     status: u.active !== false ? 'Active' : 'Inactive',
     department: departmentStore.departments.find((d: any) => d.id === u.departmentId)?.name || '-',
     phone: u.phone || '-',
+    tgUsername: u.tgUsername || '-',
     position: u.position || '-',
     active: u.active !== false,
     emailVerified: u.emailVerified || false,
@@ -106,6 +107,7 @@ const isConfirmPasswordVisible = ref(false)
               <VListItem><VListItemTitle><h6 class="text-h6">Role: <span class="text-body-1 d-inline-block">{{ userData.role }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Email: <span class="text-body-1 d-inline-block">{{ userData.email }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Phone: <span class="text-body-1 d-inline-block">{{ userData.phone }}</span></h6></VListItemTitle></VListItem>
+              <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ userData.tgUsername }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Department: <span class="text-body-1 d-inline-block">{{ userData.department }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Position: <span class="text-body-1 d-inline-block">{{ userData.position }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Created: <span class="text-body-1 d-inline-block">{{ userData.createdAt }}</span></h6></VListItemTitle></VListItem>
