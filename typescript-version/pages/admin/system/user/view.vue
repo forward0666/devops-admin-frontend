@@ -98,10 +98,10 @@ const userData = computed(() => {
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Username</span><h6 class="text-h6">{{ userData.username }}</h6></div>
                 </VCol>
                 <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Email</span><h6 class="text-h6">{{ userData.email }} <VChip v-if="userData.emailVerified" variant="tonal" color="success" size="x-small" label class="ml-2">verified</VChip></h6></div>
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Email</span><h6 class="text-h6">{{ userData.email }} <VChip variant="tonal" :color="userData.emailVerified ? 'success' : 'warning'" size="x-small" label class="ml-2">{{ userData.emailVerified ? 'Verified' : 'Unverified' }}</VChip></h6></div>
                 </VCol>
                 <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Phone</span><h6 class="text-h6">{{ userData.phone }} <VChip v-if="userData.phoneVerified" variant="tonal" color="success" size="x-small" label class="ml-2">verified</VChip></h6></div>
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Phone</span><h6 class="text-h6">{{ userData.phone }} <VChip variant="tonal" :color="userData.phoneVerified ? 'success' : 'warning'" size="x-small" label class="ml-2">{{ userData.phoneVerified ? 'Verified' : 'Unverified' }}</VChip></h6></div>
                 </VCol>
                 <VCol cols="12" md="6">
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Role</span><VChip variant="tonal" color="primary" size="small" label>{{ userData.role }}</VChip></div>
