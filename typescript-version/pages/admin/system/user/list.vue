@@ -67,10 +67,14 @@ async function confirmDelete() {
 
 async function addUser() {
   try {
+    if (!newUser.value.username?.trim() || !newUser.value.password || !newUser.value.fullName?.trim()) {
+      alert('Username, Password and Full Name are required')
+      return
+    }
     await userStore.createUser({
-      username: newUser.value.username,
+      username: newUser.value.username.trim(),
       password: newUser.value.password,
-      fullName: newUser.value.fullName,
+      fullName: newUser.value.fullName.trim(),
       email: newUser.value.email,
       role: newUser.value.role,
       departmentId: newUser.value.departmentId,
@@ -313,9 +317,9 @@ const roleOptions = ['admin', 'devops', 'user']
           </VBtn>
         </VCardItem>
         <VCardText>
-          <VTextField v-model="newUser.username" label="Username" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="newUser.password" label="Password" type="password" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="newUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="newUser.username" label="Username" :rules="[v => !!v?.trim() || 'Username is required']" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="newUser.password" label="Password" type="password" :rules="[v => !!v || 'Password is required']" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="newUser.fullName" label="Full Name" :rules="[v => !!v?.trim() || 'Full Name is required']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="newUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.role" label="Role" :items="roleOptions" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" class="mb-3" variant="outlined" />
