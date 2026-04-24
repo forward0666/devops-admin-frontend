@@ -62,9 +62,9 @@ async function fetchUsers() {
 
 const availableUsers = computed(() => {
   const query = inviteSearch.value.toLowerCase()
-  const memberUserIds = new Set(members.value.map(m => m.userId))
+  const memberUserIds = new Set(members.value.map(m => Number(m.userId)))
   return userStore.users.filter(u => {
-    if (memberUserIds.has(String(u.id))) return false
+    if (memberUserIds.has(Number(u.id))) return false
     if (!query) return true
     return u.fullName?.toLowerCase().includes(query) || u.email?.toLowerCase().includes(query)
   })
