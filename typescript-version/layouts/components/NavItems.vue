@@ -149,8 +149,7 @@ const isProjectActive = (projectId: number) => {
             <VerticalNavLink :item="{ title: 'Middleware', to: `/user/project/${project.id}/middleware` }" />
           </VerticalNavGroup>
         </VerticalNavGroup>
-      </VerticalNavGroup>
-    </template>
+      </template>
 
     </template>
   </template>
