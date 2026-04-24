@@ -2,6 +2,7 @@
 import { projectService } from '~/services/api'
 
 const router = useRouter()
+const projectStore = useProjectStore()
 const searchQuery = ref('')
 const selectedStatus = ref<string | null>(null)
 const itemsPerPage = ref(10)
@@ -39,6 +40,7 @@ async function fetchProjects() {
   try {
     const res = await projectService.list()
     projects.value = Array.isArray(res) ? res : res?.data || []
+    projectStore.projects = projects.value
   } catch (e: any) {
     snackbarMsg.value = e?.message || 'Failed to load projects'
     snackbar.value = true
