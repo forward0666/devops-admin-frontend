@@ -11,11 +11,11 @@ const selectedLog = ref<any>(null)
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
-  { title: 'Module', key: 'module' },
-  { title: 'Action', key: 'action' },
+  { title: 'Module', key: 'resourceType' },
+  { title: 'Action', key: 'operationType' },
   { title: 'Username', key: 'username' },
-  { title: 'IP', key: 'ip' },
-  { title: 'Path', key: 'path' },
+  { title: 'IP', key: 'ipAddress' },
+  { title: 'Path', key: 'url' },
   { title: 'Status', key: 'status' },
   { title: 'Time', key: 'createdAt', sortable: true },
   { title: 'Detail', key: 'actions', sortable: false },
@@ -23,11 +23,23 @@ const headers = [
 
 const filteredLogs = computed(() => {
   let items = logStore.logs
-  if (search.value) items = items.filter((l: any) => (l.module || '').toLowerCase().includes(search.value.toLowerCase()) || (l.username || '').toLowerCase().includes(search.value.toLowerCase()))
-  if (filterType.value) items = items.filter((l: any) => l.action === filterType.value)
-  if (filterStatus.value) items = items.filter((l: any) => l.status === filterStatus.value)
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    items = items.filter((l: any) =>
+      (l.resourceType || '').toLowerCase().includes(q) ||
+      (l.operationName || '').toLowerCase().includes(q) ||
+      (l.username || '').toLowerCase().includes(q) ||
+      (l.ipAddress || '').toLowerCase().includes(q) ||
+      (l.url || '').toLowerCase().includes(q),
+    )
+  }
+  if (filterModule.value) items = items.filter((l: any) => (l.resourceType || '').toLowerCase() === filterModule.value.toLowerCase())
+  if (filterType.value) items = items.filter((l: any) => l.operationType === filterType.value)
+  if (filterStatus.value) items = items.filter((l: any) => (l.status || '').toLowerCase() === filterStatus.value.toLowerCase())
   return items
 })
+
+const uniqueModules = computed(() => [...new Set(logStore.logs.map((l: any) => l.resourceType).filter(Boolean))].sort())
 
 onMounted(() => logStore.fetchLogs())
 
@@ -45,30 +57,20 @@ async function refresh() {
     <VRow class="mb-4">
       <VCol cols="12" md="6"><h4 class="text-h4">Operation Log</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-refresh" variant="tonal" color="secondary" @click="refresh">Refresh</VBtn>
+        <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" @click="refresh">Refresh</VBtn>
       </VCol>
     </VRow>
 
-    <VCard :loading="logStore.loading">
-      <VCardText>
-        <VRow align="center">
-          <VCol cols="12" sm="6" md="3">
-            <AppTextField v-model="search" placeholder="Search module / username" prepend-inner-icon="bx-search" density="compact" hide-details clearable @update:model-value="" />
-          </VCol>
-          <VCol cols="12" sm="6" md="2">
-            <AppSelect v-model="filterType" placeholder="Action" :items="['INSERT', 'UPDATE', 'DELETE', 'SELECT', 'OTHER']" density="compact" hide-details clearable />
-          </VCol>
-          <VCol cols="12" sm="6" md="2">
-            <AppSelect v-model="filterStatus" placeholder="Status" :items="['success', 'error']" density="compact" hide-details clearable />
-          </VCol>
-          <VCol cols="12" md="2">
-            <VBtn color="primary" block prepend-icon="bx-search" size="small" @click="refresh">Search</VBtn>
-          </VCol>
-        </VRow>
+    <VCard class="mb-4">
+      <VCardText class="d-flex flex-wrap gap-4">
+        <VTextField v-model="search" placeholder="Keyword search" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
       </VCardText>
-      <VDataTable :headers="headers" :items="filteredLogs" :items-per-page="10" class="text-no-wrap">
-        <template #item.action="{ item }">
-          <VChip v-if="item.action" variant="tonal" :color="item.action === 'INSERT' ? 'success' : item.action === 'UPDATE' ? 'info' : item.action === 'DELETE' ? 'error' : 'secondary'" size="small" label>{{ item.action }}</VChip>
+    </VCard>
+
+    <VCard :loading="logStore.loading">
+      <VDataTable :headers="headers" :items="filteredLogs" :items-per-page="10" :items-per-page-options="[10, 20, 50, 100]" class="text-no-wrap">
+        <template #item.operationType="{ item }">
+          <VChip v-if="item.operationType" variant="tonal" :color="item.operationType === 'INSERT' ? 'success' : item.operationType === 'UPDATE' ? 'info' : item.operationType === 'DELETE' ? 'error' : 'secondary'" size="small" label>{{ item.operationType }}</VChip>
           <span v-else class="text-body-2 text-medium-emphasis">-</span>
         </template>
         <template #item.status="{ item }">
@@ -83,11 +85,6 @@ async function refresh() {
             <VIcon icon="bx-show" size="18" />
           </IconBtn>
         </template>
-        <template #bottom>
-          <div v-if="!filteredLogs.length && !logStore.loading" class="text-center py-6 text-medium-emphasis">
-            No logs found
-          </div>
-        </template>
       </VDataTable>
     </VCard>
 
@@ -95,14 +92,14 @@ async function refresh() {
       <VCard title="Operation Detail">
         <VCardText v-if="selectedLog">
           <VList density="compact" lines="one">
-            <VListItem v-if="selectedLog.module"><VListItemTitle><strong>Module:</strong> {{ selectedLog.module }}</VListItemTitle></VListItem>
-            <VListItem v-if="selectedLog.action"><VListItemTitle><strong>Action:</strong> {{ selectedLog.action }}</VListItemTitle></VListItem>
-            <VListItem v-if="selectedLog.username"><VListItemTitle><strong>Operator:</strong> {{ selectedLog.username }}</VListItemTitle></VListItem>
-            <VListItem v-if="selectedLog.userId"><VListItemTitle><strong>User ID:</strong> {{ selectedLog.userId }}</VListItemTitle></VListItem>
-            <VListItem v-if="selectedLog.ip"><VListItemTitle><strong>IP:</strong> {{ selectedLog.ip }}</VListItemTitle></VListItem>
-            <VListItem v-if="selectedLog.path"><VListItemTitle><strong>Path:</strong> {{ selectedLog.path }}</VListItemTitle></VListItem>
-            <VListItem v-if="selectedLog.status"><VListItemTitle><strong>Status:</strong> {{ selectedLog.status }}</VListItemTitle></VListItem>
-            <VListItem v-if="selectedLog.createdAt"><VListItemTitle><strong>Time:</strong> {{ selectedLog.createdAt }}</VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><strong>Module:</strong> {{ selectedLog.resourceType || '-' }}</VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><strong>Action:</strong> {{ selectedLog.operationName || selectedLog.operationType || '-' }}</VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><strong>Operator:</strong> {{ selectedLog.username || '-' }}</VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><strong>User ID:</strong> {{ selectedLog.userId || '-' }}</VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><strong>IP:</strong> {{ selectedLog.ipAddress || '-' }}</VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><strong>Path:</strong> {{ selectedLog.url || '-' }}</VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><strong>Status:</strong> {{ selectedLog.status || '-' }}</VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><strong>Time:</strong> {{ selectedLog.createdAt || selectedLog.timestamp || '-' }}</VListItemTitle></VListItem>
           </VList>
         </VCardText>
         <VCardActions class="justify-end">

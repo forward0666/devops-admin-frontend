@@ -1,31 +1,61 @@
 <script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+import { useOperationLogStore } from '~/stores/operation-logs'
+
 const logStore = useOperationLogStore()
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const search = ref('')
 const filterStatus = ref('')
+const filterDate = ref('')
 
 const headers = [
-  { title: 'ID', key: 'id', sortable: true },
   { title: 'Username', key: 'username' },
-  { title: 'IP Address', key: 'ip' },
-  { title: 'Action', key: 'action' },
+  { title: 'IP Address', key: 'ipAddress' },
+  { title: 'Operation', key: 'operationName' },
   { title: 'Status', key: 'status' },
   { title: 'Time', key: 'createdAt', sortable: true },
 ]
 
+const items = ref([])
+
+// Watch for changes in the log store
+watch(() => logStore.logs, (newLogs) => {
+  items.value = newLogs
+}, { immediate: true })
+
 const filteredLogs = computed(() => {
-  let items = logStore.logs
-  if (search.value) items = items.filter((l: any) => (l.username || '').toLowerCase().includes(search.value.toLowerCase()))
-  if (filterStatus.value) items = items.filter((l: any) => l.status === filterStatus.value)
-  return items
+  let filtered = [...items.value]
+  
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    filtered = filtered.filter((l: any) =>
+      (l.username || '').toLowerCase().includes(q) ||
+      (l.ipAddress || '').toLowerCase().includes(q)
+    )
+  }
+  
+  if (filterStatus.value) {
+    filtered = filtered.filter((l: any) => (l.status || '').toUpperCase() === filterStatus.value.toUpperCase())
+  }
+  
+  if (filterDate.value) {
+    filtered = filtered.filter((l: any) => (l.timestamp || '').startsWith(filterDate.value))
+  }
+  
+  return filtered
 })
 
-onMounted(() => logStore.fetchLogs({ module: 'auth' }))
+const isAuthLogin = (l: any) => {
+  const rt = (l.resourceType || '').toUpperCase()
+  return rt.includes('AUTH') || rt.includes('LOGIN') || rt.includes('USER') && (l.operationType || '').includes('LOGIN')
+}
+
+onMounted(() => logStore.fetchLogs({ category: 'AUTH' }))
 
 async function refresh() {
   try {
-    await logStore.fetchLogs({ module: 'auth' })
+    await logStore.fetchLogs({ category: 'AUTH' })
   } catch (e: any) {
     snackbar.value = { show: true, text: e.message || 'Failed to load login logs', color: 'error' }
   }
@@ -37,39 +67,27 @@ async function refresh() {
     <VRow class="mb-4">
       <VCol cols="12" md="6"><h4 class="text-h4">Login Log</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-refresh" variant="tonal" color="secondary" @click="refresh">Refresh</VBtn>
+        <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" @click="refresh">Refresh</VBtn>
       </VCol>
     </VRow>
 
-    <VCard :loading="logStore.loading">
-      <VCardText>
-        <VRow align="center">
-          <VCol cols="12" sm="6" md="3">
-            <AppTextField v-model="search" placeholder="Search username" prepend-inner-icon="bx-search" density="compact" hide-details clearable />
-          </VCol>
-          <VCol cols="12" sm="6" md="2">
-            <AppSelect v-model="filterStatus" placeholder="Status" :items="['success', 'error']" density="compact" hide-details clearable />
-          </VCol>
-          <VCol cols="12" md="3">
-            <VBtn color="primary" block prepend-icon="bx-search" size="small" @click="refresh">Search</VBtn>
-          </VCol>
-        </VRow>
+    <VCard class="mb-4">
+      <VCardText class="d-flex flex-wrap gap-4">
+        <VTextField v-model="search" placeholder="Search username / IP" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
       </VCardText>
-      <VDataTable :headers="headers" :items="filteredLogs" :items-per-page="10" class="text-no-wrap">
+    </VCard>
+
+    <VCard :loading="logStore.loading">
+      <VDataTable :headers="headers" :items="filteredLogs" :items-per-page="10" :items-per-page-options="[10, 20, 50, 100]" class="text-no-wrap">
         <template #item.username="{ item }">
-          <span :class="item.status === 'success' ? 'font-weight-medium' : 'font-weight-medium text-error'">{{ item.username || '-' }}</span>
+          <span class="font-weight-medium">{{ item.username || '-' }}</span>
         </template>
         <template #item.status="{ item }">
-          <VChip v-if="item.status" variant="tonal" :color="item.status === 'success' ? 'success' : 'error'" size="small" label>{{ item.status === 'success' ? 'Success' : 'Failed' }}</VChip>
+          <VChip v-if="item.status" variant="tonal" :color="item.status === 'SUCCESS' ? 'success' : 'error'" size="small" label>{{ item.status }}</VChip>
           <span v-else class="text-body-2 text-medium-emphasis">-</span>
         </template>
         <template #item.createdAt="{ item }">
-          <span class="text-body-2">{{ item.createdAt || '-' }}</span>
-        </template>
-        <template #bottom>
-          <div v-if="!filteredLogs.length && !logStore.loading" class="text-center py-6 text-medium-emphasis">
-            No login logs found
-          </div>
+          <span class="text-body-2">{{ item.createdAt || item.timestamp || '-' }}</span>
         </template>
       </VDataTable>
     </VCard>

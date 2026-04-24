@@ -8,7 +8,7 @@
     <VRow class="mb-4">
       <VCol cols="12" md="6"><h4 class="text-h4">Online Users</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end">
-        <VBtn prepend-icon="bx-refresh" variant="tonal" color="secondary">Refresh</VBtn>
+        <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary">Refresh</VBtn>
       </VCol>
     </VRow>
 

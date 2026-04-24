@@ -59,7 +59,7 @@ function updateField(obj: any, key: string, value: any) {
     <VRow class="mb-4">
       <VCol cols="12" md="6"><h4 class="text-h4">System Config</h4></VCol>
       <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-refresh" variant="tonal" color="secondary" :loading="settingsStore.loading" @click="clearCache">Clear Cache</VBtn>
+        <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" :loading="settingsStore.loading" @click="clearCache">Clear Cache</VBtn>
       </VCol>
     </VRow>
 
