@@ -21,6 +21,7 @@ const items = ref([])
 
 // Watch for changes in the log store
 watch(() => logStore.logs, (newLogs) => {
+  console.log('Login logs updated:', newLogs)
   items.value = newLogs
 }, { immediate: true })
 

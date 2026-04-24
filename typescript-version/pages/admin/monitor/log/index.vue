@@ -39,7 +39,10 @@ const filteredLogs = computed(() => {
   return items
 })
 
-const uniqueModules = computed(() => [...new Set(logStore.logs.map((l: any) => l.resourceType).filter(Boolean))].sort())
+const uniqueModules = computed(() => {
+  console.log('Log store data:', logStore.logs)
+  return [...new Set(logStore.logs.map((l: any) => l.resourceType).filter(Boolean))].sort()
+})
 
 onMounted(() => logStore.fetchLogs())
 
