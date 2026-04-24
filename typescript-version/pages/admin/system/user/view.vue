@@ -65,6 +65,24 @@ const userData = computed(() => {
 
 <template>
   <div>
+    <!-- Loading State -->
+    <VRow v-if="loading">
+      <VCol cols="12" class="text-center py-16">
+        <VProgressCircular indeterminate color="primary" size="48" />
+        <p class="text-body-1 mt-4">Loading user...</p>
+      </VCol>
+    </VRow>
+
+    <!-- Not Found State -->
+    <VRow v-else-if="!dbUser">
+      <VCol cols="12" class="text-center py-16">
+        <VIcon icon="bx-error-circle" size="64" color="warning" />
+        <h5 class="text-h5 mt-4">User Not Found</h5>
+        <VBtn variant="tonal" class="mt-4" to="/admin/system/user/list">Back to Users</VBtn>
+      </VCol>
+    </VRow>
+
+    <template v-else>
     <VRow>
       <!-- Left Column -->
       <VCol cols="12" md="5" lg="4">
@@ -163,6 +181,7 @@ const userData = computed(() => {
         </div>
       </VCol>
     </VRow>
+    </template>
 
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
