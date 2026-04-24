@@ -136,7 +136,7 @@ const userData = computed(() => {
         </div>
 
         <div v-show="activeTab === 'security'" class="mt-6">
-          <VCard title="Reset Password">
+          <VCard>
             <VCardItem><VCardTitle>Reset Password</VCardTitle></VCardItem>
             <VDivider />
             <VCardText>
