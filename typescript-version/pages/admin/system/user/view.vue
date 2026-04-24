@@ -9,8 +9,6 @@ const dbUser = ref<any>(null)
 const loading = ref(false)
 const activeTab = ref('account')
 
-const isResetPasswordDialogVisible = ref(false)
-const resetPwdForm = ref({ newPassword: '', confirmPassword: '' })
 
 onMounted(async () => {
   if (!userId.value) return
@@ -45,46 +43,7 @@ const userData = computed(() => {
   }
 })
 
-async function verifyEmail() {
-  if (!userId.value) return
-  try {
-    await userStore.verifyEmail(userId.value)
-    if (dbUser.value) dbUser.value.emailVerified = true
-    snackbar.value = { show: true, text: 'Email verified', color: 'success' }
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e.message || 'Failed to verify email', color: 'error' }
-  }
-}
 
-async function verifyPhone() {
-  if (!userId.value) return
-  try {
-    await userStore.verifyPhone(userId.value)
-    if (dbUser.value) dbUser.value.phoneVerified = true
-    snackbar.value = { show: true, text: 'Phone verified', color: 'success' }
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e.message || 'Failed to verify phone', color: 'error' }
-  }
-}
-
-async function resetPassword() {
-  if (!userId.value || resetPwdForm.value.newPassword !== resetPwdForm.value.confirmPassword) {
-    snackbar.value = { show: true, text: 'Passwords do not match', color: 'error' }
-    return
-  }
-  try {
-    await userStore.resetPassword(userId.value, { newPassword: resetPwdForm.value.newPassword })
-    isResetPasswordDialogVisible.value = false
-    resetPwdForm.value = { newPassword: '', confirmPassword: '' }
-    snackbar.value = { show: true, text: 'Password reset successfully', color: 'success' }
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e.message || 'Failed to reset password', color: 'error' }
-  }
-}
-
-const isNewPasswordVisible = ref(false)
-const isConfirmPasswordVisible = ref(false)
-</script>
 
 <template>
   <div>
@@ -114,9 +73,7 @@ const isConfirmPasswordVisible = ref(false)
             </VList>
           </VCardText>
           <VCardText class="d-flex flex-column gap-2">
-            <VBtn variant="elevated" color="primary" size="small" @click="isResetPasswordDialogVisible = true">Reset Password</VBtn>
-            <VBtn variant="tonal" color="info" size="small" :loading="userStore.loading" @click="verifyEmail">Verify Email</VBtn>
-            <VBtn variant="tonal" color="info" size="small" :loading="userStore.loading" @click="verifyPhone">Verify Phone</VBtn>
+
           </VCardText>
         </VCard>
       </VCol>
@@ -167,7 +124,7 @@ const isConfirmPasswordVisible = ref(false)
           <VCard title="Reset Password">
             <VCardText>
               <p class="text-body-2 text-medium-emphasis mb-4">Set a new password for this user. They will need to change it on next login.</p>
-              <VBtn variant="elevated" color="warning" prepend-icon="bx-lock" @click="isResetPasswordDialogVisible = true">Reset Password</VBtn>
+
             </VCardText>
           </VCard>
         </div>
@@ -175,41 +132,6 @@ const isConfirmPasswordVisible = ref(false)
     </VRow>
 
     <!-- Reset Password Dialog -->
-    <VDialog v-model="isResetPasswordDialogVisible" max-width="450">
-      <VCard>
-        <VCardItem>
-          <VCardTitle>Reset Password</VCardTitle>
-          <VBtn icon variant="text" @click="isResetPasswordDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
-        <VCardText>
-          <VAlert variant="tonal" color="warning" density="comfortable" class="mb-4">
-            <template #prepend><VIcon icon="bx-info-circle" /></template>
-            This will set a new password for <strong>{{ userData.username }}</strong>.
-          </VAlert>
-          <VTextField
-            v-model="resetPwdForm.newPassword"
-            :type="isNewPasswordVisible ? 'text' : 'password'"
-            label="New Password"
-            :append-inner-icon="isNewPasswordVisible ? 'bx-hide' : 'bx-show'"
-            density="comfortable" variant="outlined" class="mb-3"
-            @click:append-inner="isNewPasswordVisible = !isNewPasswordVisible"
-          />
-          <VTextField
-            v-model="resetPwdForm.confirmPassword"
-            :type="isConfirmPasswordVisible ? 'text' : 'password'"
-            label="Confirm Password"
-            :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
-            density="comfortable" variant="outlined"
-            @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
-          />
-        </VCardText>
-        <VCardActions class="justify-end">
-          <VBtn variant="tonal" @click="isResetPasswordDialogVisible = false">Cancel</VBtn>
-          <VBtn color="warning" :loading="userStore.loading" @click="resetPassword">Reset</VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
-
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
