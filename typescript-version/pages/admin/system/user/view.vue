@@ -72,8 +72,6 @@ const userData = computed(() => {
               <VListItem><VListItemTitle><h6 class="text-h6">Created: <span class="text-body-1 d-inline-block">{{ userData.createdAt }}</span></h6></VListItemTitle></VListItem>
             </VList>
           </VCardText>
-          <VCardText class="d-flex flex-column gap-2">
-
           </VCardText>
         </VCard>
       </VCol>
@@ -121,17 +119,18 @@ const userData = computed(() => {
         </div>
 
         <div v-show="activeTab === 'security'" class="mt-6">
-          <VCard title="Reset Password">
-            <VCardText>
-              <p class="text-body-2 text-medium-emphasis mb-4">Set a new password for this user. They will need to change it on next login.</p>
-
+          <VCard>
+            <VCardItem><VCardTitle>Security</VCardTitle></VCardItem>
+            <VDivider />
+            <VCardText class="text-center py-8">
+              <VIcon icon="bx-lock-alt" size="48" color="grey" />
+              <p class="text-body-1 text-medium-emphasis mt-3">Security features coming soon</p>
             </VCardText>
           </VCard>
         </div>
       </VCol>
     </VRow>
 
-    <!-- Reset Password Dialog -->
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
