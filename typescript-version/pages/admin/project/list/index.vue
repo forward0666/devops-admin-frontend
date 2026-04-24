@@ -163,7 +163,7 @@ onMounted(() => {
           <span class="text-body-2">{{ item.created }}</span>
         </template>
         <template #item.actions="{ item }">
-          <NuxtLink :to="`/user/project/view?id=${item.id}`">
+          <NuxtLink :to="`/admin/project/view?id=${item.id}`">
             <IconBtn><VIcon icon="bx-show" /></IconBtn>
           </NuxtLink>
           <IconBtn @click="openEdit(item)">
