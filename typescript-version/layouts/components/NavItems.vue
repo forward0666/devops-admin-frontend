@@ -131,8 +131,6 @@ const isProjectActive = (projectId: number) => {
           icon: 'bx-detail',
         }"
       >
-        <VerticalNavLink :item="{ title: 'List', to: '/user/project/list' }" />
-        <VerticalNavLink :item="{ title: 'View', to: '/user/project/view' }" />
         <template v-for="project in projectList" :key="`project-nav-${project.id}-${projectKey}`">
           <VerticalNavGroup :item="{ title: project.name, icon: 'bx-detail' }" :open="isProjectActive(project.id)">
             <VerticalNavLink :item="{ title: 'Info', to: `/user/project/${project.id}/info` }" />
