@@ -62,7 +62,6 @@ const isProjectActive = (projectId: number) => {
     >
       <VerticalNavLink :item="{ title: 'List', to: '/admin/project/list' }" />
       <VerticalNavLink :item="{ title: 'View', to: '/admin/project/view' }" />
-      <VerticalNavLink :item="{ title: 'Permission', to: '/admin/project/permission' }" />
     </VerticalNavGroup>
 
 
