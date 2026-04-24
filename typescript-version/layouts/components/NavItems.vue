@@ -6,12 +6,17 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
 const authStore = useAuthStore()
 const route = useRoute()
 const projectStore = useProjectStore()
-const projectList = computed(() => projectStore.projects || [])
+const projectList = computed(() => {
+  try { return projectStore?.projects || [] }
+  catch { return [] }
+})
 const projectKey = ref(0)
 
-watch(() => projectStore.projects?.length, () => {
-  projectKey.value++
-})
+if (projectStore?.projects) {
+  watch(() => projectStore.projects?.length, () => {
+    projectKey.value++
+  })
+}
 
 const isProjectActive = (projectId: number) => {
   return route.path.includes(`/user/project/${projectId}/`)
