@@ -4,21 +4,20 @@ import VerticalNavGroup from "@layouts/components/VerticalNavGroup.vue";
 import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
 
 const authStore = useAuthStore()
-const route = useRoute()
-const projectStore = useProjectStore()
-const projectList = computed(() => {
-  try { return projectStore?.projects || [] }
-  catch { return [] }
-})
+const projectStore = ref<any>(null)
+const projectList = computed(() => projectStore.value?.projects || [])
 const projectKey = ref(0)
 
-if (projectStore?.projects) {
-  watch(() => projectStore.projects?.length, () => {
+if (import.meta.client) {
+  projectStore.value = useProjectStore()
+  watch(() => projectStore.value?.projects.length, () => {
     projectKey.value++
   })
 }
 
 const isProjectActive = (projectId: number) => {
+  if (!import.meta.client) return false
+  const route = useRoute()
   return route.path.includes(`/user/project/${projectId}/`)
 }
 </script>
