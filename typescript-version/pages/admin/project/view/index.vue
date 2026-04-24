@@ -3,6 +3,27 @@ import { projectService, projectMemberService, userService } from '~/services/ap
 
 const activeTab = ref('overview')
 const isConfirmDeleteDialogVisible = ref(false)
+const memberToDelete = ref<number | null>(null)
+
+function openDeleteDialog(id: number) {
+  memberToDelete.value = id
+  isConfirmDeleteDialogVisible.value = true
+}
+
+async function removeMember() {
+  if (!memberToDelete.value) return
+  try {
+    await projectMemberService.delete(memberToDelete.value)
+    await fetchMembers()
+    snackbar.value = { show: true, text: 'Member removed', color: 'success' }
+  } catch (e: any) {
+    console.error('Failed to remove member:', e)
+    snackbar.value = { show: true, text: 'Failed to remove member', color: 'error' }
+  } finally {
+    isConfirmDeleteDialogVisible.value = false
+    memberToDelete.value = null
+  }
+}
 const route = useRoute()
 
 const projectId = computed(() => Number(route.query.id))
@@ -77,15 +98,6 @@ async function addMember() {
   } catch (e: any) {
     console.error('Failed to add member:', e)
     alert(e.message || '添加成员失败，该成员可能已存在')
-  }
-}
-
-async function removeMember(id: number) {
-  try {
-    await projectMemberService.delete(id)
-    await fetchMembers()
-  } catch (e) {
-    console.error('Failed to remove member:', e)
   }
 }
 
@@ -294,7 +306,7 @@ watch(projectId, (newId) => {
                   <VChip variant="tonal" :color="resolveMemberStatusVariant(item.status)" size="small" label class="text-capitalize">{{ item.status }}</VChip>
                 </template>
                 <template #item.actions="{ item }">
-                  <VBtn icon="bx-trash" size="small" variant="text" color="error" @click="removeMember(item.id)" />
+                  <VBtn icon="bx-trash" size="small" variant="text" color="error" @click="openDeleteDialog(item.id)" />
                 </template>
               </VDataTable>
             </VCard>
@@ -344,7 +356,7 @@ watch(projectId, (newId) => {
         <VCardText>Are you sure you want to archive this project?</VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isConfirmDeleteDialogVisible = false">Cancel</VBtn>
-          <VBtn color="error" @click="isConfirmDeleteDialogVisible = false">Yes, Archive</VBtn>
+          <VBtn color="error" @click="removeMember">Yes, Remove</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
