@@ -48,18 +48,21 @@ function openEdit(project: any) {
   isEditDialogVisible.value = true
 }
 
-function saveNew() {
+async function saveNew() {
   if (!newProject.value.name) return
-  projectStore.addProject({
-    name: newProject.value.name,
-    type: newProject.value.type,
-    status: newProject.value.status,
-    progress: newProject.value.progress,
-    leader: newProject.value.leader,
-    created: new Date().toISOString().split('T')[0],
-  })
-  newProject.value = { name: '', type: '', status: 'active', progress: 0, leader: '' }
-  isAddDialogVisible.value = false
+  try {
+    await projectStore.addProject({
+      name: newProject.value.name,
+      type: newProject.value.type,
+      status: newProject.value.status,
+      progress: newProject.value.progress,
+      leader: newProject.value.leader,
+    })
+    newProject.value = { name: '', type: '', status: 'active', progress: 0, leader: '' }
+    isAddDialogVisible.value = false
+  } catch (e) {
+    console.error('Failed to add project:', e)
+  }
 }
 
 function saveEdit() {
@@ -68,9 +71,15 @@ function saveEdit() {
   isEditDialogVisible.value = false
 }
 
+
+
 function deleteProject(id: number) {
   projectStore.deleteProject(id)
 }
+
+onMounted(() => {
+  projectStore.fetchProjects()
+})
 </script>
 
 <template>

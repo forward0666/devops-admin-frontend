@@ -29,7 +29,7 @@ export const useProjectStore = defineStore('projects', {
       this.error = null
       try {
         const res = await projectService.list()
-        this.projects = res.data || []
+        this.projects = Array.isArray(res) ? res : res || []
       } catch (e: any) {
         this.error = e.message || '获取项目列表失败'
       } finally {
@@ -39,9 +39,9 @@ export const useProjectStore = defineStore('projects', {
 
     async addProject(project: any) {
       try {
-        const res = await projectService.create(project)
-        this.projects.unshift(res.data)
-        return res.data
+        const created = Array.isArray(res) ? res[0] : res
+        this.projects.unshift(created)
+        return created
       } catch (e: any) {
         this.error = e.message || '创建项目失败'
         throw e
@@ -50,10 +50,10 @@ export const useProjectStore = defineStore('projects', {
 
     async updateProject(id: number, data: any) {
       try {
-        const res = await projectService.update(id, data)
+        const updated = Array.isArray(res) ? res[0] : res
         const idx = this.projects.findIndex(p => p.id === id)
-        if (idx !== -1) this.projects[idx] = res.data
-        return res.data
+        if (idx !== -1) this.projects[idx] = updated
+        return updated
       } catch (e: any) {
         this.error = e.message || '更新项目失败'
         throw e
