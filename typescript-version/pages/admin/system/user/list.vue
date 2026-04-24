@@ -280,7 +280,7 @@ const roleOptions = ['admin', 'devops', 'user']
         </template>
 
         <template #item.department="{ item }">
-          <div class="text-body-1">{{ item.department || '-' }}</div>
+          <div class="text-body-1">{{ departmentStore.departments.find((d: any) => d.id === item.departmentId)?.name || '-' }}</div>
         </template>
 
         <template #item.status="{ item }">
