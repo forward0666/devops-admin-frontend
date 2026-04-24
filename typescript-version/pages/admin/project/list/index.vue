@@ -2,7 +2,6 @@
 const projectStore = useProjectStore()
 const searchQuery = ref('')
 const selectedStatus = ref()
-const selectedType = ref()
 const itemsPerPage = ref(10)
 const selectedProjects = ref<any[]>([])
 
@@ -10,13 +9,23 @@ const isAddDialogVisible = ref(false)
 const isEditDialogVisible = ref(false)
 const editingProject = ref<any>(null)
 
+const leaders = ref<any[]>([])
+
 const newProject = ref({
   name: '',
-  type: '',
   status: 'active',
   progress: 0,
   leader: '',
 })
+
+async function fetchLeaders() {
+  try {
+    const users = await userService.list()
+    leaders.value = users.filter((u: any) => u.role === 'leader')
+  } catch (e) {
+    console.error('Failed to fetch leaders:', e)
+  }
+}
 
 const resolveStatusVariant = (status: string) => {
   const map: Record<string, string> = { active: 'success', completed: 'info', pending: 'warning', archived: 'secondary' }
@@ -27,16 +36,14 @@ const filteredProjects = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return projectStore.projects.filter(p => {
     const matchStatus = !selectedStatus.value || p.status === selectedStatus.value
-    const matchType = !selectedType.value || p.type === selectedType.value
     const matchSearch = !query || p.name.toLowerCase().includes(query) || p.leader.toLowerCase().includes(query)
-    return matchStatus && matchType && matchSearch
+    return matchStatus && matchSearch
   })
 })
 
 const headers = [
   { title: 'Project', key: 'project', sortable: true },
   { title: 'Leader', key: 'leader', sortable: true },
-  { title: 'Type', key: 'type', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Progress', key: 'progress', sortable: true },
   { title: 'Created', key: 'created', sortable: true },
@@ -53,12 +60,11 @@ async function saveNew() {
   try {
     await projectStore.addProject({
       name: newProject.value.name,
-      type: newProject.value.type,
       status: newProject.value.status,
       progress: newProject.value.progress,
       leader: newProject.value.leader,
     })
-    newProject.value = { name: '', type: '', status: 'active', progress: 0, leader: '' }
+    newProject.value = { name: '', status: 'active', progress: 0, leader: '' }
     isAddDialogVisible.value = false
   } catch (e) {
     console.error('Failed to add project:', e)
@@ -79,6 +85,7 @@ function deleteProject(id: number) {
 
 onMounted(() => {
   projectStore.fetchProjects()
+  fetchLeaders()
 })
 </script>
 
@@ -93,9 +100,6 @@ onMounted(() => {
         <VRow>
           <VCol cols="12" sm="4">
             <VSelect v-model="selectedStatus" placeholder="Select Status" :items="['active', 'completed', 'pending', 'archived']" density="comfortable" clearable hide-details variant="outlined" />
-          </VCol>
-          <VCol cols="12" sm="4">
-            <VSelect v-model="selectedType" placeholder="Select Type" :items="['Vuejs Project', 'React Project', 'Figma Project', 'Xamarin Project', 'Python Project']" density="comfortable" clearable hide-details variant="outlined" />
           </VCol>
         </VRow>
       </VCardText>
@@ -140,9 +144,6 @@ onMounted(() => {
         <template #item.leader="{ item }">
           <div class="text-body-1 text-high-emphasis">{{ item.leader }}</div>
         </template>
-        <template #item.type="{ item }">
-          <div class="text-body-1">{{ item.type }}</div>
-        </template>
         <template #item.status="{ item }">
           <VChip variant="tonal" :color="resolveStatusVariant(item.status)" size="small" label class="text-capitalize">{{ item.status }}</VChip>
         </template>
@@ -178,9 +179,8 @@ onMounted(() => {
         </VCardItem>
         <VCardText>
           <VTextField v-model="newProject.name" label="Project Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newProject.type" label="Type" :items="['Vuejs Project', 'React Project', 'Figma Project', 'Xamarin Project', 'Python Project']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newProject.leader" label="Leader" :items="leaders.map(l => ({ title: l.fullName || l.username, value: l.username }))" item-title="title" item-value="value" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newProject.status" label="Status" :items="['active', 'pending', 'completed']" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="newProject.leader" label="Leader" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model.number="newProject.progress" label="Progress (%)" type="number" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
@@ -199,9 +199,8 @@ onMounted(() => {
         </VCardItem>
         <VCardText>
           <VTextField v-model="editingProject.name" label="Project Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingProject.type" label="Type" :items="['Vuejs Project', 'React Project', 'Figma Project', 'Xamarin Project', 'Python Project']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingProject.leader" label="Leader" :items="leaders.map(l => ({ title: l.fullName || l.username, value: l.username }))" item-title="title" item-value="value" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingProject.status" label="Status" :items="['active', 'pending', 'completed', 'archived']" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editingProject.leader" label="Leader" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model.number="editingProject.progress" label="Progress (%)" type="number" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
