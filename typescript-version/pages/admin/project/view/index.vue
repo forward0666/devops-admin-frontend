@@ -6,6 +6,7 @@ const isConfirmDeleteDialogVisible = ref(false)
 const route = useRoute()
 
 const projectId = computed(() => Number(route.query.id))
+const projectStore = useProjectStore()
 const loading = ref(false)
 const project = ref<any>(null)
 
@@ -22,16 +23,20 @@ async function fetchProject() {
   }
 }
 
+// 优先从 store 取，store 没有则从 API 获取
+const dbProject = computed(() => projectStore.projects?.find((p: any) => p.id === projectId.value))
+const currentProject = computed(() => project.value || dbProject.value || null)
+
 const projectData = computed(() => ({
-  name: project.value?.name || 'Unknown Project',
-  status: project.value?.status || 'active',
-  progress: project.value?.progress || 0,
-  leader: project.value?.leader || '-',
-  created: project.value?.createdAt || '-',
-  department: project.value?.departmentId || '-',
-  description: project.value?.description || 'No description.',
-  techStack: project.value?.techStack || '',
-  objectives: project.value?.objectives || '',
+  name: currentProject.value?.name || 'Unknown Project',
+  status: currentProject.value?.status || 'active',
+  progress: currentProject.value?.progress || 0,
+  leader: currentProject.value?.leader || '-',
+  created: currentProject.value?.createdAt || '-',
+  department: currentProject.value?.departmentId || '-',
+  description: currentProject.value?.description || 'No description.',
+  techStack: currentProject.value?.techStack || '',
+  objectives: currentProject.value?.objectives || '',
 }))
 
 const resolveStatusVariant = (status: string) => {
@@ -41,9 +46,16 @@ const resolveStatusVariant = (status: string) => {
 
 const itemsPerPage = ref(5)
 
-onMounted(fetchProject)
+onMounted(() => {
+  if (!dbProject.value)
+    fetchProject()
+})
 
-watch(projectId, fetchProject)
+watch(projectId, (newId) => {
+  project.value = null
+  if (!projectStore.projects?.find((p: any) => p.id === newId))
+    fetchProject()
+})
 </script>
 
 <template>
@@ -55,7 +67,7 @@ watch(projectId, fetchProject)
       </VCol>
     </VRow>
 
-    <VRow v-else-if="!project">
+    <VRow v-else-if="!currentProject">
       <VCol cols="12" class="text-center py-16">
         <VIcon icon="bx-error-circle" size="64" color="warning" />
         <h5 class="text-h5 mt-4">Project Not Found</h5>
