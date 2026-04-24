@@ -99,15 +99,6 @@ const isProjectActive = (projectId: number) => {
         }"
       />
 
-      <!-- 👉 Settings -->
-      <VerticalNavLink
-        :item="{
-          title: 'Settings',
-          icon: 'bx-cog',
-          to: '/admin/settings',
-        }"
-      />
-
     </template>
 
     <template v-else>
