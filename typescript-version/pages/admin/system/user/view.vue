@@ -82,7 +82,7 @@ const userData = computed(() => {
       </VCol>
     </VRow>
 
-    <template v-else>
+    <div v-else>
     <VRow>
       <!-- Left Column -->
       <VCol cols="12" md="5" lg="4">
@@ -181,7 +181,7 @@ const userData = computed(() => {
         </div>
       </VCol>
     </VRow>
-    </template>
+    </div>
 
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
