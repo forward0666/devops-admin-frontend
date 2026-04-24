@@ -67,8 +67,8 @@ async function confirmDelete() {
 
 async function addUser() {
   try {
-    if (!newUser.value.username?.trim() || !newUser.value.password || !newUser.value.fullName?.trim()) {
-      alert('Username, Password and Full Name are required')
+    if (!newUser.value.username?.trim() || !newUser.value.password || !newUser.value.fullName?.trim() || !newUser.value.position) {
+      alert('Username, Password, Full Name and Position are required')
       return
     }
     await userStore.createUser({
@@ -142,6 +142,7 @@ const userHeaders = [
 ]
 
 const roleOptions = ['admin', 'devops', 'user']
+const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'UI', 'Project Manager', 'Product Manager', 'QA Tester']
 </script>
 
 <template>
@@ -323,7 +324,7 @@ const roleOptions = ['admin', 'devops', 'user']
           <VTextField v-model="newUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.role" label="Role" :items="roleOptions" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="newUser.position" label="Position" density="comfortable" variant="outlined" />
+          <VSelect v-model="newUser.position" label="Position" :items="positionOptions" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isAddUserDialogVisible = false">Cancel</VBtn>
@@ -346,7 +347,7 @@ const roleOptions = ['admin', 'devops', 'user']
           <VSelect v-model="editingUser.role" label="Role" :items="roleOptions" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingUser.active" label="Status" :items="[{ title: 'Active', value: true }, { title: 'Inactive', value: false }]" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingUser.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editingUser.position" label="Position" density="comfortable" variant="outlined" />
+          <VSelect v-model="editingUser.position" label="Position" :items="positionOptions" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditUserDialogVisible = false">Cancel</VBtn>
