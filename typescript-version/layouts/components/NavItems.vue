@@ -10,6 +10,9 @@ const projectKey = ref(0)
 
 if (import.meta.client) {
   projectStore.value = useProjectStore()
+  if (!projectStore.value.projects?.length) {
+    projectStore.value.fetchProjects()
+  }
   watch(() => projectStore.value?.projects.length, () => {
     projectKey.value++
   })
