@@ -90,7 +90,6 @@ const userData = computed(() => {
               <VListItem><VListItemTitle><h6 class="text-h6">Created: <span class="text-body-1 d-inline-block">{{ userData.createdAt }}</span></h6></VListItemTitle></VListItem>
             </VList>
           </VCardText>
-          </VCardText>
         </VCard>
       </VCol>
 
