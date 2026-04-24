@@ -269,4 +269,23 @@ export const operationLogService = {
   },
 }
 
+// ============ Project ============
+export const projectService = {
+  list() {
+    return request<any[]>({ method: 'get', url: '/manage/project' })
+  },
+  getById(id: number) {
+    return request<any>({ method: 'get', url: `/manage/project/${id}` })
+  },
+  create(data: any) {
+    return request<any>({ method: 'post', url: '/manage/project', data })
+  },
+  update(id: number, data: any) {
+    return request<any>({ method: 'put', url: `/manage/project/${id}`, data })
+  },
+  delete(id: number) {
+    return request<void>({ method: 'delete', url: `/manage/project/${id}` })
+  },
+}
+
 export default apiClient
