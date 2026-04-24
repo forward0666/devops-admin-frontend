@@ -60,6 +60,7 @@ const userData = computed(() => {
   }
 })
 
+</script>
 
 
 <template>
