@@ -288,4 +288,19 @@ export const projectService = {
   },
 }
 
+export const projectMemberService = {
+  list(projectId: number) {
+    return request<any[]>({ method: 'get', url: '/manage/projectMember', params: { projectId } })
+  },
+  create(data: any) {
+    return request<any>({ method: 'post', url: '/manage/projectMember', data })
+  },
+  update(id: number, data: any) {
+    return request<any>({ method: 'put', url: `/manage/projectMember/${id}`, data })
+  },
+  delete(id: number) {
+    return request<void>({ method: 'delete', url: `/manage/projectMember/${id}` })
+  },
+}
+
 export default apiClient

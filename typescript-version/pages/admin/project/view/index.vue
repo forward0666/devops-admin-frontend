@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { projectService } from '~/services/api'
+import { projectService, projectMemberService, userService } from '~/services/api'
 
 const activeTab = ref('overview')
 const isConfirmDeleteDialogVisible = ref(false)
@@ -9,6 +9,83 @@ const projectId = computed(() => Number(route.query.id))
 const projectStore = useProjectStore()
 const loading = ref(false)
 const project = ref<any>(null)
+
+// Team members
+const members = ref<any[]>([])
+const membersLoading = ref(false)
+const allUsers = ref<any[]>([])
+const isAddMemberDialog = ref(false)
+const newMember = ref({ userId: null as number | null, role: 'Developer' })
+const memberHeaders = [
+  { title: 'Member', key: 'member', sortable: false },
+  { title: 'Role', key: 'role' },
+  { title: 'Position', key: 'position' },
+  { title: 'Status', key: 'status' },
+  { title: 'Actions', key: 'actions', sortable: false },
+]
+
+async function fetchMembers() {
+  if (!projectId.value) return
+  membersLoading.value = true
+  try {
+    const res: any = await projectMemberService.list(projectId.value)
+    members.value = Array.isArray(res) ? res : res?.data || []
+  } catch (e) {
+    console.error('Failed to fetch members:', e)
+  } finally {
+    membersLoading.value = false
+  }
+}
+
+async function fetchUsers() {
+  try {
+    const res: any = await userService.list()
+    allUsers.value = Array.isArray(res) ? res : res?.data || []
+  } catch (e) {
+    console.error('Failed to fetch users:', e)
+  }
+}
+
+const availableUsers = computed(() => {
+  const memberUserIds = new Set(members.value.map(m => m.userId))
+  return allUsers.value.filter(u => !memberUserIds.has(u.id))
+})
+
+async function addMember() {
+  if (!newMember.value.userId || !projectId.value) return
+  try {
+    const user = allUsers.value.find(u => u.id === newMember.value.userId)
+    await projectMemberService.create({
+      projectId: projectId.value,
+      userId: newMember.value.userId,
+      username: user?.username,
+      fullName: user?.fullName,
+      role: newMember.value.role,
+      position: user?.position,
+    })
+    isAddMemberDialog.value = false
+    newMember.value = { userId: null, role: 'Developer' }
+    await fetchMembers()
+  } catch (e) {
+    console.error('Failed to add member:', e)
+  }
+}
+
+async function removeMember(id: number) {
+  try {
+    await projectMemberService.delete(id)
+    await fetchMembers()
+  } catch (e) {
+    console.error('Failed to remove member:', e)
+  }
+}
+
+const resolveMemberStatusVariant = (status: string) => {
+  const map: Record<string, string> = { active: 'success', away: 'warning', inactive: 'secondary' }
+  return map[status] || 'secondary'
+}
+
+const roleOptions = ['Project Lead', 'Senior Developer', 'UI Designer', 'Developer', 'QA Engineer']
 
 async function fetchProject() {
   if (!projectId.value) return
@@ -49,6 +126,8 @@ const itemsPerPage = ref(5)
 onMounted(() => {
   if (!dbProject.value)
     fetchProject()
+  fetchMembers()
+  fetchUsers()
 })
 
 watch(projectId, (newId) => {
@@ -176,13 +255,66 @@ watch(projectId, (newId) => {
           <!-- Team Tab -->
           <div v-show="activeTab === 'team'" class="mt-6">
             <VCard>
-              <VCardItem><VCardTitle>Team Members</VCardTitle></VCardItem>
+              <VCardItem class="d-flex justify-space-between">
+                <VCardTitle>Team Members</VCardTitle>
+                <VBtn color="primary" size="small" prepend-icon="bx-plus" @click="isAddMemberDialog = true">Add Member</VBtn>
+              </VCardItem>
               <VDivider />
-              <VCardText class="text-center py-8">
-                <VIcon icon="bx-group" size="48" color="grey" />
-                <p class="text-body-1 text-medium-emphasis mt-3">Team member management coming soon</p>
-              </VCardText>
+              <VDataTable
+                :headers="memberHeaders"
+                :items="members"
+                :loading="membersLoading"
+                items-per-page="10"
+                class="text-no-wrap"
+              >
+                <template #item.member="{ item }">
+                  <div class="d-flex align-center gap-x-3">
+                    <VAvatar size="34" variant="tonal" color="primary" class="text-white">
+                      {{ item.fullName?.charAt(0) || 'U' }}
+                    </VAvatar>
+                    <div>
+                      <div class="text-body-1 font-weight-medium">{{ item.fullName || item.username || '-' }}</div>
+                      <div class="text-caption text-medium-emphasis">@{{ item.username || '-' }}</div>
+                    </div>
+                  </div>
+                </template>
+                <template #item.status="{ item }">
+                  <VChip variant="tonal" :color="resolveMemberStatusVariant(item.status)" size="small" label class="text-capitalize">{{ item.status }}</VChip>
+                </template>
+                <template #item.actions="{ item }">
+                  <VBtn icon="bx-trash" size="small" variant="text" color="error" @click="removeMember(item.id)" />
+                </template>
+              </VDataTable>
             </VCard>
+
+            <!-- Add Member Dialog -->
+            <VDialog v-model="isAddMemberDialog" max-width="480">
+              <VCard>
+                <VCardItem><VCardTitle>Add Team Member</VCardTitle></VCardItem>
+                <VDivider />
+                <VCardText class="pt-4">
+                  <VSelect
+                    v-model="newMember.userId"
+                    :items="availableUsers.map(u => ({ title: `${u.fullName || u.username} (@${u.username})`, value: u.id }))"
+                    label="Select User"
+                    variant="outlined"
+                    density="compact"
+                    class="mb-4"
+                  />
+                  <VSelect
+                    v-model="newMember.role"
+                    :items="roleOptions"
+                    label="Role"
+                    variant="outlined"
+                    density="compact"
+                  />
+                </VCardText>
+                <VCardActions class="justify-end">
+                  <VBtn variant="text" @click="isAddMemberDialog = false">Cancel</VBtn>
+                  <VBtn color="primary" variant="elevated" :disabled="!newMember.userId" @click="addMember">Add</VBtn>
+                </VCardActions>
+              </VCard>
+            </VDialog>
           </div>
 
           <!-- Activity Tab -->
