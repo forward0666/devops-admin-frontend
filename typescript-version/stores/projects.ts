@@ -28,8 +28,8 @@ export const useProjectStore = defineStore('projects', {
       this.loading = true
       this.error = null
       try {
-        const res = await projectService.list()
-        this.projects = Array.isArray(res) ? res : res || []
+        const res: any = await projectService.list()
+        this.projects = Array.isArray(res) ? res : res?.data || []
       } catch (e: any) {
         this.error = e.message || '获取项目列表失败'
       } finally {
@@ -39,7 +39,8 @@ export const useProjectStore = defineStore('projects', {
 
     async addProject(project: any) {
       try {
-        const created = Array.isArray(res) ? res[0] : res
+        const res: any = await projectService.create(project)
+        const created = Array.isArray(res) ? res[0] : res?.data || res
         this.projects.unshift(created)
         return created
       } catch (e: any) {
@@ -50,7 +51,8 @@ export const useProjectStore = defineStore('projects', {
 
     async updateProject(id: number, data: any) {
       try {
-        const updated = Array.isArray(res) ? res[0] : res
+        const res: any = await projectService.update(id, data)
+        const updated = Array.isArray(res) ? res[0] : res?.data || res
         const idx = this.projects.findIndex(p => p.id === id)
         if (idx !== -1) this.projects[idx] = updated
         return updated

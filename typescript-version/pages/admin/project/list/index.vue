@@ -20,8 +20,12 @@ const newProject = ref({
 
 async function fetchLeaders() {
   try {
-    const users = await userService.list()
-    leaders.value = users.filter((u: any) => u.role === 'leader')
+    const res: any = await userService.list()
+    const users = Array.isArray(res) ? res : res?.data || []
+    console.log('All users:', users)
+    const filtered = users.filter((u: any) => u.role === 'leader')
+    console.log('Leaders:', filtered)
+    leaders.value = filtered
   } catch (e) {
     console.error('Failed to fetch leaders:', e)
   }
