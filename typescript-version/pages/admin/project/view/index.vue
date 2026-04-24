@@ -332,6 +332,16 @@ watch(projectId, (newId) => {
       </VRow>
     </template>
 
-    <ConfirmDialog v-model:is-dialog-visible="isConfirmDeleteDialogVisible" title="Archive Project" message="Are you sure you want to archive this project?" confirm-text="Yes, Archive" cancel-text="Cancel" @confirm="isConfirmDeleteDialogVisible = false" @cancel="isConfirmDeleteDialogVisible = false" />
+    <VDialog v-model="isConfirmDeleteDialogVisible" max-width="400">
+      <VCard>
+        <VCardItem><VCardTitle>Archive Project</VCardTitle></VCardItem>
+        <VDivider />
+        <VCardText>Are you sure you want to archive this project?</VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isConfirmDeleteDialogVisible = false">Cancel</VBtn>
+          <VBtn color="error" @click="isConfirmDeleteDialogVisible = false">Yes, Archive</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </div>
 </template>
