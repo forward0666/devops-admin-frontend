@@ -85,7 +85,7 @@ async function inviteMembers() {
   try {
     await Promise.all(
       selectedInviteUsers.value.map(user =>
-        projectMemberService.add({
+        projectMemberService.create({
           projectId: projectId.value,
           userId: user.id,
           username: user.username,
