@@ -8,6 +8,23 @@ const userId = computed(() => Number(route.query.id))
 const dbUser = ref<any>(null)
 const loading = ref(false)
 const activeTab = ref('account')
+const newPassword = ref('')
+const confirmPassword = ref('')
+
+async function resetPassword() {
+  if (!userId.value || !newPassword.value || newPassword.value !== confirmPassword.value) {
+    snackbar.value = { show: true, text: 'Passwords do not match', color: 'error' }
+    return
+  }
+  try {
+    await userStore.resetPassword(userId.value, { newPassword: newPassword.value })
+    newPassword.value = ''
+    confirmPassword.value = ''
+    snackbar.value = { show: true, text: 'Password reset successfully', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to reset password', color: 'error' }
+  }
+}
 
 
 onMounted(async () => {
@@ -119,12 +136,28 @@ const userData = computed(() => {
         </div>
 
         <div v-show="activeTab === 'security'" class="mt-6">
-          <VCard>
-            <VCardItem><VCardTitle>Security</VCardTitle></VCardItem>
+          <VCard title="Reset Password">
+            <VCardItem><VCardTitle>Reset Password</VCardTitle></VCardItem>
             <VDivider />
-            <VCardText class="text-center py-8">
-              <VIcon icon="bx-lock-alt" size="48" color="grey" />
-              <p class="text-body-1 text-medium-emphasis mt-3">Security features coming soon</p>
+            <VCardText>
+              <p class="text-body-2 text-medium-emphasis mb-4">Set a new password for this user.</p>
+              <VTextField
+                v-model="newPassword"
+                label="New Password"
+                type="password"
+                density="comfortable"
+                variant="outlined"
+                class="mb-3"
+              />
+              <VTextField
+                v-model="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                density="comfortable"
+                variant="outlined"
+                class="mb-4"
+              />
+              <VBtn color="warning" :loading="userStore.loading" @click="resetPassword">Reset Password</VBtn>
             </VCardText>
           </VCard>
         </div>
