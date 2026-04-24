@@ -15,7 +15,7 @@ const members = ref<any[]>([])
 const membersLoading = ref(false)
 const allUsers = ref<any[]>([])
 const isAddMemberDialog = ref(false)
-const newMember = ref({ userId: null as number | null, role: 'Developer' })
+const newMember = ref({ userId: null as number | null })
 const memberHeaders = [
   { title: 'Member', key: 'member', sortable: false },
   { title: 'Role', key: 'role' },
@@ -60,11 +60,11 @@ async function addMember() {
       userId: newMember.value.userId,
       username: user?.username,
       fullName: user?.fullName,
-      role: newMember.value.role,
+      role: 'Developer',
       position: user?.position,
     })
     isAddMemberDialog.value = false
-    newMember.value = { userId: null, role: 'Developer' }
+    newMember.value = { userId: null }
     await fetchMembers()
   } catch (e) {
     console.error('Failed to add member:', e)
@@ -85,7 +85,7 @@ const resolveMemberStatusVariant = (status: string) => {
   return map[status] || 'secondary'
 }
 
-const roleOptions = ['Project Lead', 'Senior Developer', 'UI Designer', 'Developer', 'QA Engineer']
+
 
 async function fetchProject() {
   if (!projectId.value) return
@@ -300,13 +300,6 @@ watch(projectId, (newId) => {
                     variant="outlined"
                     density="compact"
                     class="mb-4"
-                  />
-                  <VSelect
-                    v-model="newMember.role"
-                    :items="roleOptions"
-                    label="Role"
-                    variant="outlined"
-                    density="compact"
                   />
                 </VCardText>
                 <VCardActions class="justify-end">
