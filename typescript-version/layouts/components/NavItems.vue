@@ -46,7 +46,8 @@ const isProjectActive = (projectId: number) => {
           to: '/admin/dashboard',
         }"
       />
-      <VMenu location="end top" open-on-hover offset="4">
+      <ClientOnly>
+        <VMenu v-if="authStore.isAdmin" location="end top" open-on-hover offset="4">
         <template #activator="{ props }">
           <li class="nav-link">
             <a v-bind="props">
@@ -61,6 +62,7 @@ const isProjectActive = (projectId: number) => {
           <VListItem prepend-icon="bx-user" title="User" @click="switchConsole('user')" />
         </VList>
       </VMenu>
+      </ClientOnly>
 
       <!-- 👉 User Management -->
       <VerticalNavSectionTitle
