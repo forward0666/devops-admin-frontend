@@ -27,7 +27,7 @@ const canInvite = computed(() => {
 
 const itemsPerPage = ref(10)
 const searchQuery = ref('')
-const selectedRole = ref()
+const selectedProjectRole = ref()
 const isViewDialogVisible = ref(false)
 const viewingMember = ref<any>(null)
 const isDeleteDialogVisible = ref(false)
@@ -35,7 +35,7 @@ const deletingMember = ref<any>(null)
 const isInviteDialogVisible = ref(false)
 const isEditDialogVisible = ref(false)
 const editingMember = ref<any>(null)
-const editRole = ref('')
+const editProjectRole = ref('')
 const inviteSearch = ref('')
 const selectedInviteUsers = ref<any[]>([])
 
@@ -93,7 +93,7 @@ async function inviteMembers() {
           userId: user.id,
           username: user.username,
           fullName: user.fullName,
-          role: 'Member',
+          projectRole: 'Member',
         }),
       ),
     )
@@ -143,7 +143,7 @@ const filteredMembers = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return members.value.filter(m => {
     const displayName = m.fullName || m.username || ''
-    const matchRole = !selectedRole.value || m.role === selectedRole.value
+    const matchRole = !selectedProjectRole.value || m.role === selectedProjectRole.value
     const matchSearch = !query
       || displayName.toLowerCase().includes(query)
       || m.username?.toLowerCase().includes(query)
@@ -159,7 +159,7 @@ function openView(member: any) {
 
 function openEdit(member: any) {
   editingMember.value = { ...member }
-  editRole.value = member.role || ''
+  editProjectRole.value = member.role || ''
   isEditDialogVisible.value = true
 }
 
@@ -167,7 +167,7 @@ async function saveEdit() {
   saving.value = true
   try {
     await projectMemberService.update(editingMember.value.id, {
-      role: editRole.value,
+      projectRole: editProjectRole.value,
     })
     showSnackbar('Member updated successfully')
     isEditDialogVisible.value = false
@@ -183,7 +183,7 @@ async function saveEdit() {
 
 const headers = [
   { title: 'Member', key: 'member', sortable: true },
-  { title: 'Role', key: 'role', sortable: true },
+  { title: 'Role', key: 'projectRole', sortable: true },
   { title: 'Joined', key: 'joinedAt', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
@@ -213,7 +213,7 @@ onMounted(() => {
       <template v-else>
         <VCardText class="d-flex flex-wrap gap-4 pb-0">
           <VTextField v-model="searchQuery" placeholder="Search Member" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" prepend-inner-icon="bx-search" />
-          <VSelect v-model="selectedRole" placeholder="Select Role" :items="['Administrator', 'DevOps', 'Leader', 'Member']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
+          <VSelect v-model="selectedProjectRole" placeholder="Select Role" :items="['Administrator', 'DevOps', 'Leader', 'Member']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
           <VSpacer />
         </VCardText>
         <VDivider class="mt-4" />
@@ -229,8 +229,8 @@ onMounted(() => {
               </div>
             </div>
           </template>
-          <template #item.role="{ item }">
-            <VChip variant="tonal" :color="item.role === 'Administrator' ? 'error' : item.role === 'DevOps' ? 'warning' : item.role === 'Leader' ? 'success' : 'primary'" size="small" label class="text-capitalize">{{ item.role }}</VChip>
+          <template #item.projectRole="{ item }">
+            <VChip variant="tonal" :color="item.projectRole === 'Administrator' ? 'error' : item.projectRole === 'DevOps' ? 'warning' : item.projectRole === 'Leader' ? 'success' : 'primary'" size="small" label class="text-capitalize">{{ item.projectRole }}</VChip>
           </template>
           <template #item.joinedAt="{ item }">
             <span class="text-body-2">{{ item.joinedAt || '-' }}</span>
@@ -258,13 +258,13 @@ onMounted(() => {
             <span class="text-h3 font-weight-medium">{{ (viewingMember.fullName || viewingMember.username || '?').charAt(0) }}</span>
           </VAvatar>
           <h5 class="text-h5">{{ viewingMember.fullName || viewingMember.username }}</h5>
-          <VChip variant="tonal" color="secondary" size="small" label class="text-capitalize mt-2">{{ viewingMember.role || '-' }}</VChip>
+          <VChip variant="tonal" color="secondary" size="small" label class="text-capitalize mt-2">{{ viewingMember.projectRole || '-' }}</VChip>
         </VCardText>
         <VDivider />
         <VCardText>
           <VList class="card-list" density="compact" lines="one">
             <VListItem><VListItemTitle><h6 class="text-h6">Username: <span class="text-body-1 d-inline-block">{{ viewingMember.username || '-' }}</span></h6></VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><h6 class="text-h6">Role: <span class="text-body-1 d-inline-block">{{ viewingMember.role || '-' }}</span></h6></VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><h6 class="text-h6">Role: <span class="text-body-1 d-inline-block">{{ viewingMember.projectRole || '-' }}</span></h6></VListItemTitle></VListItem>
             <VListItem><VListItemTitle><h6 class="text-h6">Email: <span class="text-body-1 d-inline-block">{{ viewingMember.email || '-' }}</span></h6></VListItemTitle></VListItem>
             <VListItem><VListItemTitle><h6 class="text-h6">Phone: <span class="text-body-1 d-inline-block">{{ viewingMember.phone || '-' }}</span></h6></VListItemTitle></VListItem>
             <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ viewingMember.tgUsername || '-' }}</span></h6></VListItemTitle></VListItem>
@@ -305,7 +305,7 @@ onMounted(() => {
         </VCardItem>
         <VDivider />
         <VCardText class="pt-6">
-          <VSelect v-model="editRole" label="Role" :items="['Administrator', 'DevOps', 'Leader', 'Member']" density="comfortable" variant="outlined" class="mb-4" />
+          <VSelect v-model="editProjectRole" label="Role" :items="['Administrator', 'DevOps', 'Leader', 'Member']" density="comfortable" variant="outlined" class="mb-4" />
         </VCardText>
         <VDivider />
         <VCardActions class="justify-end pa-4">
