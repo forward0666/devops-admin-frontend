@@ -184,6 +184,7 @@ async function saveEdit() {
 const headers = [
   { title: 'Member', key: 'member', sortable: true },
   { title: 'Role', key: 'projectRole', sortable: true },
+  { title: 'Position', key: 'userPosition', sortable: true },
   { title: 'Joined', key: 'joinedAt', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
