@@ -31,7 +31,7 @@ export default defineComponent({
       // 👉 Navbar
       const navbar = h(
         'header',
-        { class: ['layout-navbar navbar-blur'] },
+        { class: ['layout-navbar navbar-blur', 'd-flex', 'align-center'] },
         slots.navbar?.({
           toggleVerticalOverlayNavActive: toggleIsOverlayNavActive,
         }),
@@ -117,23 +117,13 @@ export default defineComponent({
 
   .layout-navbar {
     z-index: variables.$layout-vertical-nav-layout-navbar-z-index;
-
-    .navbar-content-container {
-      block-size: variables.$layout-vertical-nav-navbar-height;
-    }
+    block-size: variables.$layout-vertical-nav-navbar-height;
 
     @at-root {
       .layout-wrapper.layout-nav-type-vertical {
         .layout-navbar {
           @if variables.$layout-vertical-nav-navbar-is-contained {
             @include mixins.boxed-content;
-          }
-
-          // else
-          @else {
-            .navbar-content-container {
-              @include mixins.boxed-content;
-            }
           }
         }
       }
