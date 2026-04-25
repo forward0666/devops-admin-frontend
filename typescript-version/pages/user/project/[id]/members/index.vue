@@ -171,7 +171,7 @@ async function saveEdit() {
     })
     showSnackbar('Member updated successfully')
     isEditDialogVisible.value = false
-    await fetchMembers()
+    await fetchData()
   }
   catch (e: any) {
     showSnackbar(e?.message || 'Failed to update member', 'error')
