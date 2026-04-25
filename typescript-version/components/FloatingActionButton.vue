@@ -65,10 +65,13 @@ function stopDrag() {
 
 // Actions
 const authStore = useAuthStore()
-const theme = useTheme()
+
+// Defer useTheme to client only
+const themeInstance = ref<any>(null)
 
 function toggleTheme() {
-  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+  if (!themeInstance.value) themeInstance.value = useTheme()
+  themeInstance.value.global.name.value = themeInstance.value.global.current.value.dark ? 'light' : 'dark'
 }
 
 function goProfile() {
@@ -144,7 +147,7 @@ onBeforeUnmount(() => {
     <TransitionGroup name="fab-item">
       <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 3" @click.stop="toggleTheme">
         <VBtn icon size="small" color="surface-variant" elevation="4">
-          <VIcon :icon="theme.global.current.value.dark ? 'bx-sun' : 'bx-moon'" />
+          <VIcon :icon="(themeInstance?.global?.current?.value?.dark) ? 'bx-sun' : 'bx-moon'" />
         </VBtn>
         <span class="fab-label">Theme</span>
       </div>
