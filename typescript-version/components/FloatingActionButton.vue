@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useTheme } from 'vuetify'
 
 const isExpanded = ref(false)
 const fabRef = ref<HTMLElement | null>(null)
