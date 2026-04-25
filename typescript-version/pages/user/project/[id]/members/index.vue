@@ -93,7 +93,7 @@ async function inviteMembers() {
           userId: user.id,
           username: user.username,
           fullName: user.fullName,
-          role: 'Developer',
+          role: 'Member',
         }),
       ),
     )
@@ -213,7 +213,7 @@ onMounted(() => {
       <template v-else>
         <VCardText class="d-flex flex-wrap gap-4 pb-0">
           <VTextField v-model="searchQuery" placeholder="Search Member" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" prepend-inner-icon="bx-search" />
-          <VSelect v-model="selectedRole" placeholder="Select Role" :items="['Administrator', 'DevOps', 'Leader', 'Developer']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
+          <VSelect v-model="selectedRole" placeholder="Select Role" :items="['Administrator', 'DevOps', 'Leader', 'Member']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
           <VSpacer />
         </VCardText>
         <VDivider class="mt-4" />
@@ -302,7 +302,7 @@ onMounted(() => {
         </VCardItem>
         <VDivider />
         <VCardText class="pt-6">
-          <VSelect v-model="editRole" label="Role" :items="['Administrator', 'DevOps', 'Leader', 'Developer']" density="comfortable" variant="outlined" class="mb-4" />
+          <VSelect v-model="editRole" label="Role" :items="['Administrator', 'DevOps', 'Leader', 'Member']" density="comfortable" variant="outlined" class="mb-4" />
         </VCardText>
         <VDivider />
         <VCardActions class="justify-end pa-4">
