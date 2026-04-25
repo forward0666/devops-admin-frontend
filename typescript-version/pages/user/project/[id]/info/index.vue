@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { projectService } from '~/services/api'
+import { userConsoleProjectService as projectService } from '~/services/api'
 
 const route = useRoute()
 const router = useRouter()

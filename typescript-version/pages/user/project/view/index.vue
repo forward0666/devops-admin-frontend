@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { projectService, projectMemberService } from '~/services/api'
+import { userConsoleProjectService as projectService, userConsoleMemberService as projectMemberService } from '~/services/api'
 
 const activeTab = ref('overview')
 const route = useRoute()

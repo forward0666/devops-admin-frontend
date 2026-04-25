@@ -303,4 +303,40 @@ export const projectMemberService = {
   },
 }
 
+export const userConsoleProjectService = {
+  list() {
+    return request<any[]>({ method: 'get', url: '/user/project' })
+  },
+  getById(id: number) {
+    return request<any>({ method: 'get', url: `/user/project/${id}` })
+  },
+  update(id: number, data: any) {
+    return request<any>({ method: 'put', url: `/user/project/${id}`, data })
+  },
+}
+
+export const userConsoleMemberService = {
+  list(projectId: number) {
+    return request<any[]>({ method: 'get', url: '/user/projectMember', params: { projectId } })
+  },
+  create(data: any) {
+    return request<any>({ method: 'post', url: '/user/projectMember', data })
+  },
+  delete(id: number) {
+    return request<void>({ method: 'delete', url: `/user/projectMember/${id}` })
+  },
+}
+
+export const userConsoleProfileService = {
+  getProfile() {
+    return request<any>({ method: 'get', url: '/user/user/profile' })
+  },
+  updateProfile(data: any) {
+    return request<any>({ method: 'put', url: '/user/user/profile', data })
+  },
+  changePassword(data: any) {
+    return request<void>({ method: 'put', url: '/user/user/password', data })
+  },
+}
+
 export default apiClient

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { projectService, projectMemberService, userService } from '~/services/api'
+import { userConsoleProjectService as projectService, userConsoleMemberService as projectMemberService, userService } from '~/services/api'
 
 const route = useRoute()
 const projectId = computed(() => route.params.id as string)
