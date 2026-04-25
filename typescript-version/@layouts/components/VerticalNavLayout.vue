@@ -119,6 +119,8 @@ export default defineComponent({
     z-index: variables.$layout-vertical-nav-layout-navbar-z-index;
     block-size: variables.$layout-vertical-nav-navbar-height;
 
+    @include mixins.boxed-content;
+
     @at-root {
       .layout-wrapper.layout-nav-type-vertical {
         .layout-navbar {
