@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
 
     <!-- Sub Buttons -->
     <TransitionGroup name="fab-item">
-      <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 3" @click.stop="toggleTheme">
+      <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 2" @click.stop="toggleTheme">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon :icon="isDark ? 'bx-sun' : 'bx-moon'" />
         </VBtn>
