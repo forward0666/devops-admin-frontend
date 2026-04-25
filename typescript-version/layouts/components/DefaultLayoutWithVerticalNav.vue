@@ -63,6 +63,7 @@ const consoleRole = computed(() => authStore.consoleRole)
 
     <!-- 👉 Pages -->
     <div :key="consoleRole">
+      <FloatingActionButton />
       <slot />
     </div>
 
