@@ -213,7 +213,7 @@ onMounted(() => {
       <template v-else>
         <VCardText class="d-flex flex-wrap gap-4 pb-0">
           <VTextField v-model="searchQuery" placeholder="Search Member" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" prepend-inner-icon="bx-search" />
-          <VSelect v-model="selectedRole" placeholder="Select Role" :items="['Project Lead', 'Developer']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
+          <VSelect v-model="selectedRole" placeholder="Select Role" :items="['Administrator', 'DevOps', 'Leader', 'Developer']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
           <VSpacer />
         </VCardText>
         <VDivider class="mt-4" />
@@ -230,7 +230,7 @@ onMounted(() => {
             </div>
           </template>
           <template #item.role="{ item }">
-            <VChip variant="tonal" :color="item.role === 'Project Lead' ? 'warning' : 'primary'" size="small" label class="text-capitalize">{{ item.role }}</VChip>
+            <VChip variant="tonal" :color="item.role === 'Administrator' ? 'error' : item.role === 'DevOps' ? 'warning' : item.role === 'Leader' ? 'success' : 'primary'" size="small" label class="text-capitalize">{{ item.role }}</VChip>
           </template>
           <template #item.joinedAt="{ item }">
             <span class="text-body-2">{{ item.joinedAt || '-' }}</span>
@@ -302,7 +302,7 @@ onMounted(() => {
         </VCardItem>
         <VDivider />
         <VCardText class="pt-6">
-          <VSelect v-model="editRole" label="Role" :items="['Project Lead', 'Developer', 'Viewer']" density="comfortable" variant="outlined" class="mb-4" />
+          <VSelect v-model="editRole" label="Role" :items="['Administrator', 'DevOps', 'Leader', 'Developer']" density="comfortable" variant="outlined" class="mb-4" />
         </VCardText>
         <VDivider />
         <VCardActions class="justify-end pa-4">
