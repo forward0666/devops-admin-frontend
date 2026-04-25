@@ -36,7 +36,6 @@ const isInviteDialogVisible = ref(false)
 const isEditDialogVisible = ref(false)
 const editingMember = ref<any>(null)
 const editRole = ref('')
-const editPosition = ref('')
 const inviteSearch = ref('')
 const selectedInviteUsers = ref<any[]>([])
 
@@ -161,7 +160,6 @@ function openView(member: any) {
 function openEdit(member: any) {
   editingMember.value = { ...member }
   editRole.value = member.role || ''
-  editPosition.value = member.position || ''
   isEditDialogVisible.value = true
 }
 
@@ -170,7 +168,6 @@ async function saveEdit() {
   try {
     await projectMemberService.update(editingMember.value.id, {
       role: editRole.value,
-      position: editPosition.value,
     })
     showSnackbar('Member updated successfully')
     isEditDialogVisible.value = false
@@ -187,7 +184,6 @@ async function saveEdit() {
 const headers = [
   { title: 'Member', key: 'member', sortable: true },
   { title: 'Role', key: 'role', sortable: true },
-  { title: 'Position', key: 'position', sortable: true },
   { title: 'Joined', key: 'joinedAt', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
@@ -236,9 +232,6 @@ onMounted(() => {
           <template #item.role="{ item }">
             <VChip variant="tonal" :color="item.role === 'Project Lead' ? 'warning' : 'primary'" size="small" label class="text-capitalize">{{ item.role }}</VChip>
           </template>
-          <template #item.position="{ item }">
-            <span class="text-body-1">{{ item.position || '-' }}</span>
-          </template>
           <template #item.joinedAt="{ item }">
             <span class="text-body-2">{{ item.joinedAt || '-' }}</span>
           </template>
@@ -274,7 +267,6 @@ onMounted(() => {
             <VListItem><VListItemTitle><h6 class="text-h6">Full Name: <span class="text-body-1 d-inline-block">{{ viewingMember.fullName || '-' }}</span></h6></VListItemTitle></VListItem>
             <VListItem><VListItemTitle><h6 class="text-h6">Email: <span class="text-body-1 d-inline-block">{{ viewingMember.email || '-' }}</span></h6></VListItemTitle></VListItem>
             <VListItem><VListItemTitle><h6 class="text-h6">Role: <span class="text-body-1 d-inline-block">{{ viewingMember.role || '-' }}</span></h6></VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><h6 class="text-h6">Position: <span class="text-body-1 d-inline-block">{{ viewingMember.position || '-' }}</span></h6></VListItemTitle></VListItem>
             <VListItem><VListItemTitle><h6 class="text-h6">Joined: <span class="text-body-1 d-inline-block">{{ viewingMember.joinedAt || '-' }}</span></h6></VListItemTitle></VListItem>
           </VList>
         </VCardText>
@@ -311,7 +303,6 @@ onMounted(() => {
         <VDivider />
         <VCardText class="pt-6">
           <VSelect v-model="editRole" label="Role" :items="['Project Lead', 'Developer', 'Viewer']" density="comfortable" variant="outlined" class="mb-4" />
-          <VTextField v-model="editPosition" label="Position" placeholder="e.g. 前端, 后端" density="comfortable" variant="outlined" class="mb-4" />
         </VCardText>
         <VDivider />
         <VCardActions class="justify-end pa-4">
