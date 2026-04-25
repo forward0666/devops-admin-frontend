@@ -33,6 +33,26 @@ const isProjectActive = (projectId: number) => {
 
 <template>
   <template v-if="authStore.isReady">
+
+    <!-- 👉 Console Switch (admin/devops/sys_admin only) -->
+    <ClientOnly>
+    <VMenu v-if="authStore.isAdmin" location="end top" open-on-hover offset="4">
+      <template #activator="{ props }">
+        <li class="nav-link">
+          <a v-bind="props">
+            <VIcon icon="bx-desktop" class="nav-item-icon" />
+            <span class="nav-item-title">Console</span>
+            <VIcon icon="bx-chevron-right" class="nav-group-arrow" />
+          </a>
+        </li>
+      </template>
+      <VList min-width="180" density="comfortable">
+        <VListItem prepend-icon="bx-shield" title="Admin" @click="switchConsole('admin')" />
+        <VListItem prepend-icon="bx-user" title="User" @click="switchConsole('user')" />
+      </VList>
+    </VMenu>
+    </ClientOnly>
+
     <template v-if="authStore.isConsoleAdmin">
 
       <!-- 👉 Pages -->
@@ -46,23 +66,6 @@ const isProjectActive = (projectId: number) => {
           to: '/admin/dashboard',
         }"
       />
-      <ClientOnly>
-        <VMenu v-if="authStore.isAdmin" location="end top" open-on-hover offset="4">
-        <template #activator="{ props }">
-          <li class="nav-link">
-            <a v-bind="props">
-              <VIcon icon="bx-desktop" class="nav-item-icon" />
-              <span class="nav-item-title">Console</span>
-              <VIcon icon="bx-chevron-right" class="nav-group-arrow" />
-            </a>
-          </li>
-        </template>
-        <VList min-width="180" density="comfortable">
-          <VListItem prepend-icon="bx-shield" title="Admin" @click="switchConsole('admin')" />
-          <VListItem prepend-icon="bx-user" title="User" @click="switchConsole('user')" />
-        </VList>
-      </VMenu>
-      </ClientOnly>
 
       <!-- 👉 User Management -->
       <VerticalNavSectionTitle
