@@ -48,6 +48,7 @@ const isProjectActive = (projectId: number) => {
       </template>
       <VList min-width="180" density="comfortable">
         <VListItem prepend-icon="bx-shield" title="Admin" @click="switchConsole('admin')" />
+        <VListItem prepend-icon="bx-code" title="DevOps" @click="switchConsole('devops')" />
         <VListItem prepend-icon="bx-user" title="User" @click="switchConsole('user')" />
       </VList>
     </VMenu>
@@ -114,8 +115,18 @@ const isProjectActive = (projectId: number) => {
 
     </template>
 
+    <template v-else-if="authStore.consoleRole === 'devops'">
+      <!-- DevOps Console Nav -->
+      <VerticalNavLink
+        :item="{
+          title: 'Dashboard',
+          icon: 'bx-home',
+          to: '/devops/dashboard',
+        }"
+      />
+    </template>
+
     <template v-else>
-      <!-- User Console Nav -->
       <VerticalNavLink
         :item="{
           title: 'Dashboard',

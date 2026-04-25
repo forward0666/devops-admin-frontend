@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { authService } from '~/services/api'
 
 export type UserRole = 'user' | 'devops' | 'admin' | 'sys_admin'
-export type ConsoleRole = 'admin' | 'user'
+export type ConsoleRole = 'admin' | 'user' | 'devops'
 
 interface AuthUser {
   id: number
@@ -49,10 +49,11 @@ export const useAuthStore = defineStore('auth', {
     /** 当前是否在 user 界面 */
     isUser: (state): boolean => state._ready && state.consoleRole === 'user',
     /** 当前是否在 admin 界面 */
-    isConsoleAdmin: (state): boolean => state._ready && state.consoleRole === 'admin',
+    isConsoleAdmin: (state): boolean => state._ready && (state.consoleRole === 'admin' || state.consoleRole === 'devops'),
     isReady: (state) => state._ready,
     homeRoute: (state) => {
       if (state.consoleRole === 'user') return '/user/dashboard'
+      if (state.consoleRole === 'devops') return '/devops/dashboard'
       return '/admin/dashboard'
     },
     userName: (state) => state.user?.fullName || state.user?.username || '',
