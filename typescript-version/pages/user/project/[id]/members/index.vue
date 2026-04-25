@@ -33,6 +33,10 @@ const viewingMember = ref<any>(null)
 const isDeleteDialogVisible = ref(false)
 const deletingMember = ref<any>(null)
 const isInviteDialogVisible = ref(false)
+const isEditDialogVisible = ref(false)
+const editingMember = ref<any>(null)
+const editRole = ref('')
+const editPosition = ref('')
 const inviteSearch = ref('')
 const selectedInviteUsers = ref<any[]>([])
 
@@ -154,6 +158,32 @@ function openView(member: any) {
   isViewDialogVisible.value = true
 }
 
+function openEdit(member: any) {
+  editingMember.value = { ...member }
+  editRole.value = member.role || ''
+  editPosition.value = member.position || ''
+  isEditDialogVisible.value = true
+}
+
+async function saveEdit() {
+  saving.value = true
+  try {
+    await projectMemberService.update(editingMember.value.id, {
+      role: editRole.value,
+      position: editPosition.value,
+    })
+    showSnackbar('Member updated successfully')
+    isEditDialogVisible.value = false
+    await fetchMembers()
+  }
+  catch (e: any) {
+    showSnackbar(e?.message || 'Failed to update member', 'error')
+  }
+  finally {
+    saving.value = false
+  }
+}
+
 const headers = [
   { title: 'Member', key: 'member', sortable: true },
   { title: 'Role', key: 'role', sortable: true },
@@ -214,6 +244,7 @@ onMounted(() => {
           </template>
           <template #item.actions="{ item }">
             <IconBtn @click="openView(item)"><VIcon icon="bx-show" /></IconBtn>
+            <IconBtn @click="openEdit(item)"><VIcon icon="bx-edit" /></IconBtn>
             <IconBtn @click="deleteMember(item)"><VIcon icon="bx-x-circle" /></IconBtn>
           </template>
           <template #no-data>
@@ -271,6 +302,25 @@ onMounted(() => {
     </VDialog>
 
     <!-- Invite Member Dialog -->
+    <VDialog v-model="isEditDialogVisible" max-width="450">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Edit Member</VCardTitle>
+          <template #append><VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn></template>
+        </VCardItem>
+        <VDivider />
+        <VCardText class="pt-6">
+          <VSelect v-model="editRole" label="Role" :items="['Project Lead', 'Developer', 'Viewer']" density="comfortable" variant="outlined" class="mb-4" />
+          <VTextField v-model="editPosition" label="Position" placeholder="e.g. 前端, 后端" density="comfortable" variant="outlined" class="mb-4" />
+        </VCardText>
+        <VDivider />
+        <VCardActions class="justify-end pa-4">
+          <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
+          <VBtn color="primary" :loading="saving" @click="saveEdit">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
     <VDialog v-model="isInviteDialogVisible" max-width="600">
       <VCard>
         <VCardItem>
