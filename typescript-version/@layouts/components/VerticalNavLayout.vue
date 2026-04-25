@@ -118,9 +118,9 @@ export default defineComponent({
   .layout-navbar {
     z-index: variables.$layout-vertical-nav-layout-navbar-z-index;
     block-size: variables.$layout-vertical-nav-navbar-height;
-    padding-inline: variables.$layout-vertical-nav-navbar-padding-x;
     max-inline-size: variables.$layout-boxed-content-width;
     margin-inline: auto;
+    padding-inline: 1.5rem;
 
     @at-root {
       .layout-wrapper.layout-nav-type-vertical {
