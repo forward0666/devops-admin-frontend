@@ -68,16 +68,17 @@ function stopDrag() {
 const authStore = useAuthStore()
 
 const isDark = ref(false)
+let themeInstance: any = null
 
 onMounted(() => {
-  const theme = useTheme()
-  isDark.value = theme.global.current.value.dark
-  watch(() => theme.global.current.value.dark, v => { isDark.value = v })
+  themeInstance = useTheme()
+  isDark.value = themeInstance.global.current.value.dark
+  watch(() => themeInstance.global.current.value.dark, v => { isDark.value = v })
 })
 
 function toggleTheme() {
-  const theme = useTheme()
-  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+  if (!themeInstance) themeInstance = useTheme()
+  themeInstance.global.name.value = themeInstance.global.current.value.dark ? 'light' : 'dark'
   isDark.value = !isDark.value
 }
 
