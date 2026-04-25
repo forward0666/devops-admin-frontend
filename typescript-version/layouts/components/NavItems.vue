@@ -51,8 +51,8 @@ const isProjectActive = (projectId: number) => {
           </li>
         </template>
         <VList min-width="180" density="comfortable">
-          <VListItem prepend-icon="bx-shield" title="Admin Console" :to="'/admin/dashboard'" />
-          <VListItem prepend-icon="bx-user" title="User Console" :to="'/user/dashboard'" />
+          <VListItem prepend-icon="bx-shield" title="Admin" :to="'/admin/dashboard'" />
+          <VListItem prepend-icon="bx-user" title="User" :to="'/user/dashboard'" />
         </VList>
       </VMenu>
 
