@@ -325,7 +325,9 @@ export const userConsoleMemberService = {
   delete(id: number) {
     return request<void>({ method: 'delete', url: `/user/projectMember/${id}` })
   },
-}
+  update(id: number, data: any) {
+    return request<any>({ method: 'put', url: `/user/projectMember/${id}`, data })
+  },
 
 export const userConsoleProfileService = {
   getProfile() {
