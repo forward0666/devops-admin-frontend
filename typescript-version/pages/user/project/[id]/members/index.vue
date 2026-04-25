@@ -22,7 +22,18 @@ const name = computed(() => project.value?.name || 'Project')
 
 const canInvite = computed(() => {
   if (!authStore.isReady) return false
-  return ['sys_admin', 'admin'].includes(authStore.role) || true
+  const myMember = members.value.find((m: any) => m.userId === authStore.userId)
+  return ['Administrator', 'DevOps', 'Leader'].includes(myMember?.projectRole)
+})
+
+const canEdit = computed(() => {
+  const myMember = members.value.find((m: any) => m.userId === authStore.userId)
+  return ['Administrator', 'DevOps'].includes(myMember?.projectRole)
+})
+
+const canKick = computed(() => {
+  const myMember = members.value.find((m: any) => m.userId === authStore.userId)
+  return ['Administrator', 'DevOps', 'Leader'].includes(myMember?.projectRole)
 })
 
 const itemsPerPage = ref(10)
@@ -238,8 +249,8 @@ onMounted(() => {
           </template>
           <template #item.actions="{ item }">
             <IconBtn @click="openView(item)"><VIcon icon="bx-show" /></IconBtn>
-            <IconBtn @click="openEdit(item)"><VIcon icon="bx-edit" /></IconBtn>
-            <IconBtn @click="deleteMember(item)"><VIcon icon="bx-x-circle" /></IconBtn>
+            <IconBtn v-if="canEdit" @click="openEdit(item)"><VIcon icon="bx-edit" /></IconBtn>
+            <IconBtn v-if="canKick && item.userId !== authStore.userId" @click="deleteMember(item)"><VIcon icon="bx-x-circle" /></IconBtn>
           </template>
           <template #no-data>
             <div class="text-center pa-6">
