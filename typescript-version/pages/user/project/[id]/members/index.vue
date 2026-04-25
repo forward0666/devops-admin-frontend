@@ -258,15 +258,20 @@ onMounted(() => {
             <span class="text-h3 font-weight-medium">{{ (viewingMember.fullName || viewingMember.username || '?').charAt(0) }}</span>
           </VAvatar>
           <h5 class="text-h5">{{ viewingMember.fullName || viewingMember.username }}</h5>
-          <VChip variant="tonal" color="secondary" size="small" label class="text-capitalize mt-2">{{ viewingMember.role }}</VChip>
+          <VChip variant="tonal" color="secondary" size="small" label class="text-capitalize mt-2">{{ viewingMember.role || '-' }}</VChip>
+          <VChip v-if="viewingMember.systemRole" variant="tonal" color="primary" size="x-small" label class="ml-2">{{ viewingMember.systemRole }}</VChip>
         </VCardText>
         <VDivider />
         <VCardText>
           <VList class="card-list" density="compact" lines="one">
             <VListItem><VListItemTitle><h6 class="text-h6">Username: <span class="text-body-1 d-inline-block">{{ viewingMember.username || '-' }}</span></h6></VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><h6 class="text-h6">Full Name: <span class="text-body-1 d-inline-block">{{ viewingMember.fullName || '-' }}</span></h6></VListItemTitle></VListItem>
-            <VListItem><VListItemTitle><h6 class="text-h6">Email: <span class="text-body-1 d-inline-block">{{ viewingMember.email || '-' }}</span></h6></VListItemTitle></VListItem>
             <VListItem><VListItemTitle><h6 class="text-h6">Role: <span class="text-body-1 d-inline-block">{{ viewingMember.role || '-' }}</span></h6></VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><h6 class="text-h6">System Role: <span class="text-body-1 d-inline-block">{{ viewingMember.systemRole || '-' }}</span></h6></VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><h6 class="text-h6">Email: <span class="text-body-1 d-inline-block">{{ viewingMember.email || '-' }}</span></h6></VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><h6 class="text-h6">Phone: <span class="text-body-1 d-inline-block">{{ viewingMember.phone || '-' }}</span></h6></VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ viewingMember.tgUsername || '-' }}</span></h6></VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><h6 class="text-h6">Department: <span class="text-body-1 d-inline-block">{{ viewingMember.departmentName || '-' }}</span></h6></VListItemTitle></VListItem>
+            <VListItem><VListItemTitle><h6 class="text-h6">Position: <span class="text-body-1 d-inline-block">{{ viewingMember.userPosition || '-' }}</span></h6></VListItemTitle></VListItem>
             <VListItem><VListItemTitle><h6 class="text-h6">Joined: <span class="text-body-1 d-inline-block">{{ viewingMember.joinedAt || '-' }}</span></h6></VListItemTitle></VListItem>
           </VList>
         </VCardText>
