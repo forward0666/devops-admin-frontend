@@ -328,6 +328,7 @@ export const userConsoleMemberService = {
   update(id: number, data: any) {
     return request<any>({ method: 'put', url: `/user/projectMember/${id}`, data })
   },
+}
 
 export const userConsoleProfileService = {
   getProfile() {
