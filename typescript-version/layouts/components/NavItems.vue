@@ -46,6 +46,7 @@ const isProjectActive = (projectId: number) => {
             v-bind="props"
             prepend-icon="bx-desktop"
             title="Console"
+            append-icon="bx-chevron-right"
             class="rounded-lg"
           />
         </template>
