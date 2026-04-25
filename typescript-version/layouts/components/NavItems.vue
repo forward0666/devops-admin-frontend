@@ -40,15 +40,20 @@ const isProjectActive = (projectId: number) => {
           to: '/admin/dashboard',
         }"
       />
-      <VerticalNavGroup
-        :item="{
-          title: 'Console',
-          icon: 'bx-desktop',
-        }"
-      >
-        <VerticalNavLink :item="{ title: 'Admin Console', to: '/admin/dashboard' }" />
-        <VerticalNavLink :item="{ title: 'User Console', to: '/user/dashboard' }" />
-      </VerticalNavGroup>
+      <VMenu location="end top" open-on-hover offset="4">
+        <template #activator="{ props }">
+          <VListItem
+            v-bind="props"
+            prepend-icon="bx-desktop"
+            title="Console"
+            class="rounded-lg"
+          />
+        </template>
+        <VList min-width="180" density="comfortable">
+          <VListItem prepend-icon="bx-shield" title="Admin Console" :to="'/admin/dashboard'" />
+          <VListItem prepend-icon="bx-user" title="User Console" :to="'/user/dashboard'" />
+        </VList>
+      </VMenu>
 
       <!-- 👉 User Management -->
       <VerticalNavSectionTitle
