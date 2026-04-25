@@ -18,6 +18,12 @@ if (import.meta.client) {
   })
 }
 
+function switchConsole(role: 'admin' | 'user') {
+  const authStore = useAuthStore()
+  authStore.setConsoleRole(role)
+  navigateTo(role === 'admin' ? '/admin/dashboard' : '/user/dashboard')
+}
+
 const isProjectActive = (projectId: number) => {
   if (!import.meta.client) return false
   const route = useRoute()
@@ -51,8 +57,8 @@ const isProjectActive = (projectId: number) => {
           </li>
         </template>
         <VList min-width="180" density="comfortable">
-          <VListItem prepend-icon="bx-shield" title="Admin" :to="'/admin/dashboard'" />
-          <VListItem prepend-icon="bx-user" title="User" :to="'/user/dashboard'" />
+          <VListItem prepend-icon="bx-shield" title="Admin" @click="switchConsole('admin')" />
+          <VListItem prepend-icon="bx-user" title="User" @click="switchConsole('user')" />
         </VList>
       </VMenu>
 
