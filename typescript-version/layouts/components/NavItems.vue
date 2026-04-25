@@ -42,9 +42,7 @@ const isProjectActive = (projectId: number) => {
           <a v-bind="props">
             <VIcon icon="bx-desktop" class="nav-item-icon" />
             <span class="nav-item-title">Console</span>
-            <svg class="nav-group-arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M2 8h12M11 4l4 4-4 4M14 8H2M5 4L1 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-            </svg>
+
           </a>
         </li>
       </template>
