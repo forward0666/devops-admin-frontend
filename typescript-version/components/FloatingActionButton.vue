@@ -160,13 +160,6 @@ onBeforeUnmount(() => {
         <span class="fab-label">Theme</span>
       </div>
 
-      <div v-if="isExpanded" key="profile" class="fab-action" style="--i: 2" @click.stop="goProfile">
-        <VBtn icon size="small" color="surface-variant" elevation="4">
-          <VIcon icon="bx-user" />
-        </VBtn>
-        <span class="fab-label">Profile</span>
-      </div>
-
       <div v-if="isExpanded" key="settings" class="fab-action" style="--i: 1" @click.stop="goSettings">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon icon="bx-cog" />
