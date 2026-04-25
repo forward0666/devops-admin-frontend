@@ -46,10 +46,12 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     /** 是否有 admin 界面访问权限 */
     isAdmin: (state): boolean => state._ready && ['sys_admin', 'admin', 'devops'].includes(state.role),
+    /** 当前是否在 devops 界面 */
+    isDevops: (state): boolean => state._ready && state.consoleRole === 'devops',
     /** 当前是否在 user 界面 */
     isUser: (state): boolean => state._ready && state.consoleRole === 'user',
     /** 当前是否在 admin 界面 */
-    isConsoleAdmin: (state): boolean => state._ready && (state.consoleRole === 'admin' || state.consoleRole === 'devops'),
+    isConsoleAdmin: (state): boolean => state._ready && state.consoleRole === 'admin',
     isReady: (state) => state._ready,
     homeRoute: (state) => {
       if (state.consoleRole === 'user') return '/user/dashboard'
