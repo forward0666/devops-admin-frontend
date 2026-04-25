@@ -20,21 +20,14 @@ function showSnackbar(message: string, color = 'success') {
 
 const name = computed(() => project.value?.name || 'Project')
 
-const canInvite = computed(() => {
-  if (!authStore.isReady) return false
-  const myMember = members.value.find((m: any) => m.userId === Number(authStore.id))
-  return ['Administrator', 'DevOps', 'Leader'].includes(myMember?.projectRole)
+const myProjectRole = computed(() => {
+  const myMember = members.value.find((m: any) => Number(m.userId) === Number(authStore.id))
+  return myMember?.projectRole || 'Member'
 })
 
-const canEdit = computed(() => {
-  const myMember = members.value.find((m: any) => m.userId === Number(authStore.id))
-  return ['Administrator', 'DevOps'].includes(myMember?.projectRole)
-})
-
-const canKick = computed(() => {
-  const myMember = members.value.find((m: any) => m.userId === Number(authStore.id))
-  return ['Administrator', 'DevOps', 'Leader'].includes(myMember?.projectRole)
-})
+const canInvite = computed(() => ['Administrator', 'DevOps', 'Leader'].includes(myProjectRole.value))
+const canEdit = computed(() => ['Administrator', 'DevOps'].includes(myProjectRole.value))
+const canKick = computed(() => ['Administrator', 'DevOps', 'Leader'].includes(myProjectRole.value))
 
 const itemsPerPage = ref(10)
 const searchQuery = ref('')
