@@ -10,16 +10,6 @@ import UserProfile from '@/layouts/components/UserProfile.vue'
 
 const authStore = useAuthStore()
 const consoleRole = computed(() => authStore.consoleRole)
-
-const switchToAdmin = () => {
-  authStore.setConsoleRole('admin')
-  navigateTo('/admin/dashboard')
-}
-
-const switchToUser = () => {
-  authStore.setConsoleRole('user')
-  navigateTo('/user/dashboard')
-}
 </script>
 
 <template>
@@ -53,18 +43,6 @@ const switchToUser = () => {
 
         <VSpacer />
 
-
-        <!-- 👉 Role Switch (admin only) -->
-        <ClientOnly>
-          <VBtnToggle v-if="authStore.isAdmin" :model-value="consoleRole" mandatory density="comfortable" variant="outlined" divided class="me-2" style="min-inline-size: 200px;">
-          <VBtn size="small" style="flex: 1;" :variant="consoleRole === 'admin' ? 'flat' : 'outlined'" @click="switchToAdmin">
-            <VIcon start icon="bx-shield" size="16" />Admin
-          </VBtn>
-          <VBtn size="small" style="flex: 1;" :variant="consoleRole === 'user' ? 'flat' : 'outlined'" @click="switchToUser">
-            <VIcon start icon="bx-user" size="16" />User
-          </VBtn>
-        </VBtnToggle>
-        </ClientOnly>
 
         <IconBtn>
           <VIcon icon="bx-bell" />

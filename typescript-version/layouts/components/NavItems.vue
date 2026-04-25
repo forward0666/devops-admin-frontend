@@ -40,6 +40,15 @@ const isProjectActive = (projectId: number) => {
           to: '/admin/dashboard',
         }"
       />
+      <VerticalNavGroup
+        :item="{
+          title: 'Console',
+          icon: 'bx-desktop',
+        }"
+      >
+        <VerticalNavLink :item="{ title: 'Admin Console', to: '/admin/dashboard' }" />
+        <VerticalNavLink :item="{ title: 'User Console', to: '/user/dashboard' }" />
+      </VerticalNavGroup>
 
       <!-- 👉 User Management -->
       <VerticalNavSectionTitle
