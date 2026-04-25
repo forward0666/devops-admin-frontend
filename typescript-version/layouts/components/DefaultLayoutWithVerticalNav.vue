@@ -1,12 +1,6 @@
 <script lang="ts" setup>
 import NavItems from '@/layouts/components/NavItems.vue'
-import logo from '@images/logo.svg?raw'
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
-
-// Components
-import Footer from '@/layouts/components/Footer.vue'
-import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
-import UserProfile from '@/layouts/components/UserProfile.vue'
 
 const authStore = useAuthStore()
 const consoleRole = computed(() => authStore.consoleRole)
@@ -25,32 +19,7 @@ const consoleRole = computed(() => authStore.consoleRole)
           <VIcon icon="bx-menu" />
         </IconBtn>
 
-        <!-- 👉 Search -->
-        <div
-          class="d-flex align-center cursor-pointer ms-lg-n3"
-          style="user-select: none;"
-        >
-          <!-- 👉 Search Trigger button -->
-          <IconBtn>
-            <VIcon icon="bx-search" />
-          </IconBtn>
-
-          <span class="d-none d-md-flex align-center text-disabled ms-2">
-            <span class="me-2">Search</span>
-            <span class="meta-key">&#8984;K</span>
-          </span>
-        </div>
-
         <VSpacer />
-
-
-        <IconBtn>
-          <VIcon icon="bx-bell" />
-        </IconBtn>
-
-        <NavbarThemeSwitcher class="me-1" />
-
-        <UserProfile />
       </div>
     </template>
 
@@ -83,15 +52,4 @@ const consoleRole = computed(() => authStore.consoleRole)
   padding-inline: 0.25rem;
 }
 
-.app-logo {
-  display: flex;
-  align-items: center;
-  column-gap: 0.75rem;
-
-  .app-logo-title {
-    font-size: 1.25rem;
-    font-weight: 500;
-    line-height: 1.75rem;
-  }
-}
 </style>
