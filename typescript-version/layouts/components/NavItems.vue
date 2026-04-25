@@ -42,7 +42,7 @@ const isProjectActive = (projectId: number) => {
           <a v-bind="props">
             <VIcon icon="bx-desktop" class="nav-item-icon" />
             <span class="nav-item-title">Console</span>
-            <VIcon icon="bx-chevron-right" class="nav-group-arrow" />
+            <VIcon icon="bx-transfer" class="nav-group-arrow" />
           </a>
         </li>
       </template>
