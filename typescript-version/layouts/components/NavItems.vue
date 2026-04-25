@@ -55,10 +55,6 @@ const isProjectActive = (projectId: number) => {
 
     <template v-if="authStore.isConsoleAdmin">
 
-      <!-- 👉 Pages -->
-      <VerticalNavSectionTitle
-        :item="{ heading: 'Pages' }"
-      />
       <VerticalNavLink
         :item="{
           title: 'Dashboard',
@@ -67,10 +63,6 @@ const isProjectActive = (projectId: number) => {
         }"
       />
 
-      <!-- 👉 User Management -->
-      <VerticalNavSectionTitle
-        :item="{ heading: 'User Management' }"
-      />
       <VerticalNavGroup
         :item="{
           title: 'User',
@@ -86,10 +78,6 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'View', to: '/admin/system/dept/view' }" />
       </VerticalNavGroup>
 
-      <!-- 👉 Project Management -->
-      <VerticalNavSectionTitle
-        :item="{ heading: 'Project Management' }"
-      />
       <VerticalNavGroup
         :item="{
           title: 'Project',
@@ -100,10 +88,6 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'View', to: '/admin/project/view' }" />
       </VerticalNavGroup>
 
-      <!-- 👉 System Monitor -->
-      <VerticalNavSectionTitle
-        :item="{ heading: 'System Monitor' }"
-      />
       <VerticalNavLink
         :item="{
           title: 'Login Log',
