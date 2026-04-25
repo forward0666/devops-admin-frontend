@@ -21,7 +21,7 @@ function showSnackbar(message: string, color = 'success') {
 const name = computed(() => project.value?.name || 'Project')
 
 const myProjectRole = computed(() => {
-  const myMember = members.value.find((m: any) => Number(m.userId) === Number(authStore.id))
+  const myMember = members.value.find((m: any) => Number(m.userId) === Number(authStore.user?.id))
   return myMember?.projectRole || 'Member'
 })
 
@@ -243,7 +243,7 @@ onMounted(() => {
           <template #item.actions="{ item }">
             <IconBtn @click="openView(item)"><VIcon icon="bx-show" /></IconBtn>
             <IconBtn v-if="canEdit" @click="openEdit(item)"><VIcon icon="bx-edit" /></IconBtn>
-            <IconBtn v-if="canKick && item.userId !== Number(authStore.id)" @click="deleteMember(item)"><VIcon icon="bx-x-circle" /></IconBtn>
+            <IconBtn v-if="canKick && Number(item.userId) !== Number(authStore.user?.id)" @click="deleteMember(item)"><VIcon icon="bx-x-circle" /></IconBtn>
           </template>
           <template #no-data>
             <div class="text-center pa-6">
