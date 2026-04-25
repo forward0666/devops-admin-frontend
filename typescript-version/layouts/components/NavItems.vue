@@ -116,9 +116,6 @@ const isProjectActive = (projectId: number) => {
 
     <template v-else>
       <!-- User Console Nav -->
-      <VerticalNavSectionTitle
-        :item="{ heading: 'Main' }"
-      />
       <VerticalNavLink
         :item="{
           title: 'Dashboard',
@@ -134,10 +131,6 @@ const isProjectActive = (projectId: number) => {
         }"
       />
 
-      <!-- Projects -->
-      <VerticalNavSectionTitle
-        :item="{ heading: 'Projects' }"
-      />
       <VerticalNavGroup
         :item="{
           title: 'Project',
