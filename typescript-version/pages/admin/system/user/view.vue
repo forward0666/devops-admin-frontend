@@ -118,7 +118,7 @@ const userData = computed(() => {
           <VTab value="security"><VIcon icon="bx-lock-alt" size="18" class="me-1" />Security</VTab>
         </VTabs>
 
-        <div v-show="activeTab === 'account'" class="mt-6">
+        <div v-if="activeTab === 'account'" class="mt-6">
           <VCard>
             <VCardItem><VCardTitle>User Info</VCardTitle></VCardItem>
             <VDivider />
@@ -153,7 +153,7 @@ const userData = computed(() => {
           </VCard>
         </div>
 
-        <div v-show="activeTab === 'security'" class="mt-6">
+        <div v-if="activeTab === 'security'" class="mt-6">
           <VCard>
             <VCardItem><VCardTitle>Reset Password</VCardTitle></VCardItem>
             <VDivider />
