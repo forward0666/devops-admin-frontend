@@ -42,13 +42,13 @@ const isProjectActive = (projectId: number) => {
       />
       <VMenu location="end top" open-on-hover offset="4">
         <template #activator="{ props }">
-          <VListItem
-            v-bind="props"
-            prepend-icon="bx-desktop"
-            title="Console"
-            append-icon="bx-chevron-right"
-            class="rounded-lg"
-          />
+          <li class="nav-link">
+            <a v-bind="props">
+              <VIcon icon="bx-desktop" class="nav-item-icon" />
+              <span class="nav-item-title">Console</span>
+              <VIcon icon="bx-chevron-right" class="nav-group-arrow" />
+            </a>
+          </li>
         </template>
         <VList min-width="180" density="comfortable">
           <VListItem prepend-icon="bx-shield" title="Admin Console" :to="'/admin/dashboard'" />
