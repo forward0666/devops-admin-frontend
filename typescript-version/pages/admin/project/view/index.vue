@@ -89,7 +89,7 @@ async function addMember() {
       userId: newMember.value.userId,
       username: user?.username,
       fullName: user?.fullName,
-      role: selectedUser.value.role || 'user',
+      role: 'Developer',
       position: user?.position,
     })
     isAddMemberDialog.value = false

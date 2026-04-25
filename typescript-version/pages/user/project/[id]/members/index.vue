@@ -90,8 +90,7 @@ async function inviteMembers() {
           userId: user.id,
           username: user.username,
           fullName: user.fullName,
-          role: selectedUser.value.role || 'user',
-          position: selectedUser.value.position || '',
+          role: 'Developer',
         }),
       ),
     )
@@ -188,7 +187,7 @@ onMounted(() => {
       <template v-else>
         <VCardText class="d-flex flex-wrap gap-4 pb-0">
           <VTextField v-model="searchQuery" placeholder="Search Member" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" prepend-inner-icon="bx-search" />
-          <VSelect v-model="selectedRole" placeholder="Select Role" :items="['sys_admin', 'admin', 'devops', 'user']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
+          <VSelect v-model="selectedRole" placeholder="Select Role" :items="['Project Lead', 'Developer']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
           <VSpacer />
         </VCardText>
         <VDivider class="mt-4" />
@@ -205,7 +204,7 @@ onMounted(() => {
             </div>
           </template>
           <template #item.role="{ item }">
-            <VChip variant="tonal" :color="item.role === 'sys_admin' ? 'error' : item.role === 'admin' ? 'warning' : 'primary'" size="small" label>{{ item.role || '-' }}</VChip>
+            <VChip variant="tonal" :color="item.role === 'Project Lead' ? 'warning' : 'primary'" size="small" label class="text-capitalize">{{ item.role }}</VChip>
           </template>
           <template #item.position="{ item }">
             <span class="text-body-1">{{ item.position || '-' }}</span>
