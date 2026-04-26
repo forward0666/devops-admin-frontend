@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
 }
 
 .fab-container.is-hidden {
-  transform: translateX(60%);
+  transform: translateX(90%);
 }
 
 .fab-container.is-hidden:hover {
