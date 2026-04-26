@@ -51,6 +51,7 @@ const isConfirmPasswordVisible = ref(false)
 const oldPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
+const loading = ref(false)
 
 async function changePassword() {
   if (!user.value?.id) return
