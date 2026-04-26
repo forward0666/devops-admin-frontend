@@ -113,12 +113,10 @@ onBeforeUnmount(() => {
       size="large"
       color="primary"
       class="fab-main"
-      :class="{ 'fab-open': isExpanded }"
       elevation="6"
       @click="toggleMenu"
     >
-      <VIcon v-if="isExpanded" icon="bx-x" />
-      <VIcon v-else :icon="isDark ? 'bx-moon' : 'bx-sun'" />
+      <VIcon :icon="isExpanded ? 'bx-x' : (isDark ? 'bx-moon' : 'bx-sun')" />
     </VBtn>
   </div>
 </template>
