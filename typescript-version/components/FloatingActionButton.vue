@@ -59,21 +59,18 @@ onBeforeUnmount(() => {
         <VBtn icon size="small" color="error" elevation="4">
           <VIcon icon="bx-log-out" />
         </VBtn>
-        <span class="fab-label">Logout</span>
       </div>
 
       <div v-if="isExpanded" key="settings" class="fab-action" style="--i: 1" @click.stop="goSettings">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon icon="bx-cog" />
         </VBtn>
-        <span class="fab-label">Settings</span>
       </div>
 
       <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 2" @click.stop="toggleTheme">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon :icon="isDark ? 'bx-sun' : 'bx-moon'" />
         </VBtn>
-        <span class="fab-label">Theme</span>
       </div>
     </TransitionGroup>
 
@@ -130,7 +127,6 @@ onBeforeUnmount(() => {
   pointer-events: auto;
 }
 
-.fab-label {
   position: absolute;
   right: 48px;
   top: 50%;
