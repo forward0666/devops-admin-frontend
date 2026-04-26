@@ -1,91 +1,9 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from 'vuetify'
 
 const isExpanded = ref(false)
-const fabRef = ref<HTMLElement | null>(null)
 
-// Position
-const position = ref({ x: 24, y: 24 })
-
-// Draggable
-const isDragging = ref(false)
-const dragOffset = ref({ x: 0, y: 0 })
-const hasMoved = ref(false)
-
-function startDrag(e: MouseEvent | TouchEvent) {
-  const el = fabRef.value
-  if (!el) return
-
-  const rect = el.getBoundingClientRect()
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-
-  dragOffset.value = {
-    x: clientX - rect.left,
-    y: clientY - rect.top,
-  }
-  isDragging.value = true
-  hasMoved.value = false
-}
-
-function onDrag(e: MouseEvent | TouchEvent) {
-  if (!isDragging.value) return
-
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-
-  const newX = clientX - dragOffset.value.x
-  const newY = clientY - dragOffset.value.y
-
-  const maxX = window.innerWidth - 56
-  const maxY = window.innerHeight - 56
-
-  position.value = {
-    x: Math.max(0, Math.min(maxX, newX)),
-    y: Math.max(0, Math.min(maxY, newY)),
-  }
-
-  if (Math.abs(clientX - dragOffset.value.x - position.value.x) > 3 || Math.abs(clientY - dragOffset.value.y - position.value.y) > 3) {
-    hasMoved.value = true
-  }
-}
-
-function stopDrag() {
-  isDragging.value = false
-
-  // Snap to nearest edge horizontally
-  const midX = window.innerWidth / 2
-  if (position.value.x < midX) {
-    position.value.x = 16
-  } else {
-    position.value.x = window.innerWidth - 72
-  }
-}
-
-// Determine expand direction based on position
-const expandOffset = computed(() => {
-  const midX = window.innerWidth / 2
-  const goRight = position.value.x < midX
-  return goRight ? 56 : -56
-})
-
-const labelSide = computed(() => {
-  const midX = window.innerWidth / 2
-  return position.value.x < midX ? 'right' : 'left'
-})
-
-function actionStyle(index: number) {
-  if (!isExpanded.value) return {}
-  return {
-    transform: `translateX(${expandOffset.value}px) translateY(${(index + 1) * 56}px) scale(1)`,
-    opacity: 1,
-    pointerEvents: 'auto',
-    transitionDelay: `${index * 0.05}s`,
-  }
-}
-
-// Actions
 const authStore = useAuthStore()
 
 const isDark = ref(false)
@@ -114,42 +32,51 @@ async function logout() {
 }
 
 function toggleMenu() {
-  if (!hasMoved.value) {
-    isExpanded.value = !isExpanded.value
+  isExpanded.value = !isExpanded.value
+}
+
+// Close on click outside
+function handleClickOutside(e: MouseEvent) {
+  if (isExpanded.value && !(e.target as HTMLElement).closest('.fab-container')) {
+    isExpanded.value = false
   }
 }
 
 onMounted(() => {
-  // Default position: top right
-  position.value = {
-    x: window.innerWidth - 72,
-    y: 24,
-  }
-
-  window.addEventListener('mousemove', onDrag)
-  window.addEventListener('mouseup', stopDrag)
-  window.addEventListener('touchmove', onDrag, { passive: false })
-  window.addEventListener('touchend', stopDrag)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('mousemove', onDrag)
-  window.removeEventListener('mouseup', stopDrag)
-  window.removeEventListener('touchmove', onDrag)
-  window.removeEventListener('touchend', stopDrag)
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
 <template>
-  <div
-    ref="fabRef"
-    class="fab-container"
-    :class="{ 'is-expanded': isExpanded }"
-    :style="{ left: `${position.x}px`, top: `${position.y}px` }"
-    @mousedown="startDrag"
-    @touchstart="startDrag"
-    @click="toggleMenu"
-  >
+  <div class="fab-container" :class="{ 'is-expanded': isExpanded }">
+    <!-- Sub Buttons -->
+    <TransitionGroup name="fab-item">
+      <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 0" @click.stop="toggleTheme">
+        <VBtn icon size="small" color="surface-variant" elevation="4">
+          <VIcon :icon="isDark ? 'bx-sun' : 'bx-moon'" />
+        </VBtn>
+        <span class="fab-label">Theme</span>
+      </div>
+
+      <div v-if="isExpanded" key="settings" class="fab-action" style="--i: 1" @click.stop="goSettings">
+        <VBtn icon size="small" color="surface-variant" elevation="4">
+          <VIcon icon="bx-cog" />
+        </VBtn>
+        <span class="fab-label">Settings</span>
+      </div>
+
+      <div v-if="isExpanded" key="logout" class="fab-action" style="--i: 2" @click.stop="logout">
+        <VBtn icon size="small" color="error" elevation="4">
+          <VIcon icon="bx-log-out" />
+        </VBtn>
+        <span class="fab-label">Logout</span>
+      </div>
+    </TransitionGroup>
+
     <!-- Main Button -->
     <VBtn
       icon
@@ -158,68 +85,35 @@ onBeforeUnmount(() => {
       class="fab-main"
       :class="{ 'fab-open': isExpanded }"
       elevation="6"
+      @click="toggleMenu"
     >
       <VIcon :icon="isExpanded ? 'bx-x' : 'bx-dots-vertical-rounded'" />
     </VBtn>
-
-    <!-- Sub Buttons -->
-    <TransitionGroup name="fab-item">
-      <div v-if="isExpanded" key="theme" class="fab-action" :style="actionStyle(0)" @click.stop="toggleTheme">
-        <VBtn icon size="small" color="surface-variant" elevation="4">
-          <VIcon :icon="isDark ? 'bx-sun' : 'bx-moon'" />
-        </VBtn>
-        <span class="fab-label" :style="{ [labelSide]: '48px' }">Theme</span>
-      </div>
-
-      <div v-if="isExpanded" key="settings" class="fab-action" :style="actionStyle(1)" @click.stop="goSettings">
-        <VBtn icon size="small" color="surface-variant" elevation="4">
-          <VIcon icon="bx-cog" />
-        </VBtn>
-        <span class="fab-label" :style="{ [labelSide]: '48px' }">Settings</span>
-      </div>
-
-      <div v-if="isExpanded" key="logout" class="fab-action" :style="actionStyle(2)" @click.stop="logout">
-        <VBtn icon size="small" color="error" elevation="4">
-          <VIcon icon="bx-log-out" />
-        </VBtn>
-        <span class="fab-label" :style="{ [labelSide]: '48px' }">Logout</span>
-      </div>
-    </TransitionGroup>
   </div>
 </template>
 
 <style scoped>
 .fab-container {
   position: fixed;
+  top: 16px;
+  right: 16px;
   z-index: 9999;
-  cursor: grab;
-  user-select: none;
-  touch-action: none;
-}
-
-.fab-container.is-expanded {
-  cursor: default;
-}
-
-.fab-container:active:not(.is-expanded) {
-  cursor: grabbing;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 8px;
 }
 
 .fab-main {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10;
-  position: relative;
 }
 
 .fab-open {
   transform: rotate(90deg);
 }
 
-/* Base action positioning */
 .fab-action {
-  position: absolute;
-  left: 0;
-  top: 0;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -232,12 +126,15 @@ onBeforeUnmount(() => {
 
 .is-expanded .fab-action {
   opacity: 1;
+  transform: scale(1);
   pointer-events: auto;
 }
 
-/* Label positioning */
 .fab-label {
   position: absolute;
+  right: 48px;
+  top: 50%;
+  transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.75);
   color: #fff;
   padding: 4px 10px;
@@ -245,12 +142,8 @@ onBeforeUnmount(() => {
   font-size: 12px;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  top: 50%;
-  transform: translateY(-50%);
-  right: 48px;
 }
 
-/* Transition animations */
 .fab-item-enter-active {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
