@@ -79,7 +79,8 @@ export const useUserStore = defineStore('users', () => {
     loading.value = true
     error.value = null
     try {
-      await userService.changePassword(id, data)
+      const res = await userService.changePassword(id, data)
+      return res
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {

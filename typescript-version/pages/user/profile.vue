@@ -59,10 +59,20 @@ async function changePassword() {
     return
   }
   try {
-    await userStore.changePassword(user.value.id, { oldPassword: oldPassword.value, newPassword: newPassword.value })
+    const res: any = await userStore.changePassword(user.value.id, { oldPassword: oldPassword.value, newPassword: newPassword.value })
     oldPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
+    // Password changed, force logout and redirect to login
+    if (res?.message?.includes('please login again')) {
+      await authStore.logout()
+      navigateTo('/login')
+      return
+    }
+      await authStore.logout()
+      navigateTo('/login')
+      return
+    }
     snackbar.value = { show: true, text: 'Password changed', color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e.message || 'Failed to change password', color: 'error' }
