@@ -157,13 +157,13 @@ const resolveAvatarColor = (name: string) => {
                   Minimum 8 characters long, uppercase & symbol
                 </VAlert>
                 <VRow>
-                  <VCol cols="12" md="4">
+                  <VCol cols="12" md="12">
                     <VTextField v-model="oldPassword" :type="isNewPasswordVisible ? 'text' : 'password'" label="Current Password" placeholder="············" />
                   </VCol>
-                  <VCol cols="12" md="4">
+                  <VCol cols="12" md="12">
                     <VTextField v-model="newPassword" :type="isNewPasswordVisible ? 'text' : 'password'" label="New Password" placeholder="············" :append-inner-icon="isNewPasswordVisible ? 'bx-hide' : 'bx-show'" @click:append-inner="isNewPasswordVisible = !isNewPasswordVisible" />
                   </VCol>
-                  <VCol cols="12" md="4">
+                  <VCol cols="12" md="12">
                     <VTextField v-model="confirmPassword" :type="isConfirmPasswordVisible ? 'text' : 'password'" label="Confirm Password" placeholder="············" autocomplete="confirm-password" :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'" @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible" />
                   </VCol>
                 </VRow>
