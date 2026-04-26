@@ -87,7 +87,12 @@ onBeforeUnmount(() => {
       elevation="6"
       @click="toggleMenu"
     >
-      <VIcon :icon="isExpanded ? 'bx-x' : 'bx-dots-vertical-rounded'" />
+      <template v-if="!isExpanded">
+        <VAvatar size="36" color="primary" variant="tonal">
+          <span class="text-sm font-weight-bold">{{ (authStore.user?.fullName || authStore.user?.username || '?').charAt(0).toUpperCase() }}</span>
+        </VAvatar>
+      </template>
+      <VIcon v-else icon="bx-x" />
     </VBtn>
   </div>
 </template>
