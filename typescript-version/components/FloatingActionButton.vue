@@ -64,16 +64,15 @@ function stopDrag() {
 }
 
 // Determine expand direction based on position
-const expandDirection = computed(() => {
+const expandOffset = computed(() => {
   const midX = window.innerWidth / 2
-  const midY = window.innerHeight / 2
-  const onLeft = position.value.x < midX
-  const onTop = position.value.y < midY
+  const goRight = position.value.x < midX
+  return goRight ? 56 : -56
+})
 
-  if (onTop && onLeft) return 'right-down'
-  if (onTop && !onLeft) return 'left-down'
-  if (!onTop && onLeft) return 'right-up'
-  return 'left-up'
+const labelSide = computed(() => {
+  const midX = window.innerWidth / 2
+  return position.value.x < midX ? 'right' : 'left'
 })
 
 // Actions
@@ -135,7 +134,7 @@ onBeforeUnmount(() => {
   <div
     ref="fabRef"
     class="fab-container"
-    :class="{ 'is-expanded': isExpanded, 'expand-left-down': isExpanded && expandDirection === 'left-down', 'expand-right-down': isExpanded && expandDirection === 'right-down', 'expand-right-up': isExpanded && expandDirection === 'right-up', 'expand-left-up': isExpanded && expandDirection === 'left-up' }"
+    :class="{ 'is-expanded': isExpanded }"
     :style="{ left: `${position.x}px`, top: `${position.y}px` }"
     @mousedown="startDrag"
     @touchstart="startDrag"
@@ -155,25 +154,25 @@ onBeforeUnmount(() => {
 
     <!-- Sub Buttons -->
     <TransitionGroup name="fab-item">
-      <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 0" @click.stop="toggleTheme">
+      <div v-if="isExpanded" key="theme" class="fab-action" :style="{ transform: isExpanded ? `translateX(${(0 + 1) * expandOffset}px) scale(1)` : '' }" style="--i: 0" @click.stop="toggleTheme">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon :icon="isDark ? 'bx-sun' : 'bx-moon'" />
         </VBtn>
-        <span class="fab-label" :class="expandDirection">Theme</span>
+        <span class="fab-label" :style="{ [labelSide]: '48px' }">Theme</span>
       </div>
 
-      <div v-if="isExpanded" key="settings" class="fab-action" style="--i: 1" @click.stop="goSettings">
+      <div v-if="isExpanded" key="settings" class="fab-action" :style="{ transform: isExpanded ? `translateX(${(1 + 1) * expandOffset}px) scale(1)` : '' }" style="--i: 1" @click.stop="goSettings">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon icon="bx-cog" />
         </VBtn>
-        <span class="fab-label" :class="expandDirection">Settings</span>
+        <span class="fab-label" :style="{ [labelSide]: '48px' }">Settings</span>
       </div>
 
-      <div v-if="isExpanded" key="logout" class="fab-action" style="--i: 2" @click.stop="logout">
+      <div v-if="isExpanded" key="logout" class="fab-action" :style="{ transform: isExpanded ? `translateX(${(2 + 1) * expandOffset}px) scale(1)` : '' }" style="--i: 2" @click.stop="logout">
         <VBtn icon size="small" color="error" elevation="4">
           <VIcon icon="bx-log-out" />
         </VBtn>
-        <span class="fab-label" :class="expandDirection">Logout</span>
+        <span class="fab-label" :style="{ [labelSide]: '48px' }">Logout</span>
       </div>
     </TransitionGroup>
   </div>
@@ -221,30 +220,7 @@ onBeforeUnmount(() => {
   transition-delay: calc(var(--i) * 0.05s);
 }
 
-/* Expand left-down (top-right corner default) */
-.is-expanded.expand-left-down .fab-action {
-  transform: translateX(calc((var(--i) + 1) * -56px)) scale(1);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Expand right-down (top-left corner) */
-.is-expanded.expand-right-down .fab-action {
-  transform: translateX(calc((var(--i) + 1) * 56px)) scale(1);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Expand right-up (bottom-left corner) */
-.is-expanded.expand-right-up .fab-action {
-  transform: translateX(calc((var(--i) + 1) * 56px)) scale(1);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Expand left-up (bottom-right corner) */
-.is-expanded.expand-left-up .fab-action {
-  transform: translateX(calc((var(--i) + 1) * -56px)) scale(1);
+.is-expanded .fab-action {
   opacity: 1;
   pointer-events: auto;
 }
@@ -262,13 +238,6 @@ onBeforeUnmount(() => {
   top: 50%;
   transform: translateY(-50%);
   right: 48px;
-}
-
-/* Labels on the left side show to the right */
-.fab-label.right-down,
-.fab-label.right-up {
-  right: auto;
-  left: 48px;
 }
 
 /* Transition animations */
