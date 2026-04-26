@@ -7,6 +7,7 @@ const authStore = useAuthStore()
 const projectStore = ref<any>(null)
 const projectList = computed(() => projectStore.value?.projects || [])
 const projectKey = ref(0)
+const currentRoute = import.meta.client ? useRoute() : null
 
 if (import.meta.client) {
   projectStore.value = useProjectStore()
@@ -25,9 +26,8 @@ function switchConsole(role: 'admin' | 'user') {
 }
 
 const isProjectActive = (projectId: number) => {
-  if (!import.meta.client) return false
-  const route = useRoute()
-  return route.path.includes(`/user/project/${projectId}/`)
+  if (!currentRoute) return false
+  return currentRoute.path.includes(`/user/project/${projectId}/`)
 }
 </script>
 
@@ -69,13 +69,13 @@ const isProjectActive = (projectId: number) => {
           title: 'User',
           icon: 'bx-user',
         }"
-        :open="route.path.includes('/admin/system/user')"
+        :open="currentRoute?.path?.includes('/admin/system/user')"
       >
         <VerticalNavLink :item="{ title: 'List', to: '/admin/system/user/list' }" />
         <VerticalNavLink :item="{ title: 'View', to: '/admin/system/user/view' }" />
       </VerticalNavGroup>
 
-      <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }" :open="route.path.includes('/admin/system/dept')">
+      <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }" :open="currentRoute?.path?.includes('/admin/system/dept')">
         <VerticalNavLink :item="{ title: 'List', to: '/admin/system/dept/list' }" />
         <VerticalNavLink :item="{ title: 'View', to: '/admin/system/dept/view' }" />
       </VerticalNavGroup>
@@ -85,7 +85,7 @@ const isProjectActive = (projectId: number) => {
           title: 'Project',
           icon: 'bx-folder',
         }"
-        :open="route.path.includes('/admin/project')"
+        :open="currentRoute?.path?.includes('/admin/project')"
       >
         <VerticalNavLink :item="{ title: 'List', to: '/admin/project/list' }" />
         <VerticalNavLink :item="{ title: 'View', to: '/admin/project/view' }" />
@@ -155,7 +155,7 @@ const isProjectActive = (projectId: number) => {
           <VerticalNavGroup :item="{ title: project.name, icon: 'bx-detail' }" :open="isProjectActive(project.id)">
             <VerticalNavLink :item="{ title: 'Info', to: `/user/project/${project.id}/info` }" />
             <VerticalNavLink :item="{ title: 'Member', to: `/user/project/${project.id}/members` }" />
-            <VerticalNavGroup :item="{ title: 'Asset', icon: 'bx-globe' }" :open="isProjectActive(project.id) && route.path.includes('/assets')">
+            <VerticalNavGroup :item="{ title: 'Asset', icon: 'bx-globe' }" :open="isProjectActive(project.id) && currentRoute?.path?.includes('/assets')">
               <VerticalNavLink :item="{ title: 'Domain', to: `/user/project/${project.id}/assets` }" />
               <VerticalNavLink :item="{ title: 'Middleware', to: `/user/project/${project.id}/middleware` }" />
             </VerticalNavGroup>
