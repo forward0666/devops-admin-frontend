@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
   <div
     ref="fabRef"
     class="fab-container"
-    :class="{ 'is-expanded': isExpanded }"
+    :class="{ 'is-expanded': isExpanded, 'expand-left-down': isExpanded && expandDirection === 'left-down', 'expand-right-down': isExpanded && expandDirection === 'right-down', 'expand-right-up': isExpanded && expandDirection === 'right-up', 'expand-left-up': isExpanded && expandDirection === 'left-up' }"
     :style="{ left: `${position.x}px`, top: `${position.y}px` }"
     @mousedown="startDrag"
     @touchstart="startDrag"
@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
 }
 
 /* Expand left-down (top-right corner default) */
-.is-expanded .fab-action {
+.is-expanded.expand-left-down .fab-action {
   transform: translateX(calc((var(--i) + 1) * -56px)) scale(1);
   opacity: 1;
   pointer-events: auto;
@@ -230,17 +230,23 @@ onBeforeUnmount(() => {
 
 /* Expand right-down (top-left corner) */
 .is-expanded.expand-right-down .fab-action {
-  transform: translateX(calc((var(--i) + 1) * 56px)) translateY(0) scale(1);
+  transform: translateX(calc((var(--i) + 1) * 56px)) scale(1);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Expand right-up (bottom-left corner) */
 .is-expanded.expand-right-up .fab-action {
-  transform: translateX(calc((var(--i) + 1) * 56px)) translateY(0) scale(1);
+  transform: translateX(calc((var(--i) + 1) * 56px)) scale(1);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Expand left-up (bottom-right corner) */
 .is-expanded.expand-left-up .fab-action {
-  transform: translateX(calc((var(--i) + 1) * -56px)) translateY(0) scale(1);
+  transform: translateX(calc((var(--i) + 1) * -56px)) scale(1);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Label positioning */
