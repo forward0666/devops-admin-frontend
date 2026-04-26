@@ -69,14 +69,11 @@ async function changePassword() {
       navigateTo('/login')
       return
     }
-      await authStore.logout()
-      navigateTo('/login')
-      return
-    }
     snackbar.value = { show: true, text: 'Password changed', color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e.message || 'Failed to change password', color: 'error' }
-  }
+  } finally {
+    loading.value = false
 }
 
 const resolveAvatarColor = (name: string) => {
