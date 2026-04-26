@@ -55,25 +55,25 @@ onBeforeUnmount(() => {
   <div class="fab-container" :class="{ 'is-expanded': isExpanded }">
     <!-- Sub Buttons -->
     <TransitionGroup name="fab-item">
-      <div v-if="isExpanded" key="settings" class="fab-action" style="--i: 0" @click.stop="goSettings">
+      <div v-if="isExpanded" key="logout" class="fab-action" style="--i: 0" @click.stop="logout">
+        <VBtn icon size="small" color="error" elevation="4">
+          <VIcon icon="bx-log-out" />
+        </VBtn>
+        <span class="fab-label">Logout</span>
+      </div>
+
+      <div v-if="isExpanded" key="settings" class="fab-action" style="--i: 1" @click.stop="goSettings">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon icon="bx-cog" />
         </VBtn>
         <span class="fab-label">Settings</span>
       </div>
 
-      <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 1" @click.stop="toggleTheme">
+      <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 2" @click.stop="toggleTheme">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon :icon="isDark ? 'bx-sun' : 'bx-moon'" />
         </VBtn>
         <span class="fab-label">Theme</span>
-      </div>
-
-      <div v-if="isExpanded" key="logout" class="fab-action" style="--i: 2" @click.stop="logout">
-        <VBtn icon size="small" color="error" elevation="4">
-          <VIcon icon="bx-log-out" />
-        </VBtn>
-        <span class="fab-label">Logout</span>
       </div>
     </TransitionGroup>
 
