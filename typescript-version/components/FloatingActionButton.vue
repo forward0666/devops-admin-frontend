@@ -127,19 +127,6 @@ onBeforeUnmount(() => {
   pointer-events: auto;
 }
 
-  position: absolute;
-  right: 48px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
 .fab-item-enter-active {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
