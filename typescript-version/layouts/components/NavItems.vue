@@ -2,10 +2,15 @@
 import VerticalNavSectionTitle from "@/@layouts/components/VerticalNavSectionTitle.vue";
 import VerticalNavGroup from "@layouts/components/VerticalNavGroup.vue";
 import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
+import { userConsoleProjectService } from '~/services/api'
 
 const authStore = useAuthStore()
 const projectStore = ref<any>(null)
-const projectList = computed(() => projectStore.value?.projects || [])
+const userProjectList = ref<any[]>([])
+const projectList = computed(() => {
+  if (authStore.isUser) return userProjectList.value
+  return projectStore.value?.projects || []
+})
 const projectKey = ref(0)
 const currentRoute = import.meta.client ? useRoute() : null
 
@@ -17,6 +22,16 @@ if (import.meta.client) {
   watch(() => projectStore.value?.projects.length, () => {
     projectKey.value++
   })
+
+  // Fetch user's own projects for user console
+  const fetchUserProjects = async () => {
+    try {
+      const res = await userConsoleProjectService.list()
+      userProjectList.value = Array.isArray(res) ? res : res?.data || []
+    } catch { userProjectList.value = [] }
+  }
+  fetchUserProjects()
+  watch(() => authStore.consoleRole, fetchUserProjects)
 }
 
 function switchConsole(role: 'admin' | 'user') {
