@@ -162,12 +162,12 @@ const isProjectActive = (projectId: number) => {
       <VerticalNavGroup
         :item="{
           title: 'Project',
-          icon: 'bx-detail',
+          icon: 'bx-folder',
         }"
         :open="projectList.some((p: any) => isProjectActive(p.id))"
       >
         <template v-for="project in projectList" :key="`project-nav-${project.id}-${projectKey}`">
-          <VerticalNavGroup :item="{ title: project.name, icon: 'bx-detail' }" :open="isProjectActive(project.id)">
+          <VerticalNavGroup :item="{ title: project.name, icon: 'bx-folder' }" :open="isProjectActive(project.id)">
             <VerticalNavLink :item="{ title: 'Info', to: `/user/project/${project.id}/info` }" />
             <VerticalNavLink :item="{ title: 'Member', to: `/user/project/${project.id}/members` }" />
             <VerticalNavGroup :item="{ title: 'Asset', icon: 'bx-globe' }" :open="isProjectActive(project.id) && currentRoute?.path?.includes('/assets')">
