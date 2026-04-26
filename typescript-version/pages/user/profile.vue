@@ -67,7 +67,7 @@ async function changePassword() {
     // Password changed, force logout and redirect to login
     if (res?.message?.includes('please login again')) {
       await authStore.logout()
-      navigateTo('/login')
+      window.location.href = '/login'
       return
     }
     snackbar.value = { show: true, text: 'Password changed', color: 'success' }
@@ -79,7 +79,9 @@ async function changePassword() {
 
 const resolveAvatarColor = (name: string) => {
   const colors = ['primary', 'secondary', 'success', 'info', 'warning', 'error']
-  return colors[(name.charCodeAt(0) || 0) % colors.length]
+  const code = name ? name.charCodeAt(0) : 0
+
+  return colors[code % colors.length]
 }
 </script>
 
