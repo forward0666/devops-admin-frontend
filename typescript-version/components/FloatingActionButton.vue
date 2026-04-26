@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
       elevation="6"
       @click="toggleMenu"
     >
-      <VIcon :icon="isExpanded ? 'bx-x' : 'bx-dots-vertical-rounded'" />
+      <VIcon v-if="isExpanded" icon="bx-x" />
     </VBtn>
   </div>
 </template>
