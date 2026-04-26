@@ -3,6 +3,8 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from 'vuetify'
 
 const isExpanded = ref(false)
+const isVisible = ref(false)
+let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 const authStore = useAuthStore()
 
@@ -19,26 +21,51 @@ function toggleTheme() {
   if (!themeInstance) themeInstance = useTheme()
   themeInstance.global.name.value = themeInstance.global.current.value.dark ? 'light' : 'dark'
   isDark.value = !isDark.value
+  resetHideTimer()
 }
 
 function goSettings() {
   isExpanded.value = false
+  resetHideTimer()
 }
 
 async function logout() {
   await authStore.logout()
   navigateTo('/login')
-  isExpanded.value = false
 }
 
 function toggleMenu() {
+  isVisible.value = true
   isExpanded.value = !isExpanded.value
+  resetHideTimer()
 }
 
-// Close on click outside
+function resetHideTimer() {
+  if (hideTimer) clearTimeout(hideTimer)
+  hideTimer = setTimeout(() => {
+    isExpanded.value = false
+    isVisible.value = false
+  }, 5000)
+}
+
+// Show pill on hover even when hidden
+function showPill() {
+  isVisible.value = true
+}
+
+function hidePill() {
+  if (!isExpanded.value && hideTimer === null) {
+    hideTimer = setTimeout(() => {
+      if (!isExpanded.value) isVisible.value = false
+      hideTimer = null
+    }, 2000)
+  }
+}
+
 function handleClickOutside(e: MouseEvent) {
   if (isExpanded.value && !(e.target as HTMLElement).closest('.fab-container')) {
     isExpanded.value = false
+    resetHideTimer()
   }
 }
 
@@ -48,11 +75,17 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
+  if (hideTimer) clearTimeout(hideTimer)
 })
 </script>
 
 <template>
-  <div class="fab-container" :class="{ 'is-expanded': isExpanded }">
+  <div
+    class="fab-container"
+    :class="{ 'is-expanded': isExpanded, 'is-hidden': !isVisible }"
+    @mouseenter="showPill"
+    @mouseleave="hidePill"
+  >
     <!-- Sub Buttons -->
     <TransitionGroup name="fab-item">
       <div v-if="isExpanded" key="logout" class="fab-action" style="--i: 0" @click.stop="logout">
@@ -99,6 +132,15 @@ onBeforeUnmount(() => {
   flex-direction: column-reverse;
   align-items: center;
   gap: 8px;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-container.is-hidden {
+  transform: translateX(calc(100% + 20px));
+}
+
+.fab-container.is-hidden:hover {
+  transform: translateX(0);
 }
 
 .fab-main {
@@ -110,10 +152,6 @@ onBeforeUnmount(() => {
 }
 
 .fab-action {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   opacity: 0;
   transform: scale(0);
   pointer-events: none;
