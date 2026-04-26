@@ -23,5 +23,16 @@ export default defineNuxtPlugin(nuxtApp => {
     },
   })
 
+  // Restore theme from localStorage
+  if (import.meta.client) {
+    const savedTheme = localStorage.getItem('app-theme')
+    if (savedTheme) {
+      vuetify.theme.global.name.value = savedTheme
+    }
+    watch(() => vuetify.theme.global.name.value, (val) => {
+      localStorage.setItem('app-theme', val)
+    })
+  }
+
   nuxtApp.vueApp.use(vuetify)
 })
