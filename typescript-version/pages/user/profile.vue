@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { userConsoleService } from '~/services/api'
 const authStore = useAuthStore()
 const userStore = useUserStore()
 const snackbar = ref({ show: false, text: '', color: 'success' })
@@ -60,7 +61,7 @@ async function changePassword() {
     return
   }
   try {
-    const res: any = await userStore.changePassword(user.value.id, { oldPassword: oldPassword.value, newPassword: newPassword.value })
+    const res: any = await userConsoleService.changePassword({ oldPassword: oldPassword.value, newPassword: newPassword.value })
     oldPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
