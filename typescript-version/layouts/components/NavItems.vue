@@ -69,12 +69,13 @@ const isProjectActive = (projectId: number) => {
           title: 'User',
           icon: 'bx-user',
         }"
+        :open="route.path.includes('/admin/system/user')"
       >
         <VerticalNavLink :item="{ title: 'List', to: '/admin/system/user/list' }" />
         <VerticalNavLink :item="{ title: 'View', to: '/admin/system/user/view' }" />
       </VerticalNavGroup>
 
-      <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }">
+      <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }" :open="route.path.includes('/admin/system/dept')">
         <VerticalNavLink :item="{ title: 'List', to: '/admin/system/dept/list' }" />
         <VerticalNavLink :item="{ title: 'View', to: '/admin/system/dept/view' }" />
       </VerticalNavGroup>
@@ -84,6 +85,7 @@ const isProjectActive = (projectId: number) => {
           title: 'Project',
           icon: 'bx-folder',
         }"
+        :open="route.path.includes('/admin/project')"
       >
         <VerticalNavLink :item="{ title: 'List', to: '/admin/project/list' }" />
         <VerticalNavLink :item="{ title: 'View', to: '/admin/project/view' }" />
@@ -147,12 +149,13 @@ const isProjectActive = (projectId: number) => {
           title: 'Project',
           icon: 'bx-detail',
         }"
+        :open="projectList.some((p: any) => isProjectActive(p.id))"
       >
         <template v-for="project in projectList" :key="`project-nav-${project.id}-${projectKey}`">
           <VerticalNavGroup :item="{ title: project.name, icon: 'bx-detail' }" :open="isProjectActive(project.id)">
             <VerticalNavLink :item="{ title: 'Info', to: `/user/project/${project.id}/info` }" />
             <VerticalNavLink :item="{ title: 'Member', to: `/user/project/${project.id}/members` }" />
-            <VerticalNavGroup :item="{ title: 'Asset', icon: 'bx-globe' }">
+            <VerticalNavGroup :item="{ title: 'Asset', icon: 'bx-globe' }" :open="isProjectActive(project.id) && route.path.includes('/assets')">
               <VerticalNavLink :item="{ title: 'Domain', to: `/user/project/${project.id}/assets` }" />
               <VerticalNavLink :item="{ title: 'Middleware', to: `/user/project/${project.id}/middleware` }" />
             </VerticalNavGroup>
