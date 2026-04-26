@@ -9,17 +9,15 @@ const dbUser = ref<any>(null)
 const loading = ref(false)
 const activeTab = ref('account')
 const newPassword = ref('')
-const confirmPassword = ref('')
 
 async function resetPassword() {
-  if (!userId.value || !newPassword.value || newPassword.value !== confirmPassword.value) {
-    snackbar.value = { show: true, text: 'Passwords do not match', color: 'error' }
+  if (!userId.value || !newPassword.value) {
+    snackbar.value = { show: true, text: 'Please enter a new password', color: 'error' }
     return
   }
   try {
     await userStore.resetPassword(userId.value, { newPassword: newPassword.value })
     newPassword.value = ''
-    confirmPassword.value = ''
     snackbar.value = { show: true, text: 'Password reset successfully', color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e.message || 'Failed to reset password', color: 'error' }
@@ -162,14 +160,6 @@ const userData = computed(() => {
               <VTextField
                 v-model="newPassword"
                 label="New Password"
-                type="password"
-                density="comfortable"
-                variant="outlined"
-                class="mb-3"
-              />
-              <VTextField
-                v-model="confirmPassword"
-                label="Confirm Password"
                 type="password"
                 density="comfortable"
                 variant="outlined"
