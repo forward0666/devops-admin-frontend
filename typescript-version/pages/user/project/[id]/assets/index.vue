@@ -1,3 +1,4 @@
+<script lang="ts">definePageMeta({ middleware: ["user-project-guard"] })</script>
 <script setup lang="ts">
 const route = useRoute()
 const projectId = computed(() => route.params.id as string)
