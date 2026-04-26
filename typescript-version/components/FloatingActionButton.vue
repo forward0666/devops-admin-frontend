@@ -75,6 +75,16 @@ const labelSide = computed(() => {
   return position.value.x < midX ? 'right' : 'left'
 })
 
+function actionStyle(index: number) {
+  if (!isExpanded.value) return {}
+  return {
+    transform: `translateX(${expandOffset.value}px) translateY(${(index + 1) * 56}px) scale(1)`,
+    opacity: 1,
+    pointerEvents: 'auto',
+    transitionDelay: `${index * 0.05}s`,
+  }
+}
+
 // Actions
 const authStore = useAuthStore()
 
@@ -154,21 +164,21 @@ onBeforeUnmount(() => {
 
     <!-- Sub Buttons -->
     <TransitionGroup name="fab-item">
-      <div v-if="isExpanded" key="theme" class="fab-action" :style="{ transform: isExpanded ? `translateX(${(0 + 1) * expandOffset}px) scale(1)` : '' }" style="--i: 0" @click.stop="toggleTheme">
+      <div v-if="isExpanded" key="theme" class="fab-action" :style="actionStyle(0)" @click.stop="toggleTheme">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon :icon="isDark ? 'bx-sun' : 'bx-moon'" />
         </VBtn>
         <span class="fab-label" :style="{ [labelSide]: '48px' }">Theme</span>
       </div>
 
-      <div v-if="isExpanded" key="settings" class="fab-action" :style="{ transform: isExpanded ? `translateX(${(1 + 1) * expandOffset}px) scale(1)` : '' }" style="--i: 1" @click.stop="goSettings">
+      <div v-if="isExpanded" key="settings" class="fab-action" :style="actionStyle(1)" @click.stop="goSettings">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon icon="bx-cog" />
         </VBtn>
         <span class="fab-label" :style="{ [labelSide]: '48px' }">Settings</span>
       </div>
 
-      <div v-if="isExpanded" key="logout" class="fab-action" :style="{ transform: isExpanded ? `translateX(${(2 + 1) * expandOffset}px) scale(1)` : '' }" style="--i: 2" @click.stop="logout">
+      <div v-if="isExpanded" key="logout" class="fab-action" :style="actionStyle(2)" @click.stop="logout">
         <VBtn icon size="small" color="error" elevation="4">
           <VIcon icon="bx-log-out" />
         </VBtn>
