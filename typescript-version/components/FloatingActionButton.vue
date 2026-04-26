@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from 'vuetify'
 
 const isExpanded = ref(false)
 const fabRef = ref<HTMLElement | null>(null)
 
 // Position
-const position = ref({ x: 24, y: 0 })
+const position = ref({ x: 24, y: 24 })
 
 // Draggable
 const isDragging = ref(false)
@@ -38,7 +38,6 @@ function onDrag(e: MouseEvent | TouchEvent) {
   const newX = clientX - dragOffset.value.x
   const newY = clientY - dragOffset.value.y
 
-  // Clamp to viewport
   const maxX = window.innerWidth - 56
   const maxY = window.innerHeight - 56
 
@@ -55,7 +54,7 @@ function onDrag(e: MouseEvent | TouchEvent) {
 function stopDrag() {
   isDragging.value = false
 
-  // Snap to nearest edge
+  // Snap to nearest edge horizontally
   const midX = window.innerWidth / 2
   if (position.value.x < midX) {
     position.value.x = 16
@@ -63,6 +62,19 @@ function stopDrag() {
     position.value.x = window.innerWidth - 72
   }
 }
+
+// Determine expand direction based on position
+const expandDirection = computed(() => {
+  const midX = window.innerWidth / 2
+  const midY = window.innerHeight / 2
+  const onLeft = position.value.x < midX
+  const onTop = position.value.y < midY
+
+  if (onTop && onLeft) return 'right-down'
+  if (onTop && !onLeft) return 'left-down'
+  if (!onTop && onLeft) return 'right-up'
+  return 'left-up'
+})
 
 // Actions
 const authStore = useAuthStore()
@@ -82,17 +94,7 @@ function toggleTheme() {
   isDark.value = !isDark.value
 }
 
-function goProfile() {
-  if (authStore.consoleRole === 'user') {
-    navigateTo('/user/profile')
-  } else {
-    navigateTo('/admin/system/user/view')
-  }
-  isExpanded.value = false
-}
-
 function goSettings() {
-  // TODO: navigate to settings page
   isExpanded.value = false
 }
 
@@ -109,10 +111,10 @@ function toggleMenu() {
 }
 
 onMounted(() => {
-  // Initial position: bottom right
+  // Default position: top right
   position.value = {
     x: window.innerWidth - 72,
-    y: window.innerHeight - 120,
+    y: 24,
   }
 
   window.addEventListener('mousemove', onDrag)
@@ -153,25 +155,25 @@ onBeforeUnmount(() => {
 
     <!-- Sub Buttons -->
     <TransitionGroup name="fab-item">
-      <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 2" @click.stop="toggleTheme">
+      <div v-if="isExpanded" key="theme" class="fab-action" style="--i: 0" @click.stop="toggleTheme">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon :icon="isDark ? 'bx-sun' : 'bx-moon'" />
         </VBtn>
-        <span class="fab-label">Theme</span>
+        <span class="fab-label" :class="expandDirection">Theme</span>
       </div>
 
       <div v-if="isExpanded" key="settings" class="fab-action" style="--i: 1" @click.stop="goSettings">
         <VBtn icon size="small" color="surface-variant" elevation="4">
           <VIcon icon="bx-cog" />
         </VBtn>
-        <span class="fab-label">Settings</span>
+        <span class="fab-label" :class="expandDirection">Settings</span>
       </div>
 
-      <div v-if="isExpanded" key="logout" class="fab-action" style="--i: 0" @click.stop="logout">
+      <div v-if="isExpanded" key="logout" class="fab-action" style="--i: 2" @click.stop="logout">
         <VBtn icon size="small" color="error" elevation="4">
           <VIcon icon="bx-log-out" />
         </VBtn>
-        <span class="fab-label">Logout</span>
+        <span class="fab-label" :class="expandDirection">Logout</span>
       </div>
     </TransitionGroup>
   </div>
@@ -204,29 +206,46 @@ onBeforeUnmount(() => {
   transform: rotate(90deg);
 }
 
+/* Base action positioning */
 .fab-action {
   position: absolute;
-  bottom: 0;
   left: 0;
+  top: 0;
   display: flex;
   align-items: center;
   gap: 8px;
   opacity: 0;
-  transform: translateY(0) scale(0);
+  transform: scale(0);
   pointer-events: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transition-delay: calc(var(--i) * 0.05s);
 }
 
+/* Expand left-down (top-right corner default) */
 .is-expanded .fab-action {
-  transform: translateY(calc((var(--i) + 1) * -56px)) scale(1);
+  transform: translateX(calc((var(--i) + 1) * -56px)) scale(1);
   opacity: 1;
   pointer-events: auto;
 }
 
+/* Expand right-down (top-left corner) */
+.is-expanded.expand-right-down .fab-action {
+  transform: translateX(calc((var(--i) + 1) * 56px)) translateY(0) scale(1);
+}
+
+/* Expand right-up (bottom-left corner) */
+.is-expanded.expand-right-up .fab-action {
+  transform: translateX(calc((var(--i) + 1) * 56px)) translateY(0) scale(1);
+}
+
+/* Expand left-up (bottom-right corner) */
+.is-expanded.expand-left-up .fab-action {
+  transform: translateX(calc((var(--i) + 1) * -56px)) translateY(0) scale(1);
+}
+
+/* Label positioning */
 .fab-label {
   position: absolute;
-  right: 48px;
   background: rgba(0, 0, 0, 0.75);
   color: #fff;
   padding: 4px 10px;
@@ -234,6 +253,16 @@ onBeforeUnmount(() => {
   font-size: 12px;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  top: 50%;
+  transform: translateY(-50%);
+  right: 48px;
+}
+
+/* Labels on the left side show to the right */
+.fab-label.right-down,
+.fab-label.right-up {
+  right: auto;
+  left: 48px;
 }
 
 /* Transition animations */
@@ -247,11 +276,11 @@ onBeforeUnmount(() => {
 
 .fab-item-enter-from {
   opacity: 0;
-  transform: translateY(0) scale(0);
+  transform: scale(0);
 }
 
 .fab-item-leave-to {
   opacity: 0;
-  transform: translateY(0) scale(0);
+  transform: scale(0);
 }
 </style>
