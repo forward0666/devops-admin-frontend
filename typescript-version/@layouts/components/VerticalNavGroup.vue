@@ -10,18 +10,23 @@ const route = useRoute()
 
 const isOpen = ref(props.open || false)
 
-// Auto-expand when user navigates into a child route
+// React to prop changes
+watch(() => props.open, (val) => {
+  if (val !== undefined) isOpen.value = val
+})
+
+// Auto-expand when user navigates into a child route (deep recursive)
 const slotEl = ref<HTMLElement | null>(null)
 onMounted(() => {
- const links = slotEl.value?.querySelectorAll('a[href]')
-  if (links) {
-    const checkActive = () => {
-      const isActive = Array.from(links).some((a: HTMLAnchorElement) => route.path.startsWith(a.getAttribute('href') || ''))
+  const checkActive = () => {
+    const allLinks = slotEl.value?.querySelectorAll('a[href]')
+    if (allLinks) {
+      const isActive = Array.from(allLinks).some((a: HTMLAnchorElement) => route.path.startsWith(a.getAttribute('href') || ''))
       if (isActive && !isOpen.value) isOpen.value = true
     }
-    checkActive()
-    watch(() => route.path, checkActive)
   }
+  checkActive()
+  watch(() => route.path, checkActive)
 })
 </script>
 
