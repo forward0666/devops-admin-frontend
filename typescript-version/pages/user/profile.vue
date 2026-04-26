@@ -75,6 +75,7 @@ async function changePassword() {
     snackbar.value = { show: true, text: e.message || 'Failed to change password', color: 'error' }
   } finally {
     loading.value = false
+  }
 }
 
 const resolveAvatarColor = (name: string) => {
