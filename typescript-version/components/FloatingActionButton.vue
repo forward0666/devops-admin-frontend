@@ -79,7 +79,6 @@ onBeforeUnmount(() => {
 
     <!-- Main Button -->
     <VBtn
-      icon
       size="large"
       color="primary"
       class="fab-main"
