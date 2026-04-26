@@ -79,6 +79,7 @@ onBeforeUnmount(() => {
 
     <!-- Main Button -->
     <VBtn
+      icon
       size="large"
       color="primary"
       class="fab-main"
@@ -86,12 +87,7 @@ onBeforeUnmount(() => {
       elevation="6"
       @click="toggleMenu"
     >
-      <template v-if="!isExpanded">
-        <VAvatar size="36" color="primary" variant="tonal">
-          <span class="text-sm font-weight-bold">{{ (authStore.user?.fullName || authStore.user?.username || '?').charAt(0).toUpperCase() }}</span>
-        </VAvatar>
-      </template>
-      <VIcon v-else icon="bx-x" />
+      <VIcon :icon="isExpanded ? 'bx-x' : 'bx-dots-vertical-rounded'" />
     </VBtn>
   </div>
 </template>
