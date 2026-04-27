@@ -202,13 +202,6 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="d-flex justify-space-between align-center mb-6">
-      <div>
-        <h4 class="text-h4">{{ name }} - Members</h4>
-      </div>
-      <VBtn prepend-icon="bx-user-plus" color="primary" :disabled="!canInvite" @click="isInviteDialogVisible = true">Invite Member</VBtn>
-    </div>
-
     <VCard>
       <template v-if="loading">
         <div class="d-flex justify-center align-center pa-8">
@@ -221,6 +214,7 @@ onMounted(() => {
           <VTextField v-model="searchQuery" placeholder="Search Member" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" prepend-inner-icon="bx-search" />
           <VSelect v-model="selectedProjectRole" placeholder="Select Role" :items="['Administrator', 'DevOps', 'Leader', 'Member']" density="comfortable" style="inline-size: 12.5rem;" clearable hide-details variant="outlined" />
           <VSpacer />
+          <VBtn prepend-icon="bx-user-plus" color="primary" size="small" :disabled="!canInvite" @click="isInviteDialogVisible = true">Invite Member</VBtn>
         </VCardText>
         <VDivider class="mt-4" />
         <VDataTable :headers="headers" :items="filteredMembers" :items-per-page="itemsPerPage" class="text-no-wrap">
