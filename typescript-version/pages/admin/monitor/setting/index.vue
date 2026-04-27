@@ -7,8 +7,8 @@ const settings = ref<Record<string, any>>({})
 async function fetchSettings() {
   loading.value = true
   try {
-    const { settingsService } = await import('~/services/api')
-    const res: any = await settingsService.getSystem()
+    const { settingService } = await import('~/services/api')
+    const res: any = await settingService.getSystem()
     settings.value = res?.data || res || {}
   } catch (e) {
     console.error(e)
@@ -19,8 +19,8 @@ async function fetchSettings() {
 
 async function saveSettings() {
   try {
-    const { settingsService } = await import('~/services/api')
-    await settingsService.updateSystem(settings.value)
+    const { settingService } = await import('~/services/api')
+    await settingService.updateSystem(settings.value)
     snackbar.value = { show: true, text: 'Saved', color: 'success' }
   } catch (e) {
     snackbar.value = { show: true, text: 'Failed', color: 'error' }

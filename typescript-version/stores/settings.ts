@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { settingsService } from '~/services/api'
+import { settingService } from '~/services/api'
 
 export const useSettingsStore = defineStore('settings', () => {
   const systemConfig = ref<any>(null)
@@ -14,7 +14,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      systemConfig.value = await settingsService.getSystem()
+      systemConfig.value = await settingService.getSystem()
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {
@@ -26,7 +26,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.updateSystem(data)
+      await settingService.updateSystem(data)
       systemConfig.value = { ...systemConfig.value, ...data }
     } catch (e: any) {
       error.value = e.message || '请求失败'
@@ -39,7 +39,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      securityConfig.value = await settingsService.getSecurity()
+      securityConfig.value = await settingService.getSecurity()
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {
@@ -51,7 +51,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.updateSecurity(data)
+      await settingService.updateSecurity(data)
       securityConfig.value = { ...securityConfig.value, ...data }
     } catch (e: any) {
       error.value = e.message || '请求失败'
@@ -64,7 +64,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      passwordPolicy.value = await settingsService.getPasswordPolicy()
+      passwordPolicy.value = await settingService.getPasswordPolicy()
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {
@@ -76,7 +76,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.updatePasswordPolicy(data)
+      await settingService.updatePasswordPolicy(data)
       passwordPolicy.value = { ...passwordPolicy.value, ...data }
     } catch (e: any) {
       error.value = e.message || '请求失败'
@@ -89,7 +89,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      loginSettings.value = await settingsService.getLoginSettings()
+      loginSettings.value = await settingService.getLoginSettings()
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {
@@ -101,7 +101,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.updateLoginSettings(data)
+      await settingService.updateLoginSettings(data)
       loginSettings.value = { ...loginSettings.value, ...data }
     } catch (e: any) {
       error.value = e.message || '请求失败'
@@ -114,7 +114,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      ipControl.value = await settingsService.getIpControl()
+      ipControl.value = await settingService.getIpControl()
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {
@@ -126,7 +126,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.updateIpControl(data)
+      await settingService.updateIpControl(data)
       ipControl.value = { ...ipControl.value, ...data }
     } catch (e: any) {
       error.value = e.message || '请求失败'
@@ -139,7 +139,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.addIpWhitelist(data)
+      await settingService.addIpWhitelist(data)
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {
@@ -151,7 +151,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.removeIpWhitelist(data)
+      await settingService.removeIpWhitelist(data)
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {
@@ -163,7 +163,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.clearCache()
+      await settingService.clearCache()
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {
@@ -175,7 +175,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      await settingsService.clearAllCache()
+      await settingService.clearAllCache()
     } catch (e: any) {
       error.value = e.message || '请求失败'
     } finally {

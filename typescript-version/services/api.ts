@@ -207,7 +207,7 @@ export const positionService = {
 }
 
 // ============ Settings ============
-export const settingsService = {
+export const settingService = {
   getSystem() {
     return request<any>({ method: 'get', url: '/manage/setting' })
   },
