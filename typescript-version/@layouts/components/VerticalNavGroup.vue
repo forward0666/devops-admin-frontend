@@ -80,6 +80,9 @@ onMounted(() => {
       &.rotate-180 {
         transform: rotate(90deg);
       }
+
+      margin-inline-start: auto !important;
+      margin-inline-end: 0.25rem !important;
     }
   }
 }
