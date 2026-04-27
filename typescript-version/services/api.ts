@@ -360,4 +360,22 @@ export const userConsoleDomainService = {
   },
 }
 
+export const userConsoleMiddlewareService = {
+  list(projectId: string) {
+    return request<any>({ method: 'get', url: `/user/middleware/list`, params: { projectId } })
+  },
+  create(data: any) {
+    return request<any>({ method: 'post', url: '/user/middleware', data })
+  },
+  update(id: string, data: any) {
+    return request<any>({ method: 'put', url: `/user/middleware/${id}`, data })
+  },
+  delete(id: string, projectId: string) {
+    return request<void>({ method: 'delete', url: `/user/middleware/${id}`, params: { projectId } })
+  },
+  importMiddlewares(data: any) {
+    return request<any>({ method: 'post', url: '/user/middleware/import', data })
+  },
+}
+
 export default apiClient
