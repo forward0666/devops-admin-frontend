@@ -20,21 +20,26 @@ const loginSettings = ref<Record<string, any>>({})
 // IP Control
 const ipSettings = ref<Record<string, any>>({})
 
+// Session
+const sessionSettings = ref<Record<string, any>>({})
+
 async function fetchSettings() {
   loading.value = true
   try {
-    const [sys, sec, pwd, login, ip] = await Promise.all([
+    const [sys, sec, pwd, login, ip, session] = await Promise.all([
       settingsService.getSystem(),
       settingsService.getSecurity(),
       settingsService.getPasswordPolicy(),
       settingsService.getLoginSettings(),
       settingsService.getIpControl(),
+      settingsService.getSession(),
     ])
     systemSettings.value = sys?.data || sys || {}
     securitySettings.value = sec?.data || sec || {}
     passwordPolicy.value = pwd?.data || pwd || {}
     loginSettings.value = login?.data || login || {}
     ipSettings.value = ip?.data || ip || {}
+    sessionSettings.value = session?.data || session || {}
   } catch (e: any) {
     console.error('Failed to fetch settings:', e)
   } finally {
@@ -66,6 +71,10 @@ async function saveSettings(section: string) {
         data = ipSettings.value
         await settingsService.updateIpControl(data)
         break
+      case 'session':
+        data = sessionSettings.value
+        await settingsService.updateSession(data)
+        break
     }
     snackbar.value = { show: true, text: 'Settings saved successfully', color: 'success' }
   } catch (e: any) {
@@ -74,6 +83,24 @@ async function saveSettings(section: string) {
 }
 
 onMounted(fetchSettings)
+
+function formatLabel(key: string) {
+  const labels: Record<string, string> = {
+    'session.token_expire_seconds': 'Token 超时时间 (秒)',
+    'session.refresh_token_expire_seconds': 'Refresh Token 超时时间 (秒)',
+    'session.max_concurrent_sessions': '最大并发会话数',
+  }
+  return labels[key] || key
+}
+
+function getHint(key: string) {
+  const hints: Record<string, string> = {
+    'session.token_expire_seconds': '默认 86400 秒 (24小时)',
+    'session.refresh_token_expire_seconds': '默认 604800 秒 (7天)',
+    'session.max_concurrent_sessions': '同一用户最大同时登录数',
+  }
+  return hints[key] || ''
+}
 </script>
 
 <template>
@@ -84,6 +111,7 @@ onMounted(fetchSettings)
         <VTab value="security">Security</VTab>
         <VTab value="password">Password Policy</VTab>
         <VTab value="login">Login Security</VTab>
+        <VTab value="session">Session</VTab>
         <VTab value="ip">IP Control</VTab>
       </VTabs>
 
@@ -167,6 +195,27 @@ onMounted(fetchSettings)
             </VRow>
             <div v-if="!Object.keys(loginSettings).length" class="text-center text-medium-emphasis pa-4">No login security settings found</div>
             <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('login')">Save</VBtn>
+          </VCardText>
+        </VWindowItem>
+
+        <!-- Session -->
+        <VWindowItem value="session">
+          <VCardText>
+            <VRow>
+              <VCol v-for="(value, key) in sessionSettings" :key="key" cols="12" md="6">
+                <VTextField
+                  :model-value="value"
+                  :label="formatLabel(String(key))"
+                  density="comfortable"
+                  variant="outlined"
+                  :hint="getHint(String(key))"
+                  persistent-hint
+                  @update:model-value="sessionSettings[key] = $event"
+                />
+              </VCol>
+            </VRow>
+            <div v-if="!Object.keys(sessionSettings).length" class="text-center text-medium-emphasis pa-4">No session settings found</div>
+            <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('session')">Save</VBtn>
           </VCardText>
         </VWindowItem>
 

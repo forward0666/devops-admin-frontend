@@ -238,6 +238,12 @@ export const settingsService = {
   updateIpControl(data: any) {
     return request<void>({ method: 'put', url: '/manage/settings/security/ip-control', data })
   },
+  getSession() {
+    return request<any>({ method: 'get', url: '/manage/settings/session' })
+  },
+  updateSession(data: any) {
+    return request<void>({ method: 'put', url: '/manage/settings/session', data })
+  },
   addIpWhitelist(data: any) {
     return request<void>({ method: 'post', url: '/manage/settings/security/ip-control/whitelist/add', data })
   },
