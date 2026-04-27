@@ -176,11 +176,11 @@ export default defineComponent({
     .nav-item-title,
     .nav-item-badge,
     .nav-group-arrow {
-      opacity: 0;
-      overflow: hidden;
-      inline-size: 0;
-      margin: 0;
-      padding: 0;
+      opacity: 0 !important;
+      overflow: hidden !important;
+      inline-size: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
       transition: opacity 0.2s ease;
     }
 
@@ -194,13 +194,7 @@ export default defineComponent({
 
     .app-title-wrapper h1,
     .app-title-wrapper {
-      overflow: hidden;
-      inline-size: 0;
-      min-inline-size: 0;
-      opacity: 0;
-      margin: 0;
-      padding: 0;
-      pointer-events: none;
+      display: none !important;
     }
   }
 

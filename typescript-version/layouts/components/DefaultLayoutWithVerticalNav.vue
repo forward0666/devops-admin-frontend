@@ -14,6 +14,11 @@ onMounted(() => {
   watch(isNavCollapsed, (val) => {
     nav?.classList.toggle('layout-vertical-nav-collapsed', val)
     wrapper?.classList.toggle('layout-vertical-nav-collapsed', val)
+    // Also collapse the nav-header section
+    const navHeader = document.querySelector('.nav-header') as HTMLElement
+    if (navHeader) {
+      navHeader.style.display = val ? 'flex' : 'flex'
+    }
   })
 })
 </script>
