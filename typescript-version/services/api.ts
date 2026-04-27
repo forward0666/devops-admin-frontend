@@ -212,49 +212,49 @@ export const settingsService = {
     return request<any>({ method: 'get', url: '/manage/settings' })
   },
   updateSystem(data: any) {
-    return request<void>({ method: 'put', url: '/manage/settings/system', data })
+    return request<void>({ method: 'put', url: '/manage/setting/system', data })
   },
   getSecurity() {
-    return request<any>({ method: 'get', url: '/manage/settings/security' })
+    return request<any>({ method: 'get', url: '/manage/setting/security' })
   },
   updateSecurity(data: any) {
-    return request<void>({ method: 'put', url: '/manage/settings/security', data })
+    return request<void>({ method: 'put', url: '/manage/setting/security', data })
   },
   getPasswordPolicy() {
-    return request<any>({ method: 'get', url: '/manage/settings/security/password-policy' })
+    return request<any>({ method: 'get', url: '/manage/setting/security/password-policy' })
   },
   updatePasswordPolicy(data: any) {
-    return request<void>({ method: 'put', url: '/manage/settings/security/password-policy', data })
+    return request<void>({ method: 'put', url: '/manage/setting/security/password-policy', data })
   },
   getLoginSettings() {
-    return request<any>({ method: 'get', url: '/manage/settings/security/login' })
+    return request<any>({ method: 'get', url: '/manage/setting/security/login' })
   },
   updateLoginSettings(data: any) {
-    return request<void>({ method: 'put', url: '/manage/settings/security/login', data })
+    return request<void>({ method: 'put', url: '/manage/setting/security/login', data })
   },
   getIpControl() {
-    return request<any>({ method: 'get', url: '/manage/settings/security/ip-control' })
+    return request<any>({ method: 'get', url: '/manage/setting/security/ip-control' })
   },
   updateIpControl(data: any) {
-    return request<void>({ method: 'put', url: '/manage/settings/security/ip-control', data })
+    return request<void>({ method: 'put', url: '/manage/setting/security/ip-control', data })
   },
   getSession() {
-    return request<any>({ method: 'get', url: '/manage/settings/session' })
+    return request<any>({ method: 'get', url: '/manage/setting/session' })
   },
   updateSession(data: any) {
-    return request<void>({ method: 'put', url: '/manage/settings/session', data })
+    return request<void>({ method: 'put', url: '/manage/setting/session', data })
   },
   addIpWhitelist(data: any) {
-    return request<void>({ method: 'post', url: '/manage/settings/security/ip-control/whitelist/add', data })
+    return request<void>({ method: 'post', url: '/manage/setting/security/ip-control/whitelist/add', data })
   },
   removeIpWhitelist(data: any) {
-    return request<void>({ method: 'delete', url: '/manage/settings/security/ip-control/whitelist/remove', data })
+    return request<void>({ method: 'delete', url: '/manage/setting/security/ip-control/whitelist/remove', data })
   },
   clearCache() {
-    return request<void>({ method: 'post', url: '/manage/settings/cache/clear' })
+    return request<void>({ method: 'post', url: '/manage/setting/cache/clear' })
   },
   clearAllCache() {
-    return request<void>({ method: 'post', url: '/manage/settings/cache/clear-all' })
+    return request<void>({ method: 'post', url: '/manage/setting/cache/clear-all' })
   },
 }
 
