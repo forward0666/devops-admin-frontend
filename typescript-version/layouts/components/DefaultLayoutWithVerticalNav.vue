@@ -9,27 +9,19 @@ const isNavCollapsed = ref(false)
 
 watch(isNavCollapsed, (val) => {
   localStorage.setItem('nav-collapsed', String(val))
+  const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
+  const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
+  nav?.classList.toggle('layout-vertical-nav-collapsed', val)
+  wrapper?.classList.toggle('layout-vertical-nav-collapsed', val)
 })
 
 onMounted(() => {
   isNavCollapsed.value = localStorage.getItem('nav-collapsed') === 'true'
-  const apply = () => {
+  if (isNavCollapsed.value) {
     const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
     const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
-    nav?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
-    wrapper?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
-  }
-  // Use requestAnimationFrame to ensure DOM is ready
-  requestAnimationFrame(apply)
-})
-
-// Apply on every render cycle to handle SPA navigation
-watchEffect(() => {
-  if (import.meta.client && document.querySelector('.layout-vertical-nav')) {
-    const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
-    const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
-    nav?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
-    wrapper?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
+    nav?.classList.toggle('layout-vertical-nav-collapsed', true)
+    wrapper?.classList.toggle('layout-vertical-nav-collapsed', true)
   }
 })
 </script>
