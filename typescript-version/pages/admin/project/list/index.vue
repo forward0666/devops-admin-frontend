@@ -63,8 +63,17 @@ function saveEdit() {
   isEditDialogVisible.value = false
 }
 
+const isDeleteDialogVisible = ref(false)
+const deletingProjectId = ref<number | null>(null)
+
 function deleteProject(id: number) {
-  projectStore.deleteProject(id)
+  deletingProjectId.value = id
+  isDeleteDialogVisible.value = true
+}
+
+function confirmDelete() {
+  if (deletingProjectId.value) projectStore.deleteProject(deletingProjectId.value)
+  isDeleteDialogVisible.value = false
 }
 
 onMounted(() => {
@@ -172,6 +181,21 @@ onMounted(() => {
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
           <VBtn color="primary" @click="saveEdit">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Delete Confirm Dialog -->
+    <VDialog v-model="isDeleteDialogVisible" max-width="400">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Delete Project</VCardTitle>
+          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
+        <VCardText>Are you sure you want to delete this project? This action cannot be undone.</VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
+          <VBtn color="error" @click="confirmDelete">Delete</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
