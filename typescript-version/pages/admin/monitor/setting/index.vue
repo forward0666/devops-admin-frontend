@@ -9,7 +9,9 @@ async function fetchSettings() {
   try {
     const { settingService } = await import('~/services/api')
     const res: any = await settingService.getSystem()
-    settings.value = res?.data || res || {}
+    const data = res?.data || res
+    console.log('settings response:', res, 'data:', data)
+    settings.value = data || {}
   } catch (e) {
     console.error(e)
   } finally {
