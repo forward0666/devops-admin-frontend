@@ -129,6 +129,14 @@ const isProjectActive = (projectId: number) => {
           to: '/admin/monitor/log',
         }"
       />
+      <VDivider class="my-2 mx-3" />
+      <VerticalNavLink
+        :item="{
+          title: 'System Config',
+          icon: 'bx-cog',
+          to: '/admin/monitor/config',
+        }"
+      />
 
     </template>
 
