@@ -173,6 +173,19 @@ export default defineComponent({
 
   // Hide text when nav is collapsed
   .layout-vertical-nav.layout-vertical-nav-collapsed {
+    .nav-item-icon,
+    .nav-group-label .nav-item-icon {
+      margin-inline-end: 0 !important;
+      margin-inline-start: 0 !important;
+    }
+
+    .nav-link,
+    .nav-group-label {
+      justify-content: center !important;
+      padding-inline-start: 0 !important;
+      padding-inline-end: 0 !important;
+    }
+
     .nav-item-title,
     .nav-item-badge,
     .nav-group-arrow {
@@ -190,6 +203,10 @@ export default defineComponent({
 
     .nav-group-children-wrapper {
       display: none !important;
+    }
+
+    .app-title-wrapper {
+      justify-content: center !important;
     }
 
     .app-title-wrapper h1 {
