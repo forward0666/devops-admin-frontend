@@ -220,22 +220,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
       </VCol>
     </VRow>
 
-    <!-- Filters -->
     <VCard class="mb-6">
-      <VCardItem class="pb-4">
-        <VCardTitle>Filters</VCardTitle>
-      </VCardItem>
-      <VCardText class="pt-0">
-        <VRow>
-          <VCol cols="12" sm="4">
-            <VSelect v-model="selectedRole" placeholder="Select Role" :items="roleOptions" density="comfortable" clearable hide-details variant="outlined" />
-          </VCol>
-          <VCol cols="12" sm="4">
-            <VSelect v-model="selectedStatus" placeholder="Select Status" :items="['active', 'inactive']" density="comfortable" clearable hide-details variant="outlined" />
-          </VCol>
-        </VRow>
-      </VCardText>
-      <VDivider />
       <VCardText class="d-flex flex-wrap gap-4">
         <VTextField v-model="searchQuery" placeholder="Search User" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
         <VSpacer />
