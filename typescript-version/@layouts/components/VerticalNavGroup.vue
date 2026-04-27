@@ -74,6 +74,10 @@ onMounted(() => {
       cursor: pointer;
     }
 
+    .nav-item-badge {
+      display: none !important;
+    }
+
     .nav-group-arrow {
       transition: transform 0.25s ease;
 
