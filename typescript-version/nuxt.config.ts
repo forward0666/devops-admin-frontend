@@ -16,7 +16,7 @@ export default defineNuxtConfig({
       }],
 
       script: [{
-        innerHTML: `if(localStorage.getItem('nav-collapsed')==='true'){document.documentElement.classList.add('nav-collapsed-init')}`
+        innerHTML: `(function(){function f(){var n=document.querySelector('.layout-vertical-nav'),w=document.querySelector('.layout-wrapper');if(n&&w){var c=localStorage.getItem('nav-collapsed')==='true';n.classList.toggle('layout-vertical-nav-collapsed',c);w.classList.toggle('layout-vertical-nav-collapsed',c)}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',f);else f()})()`
       }],
     },
   },

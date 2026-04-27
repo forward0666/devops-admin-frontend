@@ -165,16 +165,14 @@ export default defineComponent({
   }
 
   // Adjust right column pl when vertical nav is collapsed
-  &.layout-vertical-nav-collapsed .layout-content-wrapper,
-  &:root.nav-collapsed-init .layout-content-wrapper {
+  &.layout-vertical-nav-collapsed .layout-content-wrapper {
     @media screen and (min-width: 1280px) {
       padding-inline-start: variables.$layout-vertical-nav-collapsed-width;
     }
   }
 
   // Hide text when nav is collapsed
-  .layout-vertical-nav.layout-vertical-nav-collapsed,
-  :root.nav-collapsed-init .layout-vertical-nav {
+  .layout-vertical-nav.layout-vertical-nav-collapsed {
     .nav-link,
     .nav-group,
     .nav-group-label {
