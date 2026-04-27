@@ -5,23 +5,32 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 const authStore = useAuthStore()
 const consoleRole = computed(() => authStore.consoleRole)
 
-const isNavCollapsed = ref(typeof window !== 'undefined' ? localStorage.getItem('nav-collapsed') === 'true' : false)
-
-const applyCollapse = () => {
-  const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
-  const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
-  nav?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
-  wrapper?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
-}
+const isNavCollapsed = ref(false)
 
 watch(isNavCollapsed, (val) => {
   localStorage.setItem('nav-collapsed', String(val))
-  applyCollapse()
 })
 
 onMounted(() => {
   isNavCollapsed.value = localStorage.getItem('nav-collapsed') === 'true'
-  applyCollapse()
+  const apply = () => {
+    const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
+    const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
+    nav?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
+    wrapper?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
+  }
+  // Use requestAnimationFrame to ensure DOM is ready
+  requestAnimationFrame(apply)
+})
+
+// Apply on every render cycle to handle SPA navigation
+watchEffect(() => {
+  if (import.meta.client && document.querySelector('.layout-vertical-nav')) {
+    const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
+    const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
+    nav?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
+    wrapper?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
+  }
 })
 </script>
 
