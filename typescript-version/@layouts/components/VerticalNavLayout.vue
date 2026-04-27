@@ -171,6 +171,35 @@ export default defineComponent({
     }
   }
 
+  // Hide text when nav is collapsed
+  .layout-vertical-nav-collapsed .layout-vertical-nav {
+    .nav-item-title,
+    .nav-item-badge,
+    .nav-group-arrow {
+      opacity: 0;
+      overflow: hidden;
+      inline-size: 0;
+      margin: 0;
+      padding: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .nav-group-label {
+      justify-content: center;
+    }
+
+    .nav-group-children-wrapper {
+      display: none !important;
+    }
+
+    .app-title-wrapper h1 {
+      opacity: 0;
+      overflow: hidden;
+      inline-size: 0;
+      margin: 0;
+    }
+  }
+
   // 👉 Content height fixed
   &.layout-content-height-fixed {
     .layout-content-wrapper {

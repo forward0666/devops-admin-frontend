@@ -4,6 +4,18 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 
 const authStore = useAuthStore()
 const consoleRole = computed(() => authStore.consoleRole)
+
+const isNavCollapsed = ref(false)
+
+// Toggle collapsed class on the sidebar element
+onMounted(() => {
+  const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
+  const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
+  watch(isNavCollapsed, (val) => {
+    nav?.classList.toggle('layout-vertical-nav-collapsed', val)
+    wrapper?.classList.toggle('layout-vertical-nav-collapsed', val)
+  })
+})
 </script>
 
 <template>
@@ -30,6 +42,19 @@ const consoleRole = computed(() => authStore.consoleRole)
         <NavItems :key="consoleRole" />
     </template>
 
+    <template #after-vertical-nav-items>
+      <!-- 👉 Collapse toggle button -->
+      <div class="nav-collapse-btn-wrapper">
+        <IconBtn
+          size="small"
+          variant="text"
+          @click="isNavCollapsed = !isNavCollapsed"
+        >
+          <VIcon :icon="isNavCollapsed ? 'bx-menu' : 'bx-menu-alt-left'" size="20" />
+        </IconBtn>
+      </div>
+    </template>
+
     <!-- 👉 Pages -->
     <div :key="consoleRole">
       <FloatingActionButton />
@@ -52,4 +77,11 @@ const consoleRole = computed(() => authStore.consoleRole)
   padding-inline: 0.25rem;
 }
 
+.nav-collapse-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  padding-block: 0.75rem;
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  margin-inline: 0.75rem;
+}
 </style>
