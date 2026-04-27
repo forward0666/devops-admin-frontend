@@ -1,26 +1,18 @@
 <script setup lang="ts">
-// TODO: 待对接后端 API - Online users page
-// 后端暂无 online session API，保留现有 UI 布局
+const search = ref('')
 </script>
 
 <template>
   <div>
     <VCard class="mb-4">
       <VCardText class="d-flex flex-wrap align-center gap-4">
+        <VTextField v-model="search" placeholder="Keyword Search" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" prepend-inner-icon="bx-search" />
         <VSpacer />
         <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" size="small">Refresh</VBtn>
       </VCardText>
     </VCard>
 
-    <VAlert variant="tonal" color="warning" density="comfortable" class="mb-4">
-      <template #prepend><VIcon icon="bx-info-circle" /></template>
-      Online users API is not yet available. This page will be connected once the backend endpoint is ready.
-    </VAlert>
-
     <VCard>
-      <VCardText>
-        <AppTextField placeholder="Search username or IP" prepend-inner-icon="bx-search" density="compact" hide-details />
-      </VCardText>
       <VDataTable
         :headers="[
           { title: 'Session ID', key: 'sessionId' },
