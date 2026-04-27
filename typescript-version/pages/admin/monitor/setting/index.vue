@@ -2,31 +2,52 @@
 const loading = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 const activeTab = ref('system')
-const settings = ref<Record<string, any>>({})
+const systemData = ref<Record<string, any>>({})
+const securityData = ref<Record<string, any>>({})
 
 async function fetchSettings() {
   loading.value = true
   try {
     const { settingService } = await import('~/services/api')
-    const res: any = await settingService.getSystem()
-    const data = res?.data || res
-    console.log('settings response:', res, 'data:', data)
-    settings.value = data || {}
-  } catch (e) {
+    const [sysRes, secRes] = await Promise.all([
+      settingService.getSystem(),
+      settingService.getSecurity(),
+    ])
+    const sys = sysRes?.data ?? sysRes
+    const sec = secRes?.data ?? secRes
+    systemData.value = (typeof sys === 'object' && !Array.isArray(sys)) ? sys : {}
+    securityData.value = (typeof sec === 'object' && !Array.isArray(sec)) ? sec : {}
+  }
+  catch (e) {
     console.error(e)
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
 
-async function saveSettings() {
+async function saveSettings(section: string) {
+  loading.value = true
   try {
     const { settingService } = await import('~/services/api')
-    await settingService.updateSystem(settings.value)
+    if (section === 'system') {
+      await settingService.updateSystem(systemData.value)
+    }
+    else {
+      await settingService.updateSecurity(securityData.value)
+    }
     snackbar.value = { show: true, text: 'Saved', color: 'success' }
-  } catch (e) {
+  }
+  catch (e) {
     snackbar.value = { show: true, text: 'Failed', color: 'error' }
   }
+  finally {
+    loading.value = false
+  }
+}
+
+function formatKey(key: string) {
+  return key.split('.').pop()!.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 onMounted(fetchSettings)
@@ -35,23 +56,44 @@ onMounted(fetchSettings)
 <template>
   <div>
     <VCard :loading="loading">
-      <VCardText>
-        <VRow>
-          <VCol v-for="(value, key) in settings" :key="key" cols="12" md="6">
-            <VTextField
-              :model-value="value"
-              :label="String(key)"
-              density="comfortable"
-              variant="outlined"
-              hide-details
-              @update:model-value="settings[key] = $event"
-            />
-          </VCol>
-        </VRow>
-        <div v-if="!Object.keys(settings).length && !loading" class="text-center text-medium-emphasis pa-4">No settings found</div>
-        <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings">Save</VBtn>
-      </VCardText>
+      <VTabs v-model="activeTab">
+        <VTab value="system">
+          System
+        </VTab>
+        <VTab value="security">
+          Security
+        </VTab>
+      </VTabs>
+      <VDivider />
+      <VWindow v-model="activeTab">
+        <VWindowItem value="system">
+          <VCardText>
+            <VRow>
+              <VCol v-for="(value, key) in systemData" :key="key" cols="12" md="6">
+                <VTextField :model-value="value" :label="formatKey(key)" density="comfortable" variant="outlined" hide-details @update:model-value="systemData[key] = $event" />
+              </VCol>
+            </VRow>
+            <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('system')">
+              Save
+            </VBtn>
+          </VCardText>
+        </VWindowItem>
+        <VWindowItem value="security">
+          <VCardText>
+            <VRow>
+              <VCol v-for="(value, key) in securityData" :key="key" cols="12" md="6">
+                <VTextField :model-value="value" :label="formatKey(key)" density="comfortable" variant="outlined" hide-details @update:model-value="securityData[key] = $event" />
+              </VCol>
+            </VRow>
+            <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('security')">
+              Save
+            </VBtn>
+          </VCardText>
+        </VWindowItem>
+      </VWindow>
     </VCard>
-    <VSnackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top end">{{ snackbar.text }}</VSnackbar>
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top end">
+      {{ snackbar.text }}
+    </VSnackbar>
   </div>
 </template>
