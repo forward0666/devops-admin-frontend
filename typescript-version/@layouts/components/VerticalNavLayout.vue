@@ -172,7 +172,7 @@ export default defineComponent({
   }
 
   // Hide text when nav is collapsed
-  .layout-vertical-nav-collapsed .layout-vertical-nav {
+  .layout-vertical-nav.layout-vertical-nav-collapsed {
     .nav-item-title,
     .nav-item-badge,
     .nav-group-arrow {
