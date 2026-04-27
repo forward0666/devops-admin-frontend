@@ -5,7 +5,7 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 const authStore = useAuthStore()
 const consoleRole = computed(() => authStore.consoleRole)
 
-const isNavCollapsed = useLocalStorage('nav-collapsed', false)
+const isNavCollapsed = ref(typeof window !== 'undefined' ? localStorage.getItem('nav-collapsed') === 'true' : false)
 
 const applyCollapse = () => {
   const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
@@ -14,15 +14,15 @@ const applyCollapse = () => {
   wrapper?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
 }
 
-onMounted(() => {
+watch(isNavCollapsed, (val) => {
+  localStorage.setItem('nav-collapsed', String(val))
   applyCollapse()
-  watch(isNavCollapsed, applyCollapse)
 })
 
-// Also apply on client-side navigation (Nuxt page transitions)
-if (import.meta.client) {
-  nextTick(applyCollapse)
-}
+onMounted(() => {
+  isNavCollapsed.value = localStorage.getItem('nav-collapsed') === 'true'
+  applyCollapse()
+})
 </script>
 
 <template>
