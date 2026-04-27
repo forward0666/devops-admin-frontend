@@ -47,8 +47,35 @@ const toggleExpand = (env: string) => {
 const isRowExpanded = (env: string) => expandedRows.value.includes(env)
 
 const authStore = useAuthStore()
-const canViewSensitive = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.role || ''))
-const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.role || ''))
+
+// Fetch current user's project role
+const myProjectRole = ref('Member')
+
+async function fetchMyRole() {
+  try {
+    const { userConsoleMemberService } = await import('~/services/api')
+    const res: any = await userConsoleMemberService.list(projectId.value)
+    const members = Array.isArray(res) ? res : res?.data || []
+    const myMember = members.find((m: any) => Number(m.userId) === Number(authStore.user?.id))
+    myProjectRole.value = myMember?.projectRole || 'Member'
+  } catch { /* ignore */ }
+}
+
+const canViewSensitive = computed(() => {
+  const role = authStore.role || ''
+  const pr = myProjectRole.value
+  // System admin/devops or project Administrator/DevOps/Leader can see all
+  if (['sys_admin', 'admin', 'devops'].includes(role)) return true
+  if (['Administrator', 'DevOps', 'Leader'].includes(pr)) return true
+  return false
+})
+const canManage = computed(() => {
+  const role = authStore.role || ''
+  const pr = myProjectRole.value
+  if (['sys_admin', 'admin', 'devops'].includes(role)) return true
+  if (['Administrator', 'DevOps'].includes(pr)) return true
+  return false
+})
 
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')
 const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-test-tube', dev: 'bx-code' }[env] || 'bx-globe')
@@ -65,8 +92,10 @@ const envList = computed(() => {
 })
 
 function getVisibleChildren(env: any) {
+  const pr = myProjectRole.value
   return env.children.filter((c: any) => {
-    if (c.env === 'prod' && (c.type === 'callback' || c.type === 'api' || c.type === 'admin') && !canViewSensitive.value) return false
+    // Member in prod: only show web type
+    if (c.env === 'prod' && pr === 'Member' && c.type !== 'web') return false
     return true
   })
 }
@@ -100,7 +129,7 @@ async function fetchDomains() {
   }
 }
 
-onMounted(fetchDomains)
+onMounted(() => { fetchMyRole(); fetchDomains() })
 
 // Add
 const isAddDialogVisible = ref(false)

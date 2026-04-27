@@ -7,7 +7,25 @@ const projectId = computed(() => route.params.id as string)
 
 const projectStore = useProjectStore()
 const authStore = useAuthStore()
-const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.role || ''))
+
+const myProjectRole = ref('Member')
+async function fetchMyRole() {
+  try {
+    const { userConsoleMemberService } = await import('~/services/api')
+    const res: any = await userConsoleMemberService.list(projectId.value)
+    const members = Array.isArray(res) ? res : res?.data || []
+    const myMember = members.find((m: any) => Number(m.userId) === Number(authStore.user?.id))
+    myProjectRole.value = myMember?.projectRole || 'Member'
+  } catch { /* ignore */ }
+}
+
+const canManage = computed(() => {
+  const role = authStore.role || ''
+  const pr = myProjectRole.value
+  if (['sys_admin', 'admin', 'devops'].includes(role)) return true
+  if (['Administrator', 'DevOps'].includes(pr)) return true
+  return false
+})
 const name = computed(() => projectStore.projects.find(p => String(p.id) === projectId.value)?.name || 'Unknown Project')
 
 const expandedRows = ref<string[]>([])
@@ -67,7 +85,7 @@ async function fetchMiddlewares() {
   }
 }
 
-onMounted(fetchMiddlewares)
+onMounted(() => { fetchMyRole(); fetchMiddlewares() })
 
 // Add
 const isAddDialogVisible = ref(false)
