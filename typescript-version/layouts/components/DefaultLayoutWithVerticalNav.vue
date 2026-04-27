@@ -7,27 +7,17 @@ const consoleRole = computed(() => authStore.consoleRole)
 
 const isNavCollapsed = ref(false)
 
-watch(isNavCollapsed, (val) => {
-  localStorage.setItem('nav-collapsed', String(val))
-  const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
-  const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
-  nav?.classList.toggle('layout-vertical-nav-collapsed', val)
-  wrapper?.classList.toggle('layout-vertical-nav-collapsed', val)
-})
-
 onMounted(() => {
   isNavCollapsed.value = localStorage.getItem('nav-collapsed') === 'true'
-  if (isNavCollapsed.value) {
-    const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
-    const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
-    nav?.classList.toggle('layout-vertical-nav-collapsed', true)
-    wrapper?.classList.toggle('layout-vertical-nav-collapsed', true)
-  }
+})
+
+watch(isNavCollapsed, (val) => {
+  localStorage.setItem('nav-collapsed', String(val))
 })
 </script>
 
 <template>
-  <VerticalNavLayout>
+  <VerticalNavLayout :collapsed="isNavCollapsed">
     <!-- 👉 navbar -->
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">

@@ -8,15 +8,10 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: 'DevOps Admin',
-
       link: [{
         rel: 'icon',
         type: 'image/x-icon',
         href: '/favicon.ico',
-      }],
-
-      script: [{
-        innerHTML: `(function(){function f(){var n=document.querySelector('.layout-vertical-nav'),w=document.querySelector('.layout-wrapper');if(n&&w){var c=localStorage.getItem('nav-collapsed')==='true';n.classList.toggle('layout-vertical-nav-collapsed',c);w.classList.toggle('layout-vertical-nav-collapsed',c)}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',f);else f()})()`
       }],
     },
   },

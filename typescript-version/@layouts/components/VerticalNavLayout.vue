@@ -3,6 +3,12 @@ import { useDisplay } from 'vuetify'
 import VerticalNav from '@layouts/components/VerticalNav.vue'
 
 export default defineComponent({
+  props: {
+    collapsed: {
+      type: Boolean,
+      default: false,
+    },
+  },
   setup(props, { slots }) {
     const isOverlayNavActive = ref(false)
     const isLayoutOverlayVisible = ref(false)
@@ -19,7 +25,7 @@ export default defineComponent({
       // 👉 Vertical nav
       const verticalNav = h(
         VerticalNav,
-        { isOverlayNavActive: isOverlayNavActive.value, toggleIsOverlayNavActive },
+        { isOverlayNavActive: isOverlayNavActive.value, toggleIsOverlayNavActive, class: { 'layout-vertical-nav-collapsed': props.collapsed } },
         {
           'nav-header': () => slots['vertical-nav-header']?.({ toggleIsOverlayNavActive }),
           'before-nav-items': () => slots['before-vertical-nav-items']?.(),
@@ -71,6 +77,7 @@ export default defineComponent({
           class: [
             'layout-wrapper layout-nav-type-vertical layout-navbar-static layout-footer-static layout-content-width-fluid',
             mdAndDown.value && 'layout-overlay-nav',
+            props.collapsed && 'layout-vertical-nav-collapsed',
             route.meta.layoutWrapperClasses,
           ],
         },
