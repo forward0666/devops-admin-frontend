@@ -45,6 +45,7 @@ const fieldGroups: { title: string; fields: { key: string; label: string; type: 
       { key: 'setting.ip.allowed_ips', label: 'IP Allowed List (comma separated)', type: 'text' },
       { key: 'setting.ip.blocked_ips', label: 'IP Blocked List (comma separated)', type: 'text' },
     ],
+    full: true,
   },
 ]
 
@@ -104,7 +105,7 @@ onMounted(fetchSettings)
       <VDivider />
       <VCardText>
         <VRow>
-          <VCol v-for="field in group.fields" :key="field.key" cols="12" md="6">
+          <VCol v-for="field in group.fields" :key="field.key" :cols="group.full ? 12 : 6" :md="group.full ? 12 : 6">
             <VSwitch
               v-if="field.type === 'switch'"
               :model-value="toBool(getVal(field.key))"
