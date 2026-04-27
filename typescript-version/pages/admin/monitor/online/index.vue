@@ -4,15 +4,13 @@ const search = ref('')
 
 <template>
   <div>
-    <VCard class="mb-4">
+    <VCard>
       <VCardText class="d-flex flex-wrap align-center gap-4">
         <VTextField v-model="search" placeholder="Keyword Search" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" prepend-inner-icon="bx-search" />
         <VSpacer />
         <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" size="small">Refresh</VBtn>
       </VCardText>
-    </VCard>
-
-    <VCard>
+      <VDivider />
       <VDataTable
         :headers="[
           { title: 'Session ID', key: 'sessionId' },
