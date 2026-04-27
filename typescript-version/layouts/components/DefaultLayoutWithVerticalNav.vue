@@ -42,14 +42,11 @@ watch(isNavCollapsed, (val) => {
 
     <template #after-vertical-nav-items>
       <!-- 👉 Collapse toggle button -->
-      <div class="nav-collapse-btn-wrapper">
-        <IconBtn
-          size="small"
-          variant="text"
-          @click="isNavCollapsed = !isNavCollapsed"
-        >
-          <VIcon :icon="isNavCollapsed ? 'bx-chevron-left' : 'bx-chevron-right'" size="20" />
-        </IconBtn>
+      <div class="nav-collapse-btn-wrapper" @click="isNavCollapsed = !isNavCollapsed">
+        <span class="collapse-icon">
+          <span class="collapse-bar" />
+          <VIcon :icon="isNavCollapsed ? 'bx-chevron-right' : 'bx-chevron-left'" size="14" />
+        </span>
       </div>
     </template>
 
@@ -81,5 +78,27 @@ watch(isNavCollapsed, (val) => {
   padding-block: 0.75rem;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   margin-inline: 0.75rem;
+  cursor: pointer;
+}
+
+.collapse-icon {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(var(--v-theme-on-surface), 0.08);
+  }
+}
+
+.collapse-bar {
+  display: inline-block;
+  width: 2px;
+  height: 16px;
+  background-color: rgba(var(--v-theme-on-surface), 0.5);
+  border-radius: 1px;
 }
 </style>
