@@ -74,19 +74,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <!-- Filters Card -->
     <VCard class="mb-6">
-      <VCardItem class="pb-4">
-        <VCardTitle>Filter</VCardTitle>
-      </VCardItem>
-      <VCardText class="pt-0">
-        <VRow>
-          <VCol cols="12" sm="4">
-            <VSelect v-model="selectedStatus" placeholder="Select Status" :items="['active', 'completed', 'pending', 'archived']" density="comfortable" clearable hide-details variant="outlined" />
-          </VCol>
-        </VRow>
-      </VCardText>
-      <VDivider />
       <VCardText class="d-flex flex-wrap gap-4">
         <VTextField v-model="searchQuery" placeholder="Search Project" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" prepend-inner-icon="bx-search" />
         <VSpacer />
