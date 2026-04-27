@@ -37,7 +37,7 @@ onMounted(() => {
   >
     <div
       class="nav-group-label"
-      @click="isOpen = !isOpen"
+      @click.stop="isOpen = !isOpen"
     >
       <VIcon
         :icon="item.icon || 'bxs-circle'"
