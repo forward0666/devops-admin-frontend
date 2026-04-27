@@ -5,7 +5,7 @@ import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 const authStore = useAuthStore()
 const consoleRole = computed(() => authStore.consoleRole)
 
-const isNavCollapsed = ref(false)
+const isNavCollapsed = useLocalStorage('nav-collapsed', false)
 
 // Toggle collapsed class on the sidebar element
 onMounted(() => {
