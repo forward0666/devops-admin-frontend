@@ -132,7 +132,7 @@ const isProjectActive = (projectId: number) => {
       <VDivider class="my-2 mx-3" />
       <VerticalNavLink
         :item="{
-          title: 'Settings',
+          title: 'Setting',
           icon: 'bx-cog',
           to: '/admin/monitor/setting',
         }"
