@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { userService } from '~/services/api'
-
 const projectStore = useProjectStore()
 const searchQuery = ref('')
 const selectedStatus = ref()
@@ -11,27 +9,11 @@ const isAddDialogVisible = ref(false)
 const isEditDialogVisible = ref(false)
 const editingProject = ref<any>(null)
 
-const leaders = ref<any[]>([])
-
 const newProject = ref({
   name: '',
   status: 'active',
   progress: 0,
-  leader: '',
 })
-
-async function fetchLeaders() {
-  try {
-    const res: any = await userService.list()
-    const users = Array.isArray(res) ? res : res?.data || []
-    console.log('All users:', users)
-    const filtered = users
-    console.log('Leaders:', filtered)
-    leaders.value = filtered
-  } catch (e) {
-    console.error('Failed to fetch leaders:', e)
-  }
-}
 
 const resolveStatusVariant = (status: string) => {
   const map: Record<string, string> = { active: 'success', completed: 'info', pending: 'warning', archived: 'secondary' }
@@ -42,14 +24,13 @@ const filteredProjects = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return projectStore.projects.filter(p => {
     const matchStatus = !selectedStatus.value || p.status === selectedStatus.value
-    const matchSearch = !query || p.name.toLowerCase().includes(query) || p.leader.toLowerCase().includes(query)
+    const matchSearch = !query || p.name.toLowerCase().includes(query)
     return matchStatus && matchSearch
   })
 })
 
 const headers = [
   { title: 'Project', key: 'project', sortable: true },
-  { title: 'Leader', key: 'leader', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Progress', key: 'progress', sortable: true },
   { title: 'Created', key: 'created', sortable: true },
@@ -68,9 +49,8 @@ async function saveNew() {
       name: newProject.value.name,
       status: newProject.value.status,
       progress: newProject.value.progress,
-      leader: newProject.value.leader,
     })
-    newProject.value = { name: '', status: 'active', progress: 0, leader: '' }
+    newProject.value = { name: '', status: 'active', progress: 0 }
     isAddDialogVisible.value = false
   } catch (e) {
     console.error('Failed to add project:', e)
@@ -83,15 +63,12 @@ function saveEdit() {
   isEditDialogVisible.value = false
 }
 
-
-
 function deleteProject(id: number) {
   projectStore.deleteProject(id)
 }
 
 onMounted(() => {
   projectStore.fetchProjects()
-  fetchLeaders()
 })
 </script>
 
@@ -147,9 +124,6 @@ onMounted(() => {
             </div>
           </div>
         </template>
-        <template #item.leader="{ item }">
-          <div class="text-body-1 text-high-emphasis">{{ item.leader }}</div>
-        </template>
         <template #item.status="{ item }">
           <VChip variant="tonal" :color="resolveStatusVariant(item.status)" size="small" label class="text-capitalize">{{ item.status }}</VChip>
         </template>
@@ -185,7 +159,6 @@ onMounted(() => {
         </VCardItem>
         <VCardText>
           <VTextField v-model="newProject.name" label="Project Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newProject.leader" label="Leader" :items="leaders.map(l => l.fullName || l.username)" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newProject.status" label="Status" :items="['active', 'pending', 'completed']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model.number="newProject.progress" label="Progress (%)" type="number" density="comfortable" variant="outlined" />
         </VCardText>
@@ -205,7 +178,6 @@ onMounted(() => {
         </VCardItem>
         <VCardText>
           <VTextField v-model="editingProject.name" label="Project Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingProject.leader" label="Leader" :items="leaders.map(l => l.fullName || l.username)" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingProject.status" label="Status" :items="['active', 'pending', 'completed', 'archived']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model.number="editingProject.progress" label="Progress (%)" type="number" density="comfortable" variant="outlined" />
         </VCardText>
