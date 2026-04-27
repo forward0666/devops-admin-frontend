@@ -83,6 +83,7 @@ watch(isNavCollapsed, (val) => {
   align-items: center;
   gap: 2px;
   padding: 8px 12px;
+  margin-inline: 1rem;
   border-radius: 6px;
   transition: background-color 0.2s;
 
