@@ -1,9 +1,7 @@
 <script setup lang="ts">
 const loading = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
-const activeTab = ref('system')
-const systemData = ref<Record<string, any>>({})
-const securityData = ref<Record<string, any>>({})
+const settings = ref<Record<string, any>>({})
 
 async function fetchSettings() {
   loading.value = true
@@ -15,8 +13,7 @@ async function fetchSettings() {
     ])
     const sys = sysRes?.data ?? sysRes
     const sec = secRes?.data ?? secRes
-    systemData.value = (typeof sys === 'object' && !Array.isArray(sys)) ? sys : {}
-    securityData.value = (typeof sec === 'object' && !Array.isArray(sec)) ? sec : {}
+    settings.value = { ...(typeof sys === 'object' ? sys : {}), ...(typeof sec === 'object' ? sec : {}) }
   }
   catch (e) {
     console.error(e)
@@ -26,16 +23,22 @@ async function fetchSettings() {
   }
 }
 
-async function saveSettings(section: string) {
+async function saveSettings() {
   loading.value = true
   try {
     const { settingService } = await import('~/services/api')
-    if (section === 'system') {
-      await settingService.updateSystem(systemData.value)
+    const systemData: Record<string, any> = {}
+    const securityData: Record<string, any> = {}
+    for (const [key, value] of Object.entries(settings.value)) {
+      if (key.startsWith('system.'))
+        systemData[key] = value
+      else if (key.startsWith('security.'))
+        securityData[key] = value
     }
-    else {
-      await settingService.updateSecurity(securityData.value)
-    }
+    if (Object.keys(systemData).length)
+      await settingService.updateSystem(systemData)
+    if (Object.keys(securityData).length)
+      await settingService.updateSecurity(securityData)
     snackbar.value = { show: true, text: 'Saved', color: 'success' }
   }
   catch (e) {
@@ -56,41 +59,16 @@ onMounted(fetchSettings)
 <template>
   <div>
     <VCard :loading="loading">
-      <VTabs v-model="activeTab">
-        <VTab value="system">
-          System
-        </VTab>
-        <VTab value="security">
-          Security
-        </VTab>
-      </VTabs>
-      <VDivider />
-      <VWindow v-model="activeTab">
-        <VWindowItem value="system">
-          <VCardText>
-            <VRow>
-              <VCol v-for="(value, key) in systemData" :key="key" cols="12" md="6">
-                <VTextField :model-value="value" :label="formatKey(key)" density="comfortable" variant="outlined" hide-details @update:model-value="systemData[key] = $event" />
-              </VCol>
-            </VRow>
-            <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('system')">
-              Save
-            </VBtn>
-          </VCardText>
-        </VWindowItem>
-        <VWindowItem value="security">
-          <VCardText>
-            <VRow>
-              <VCol v-for="(value, key) in securityData" :key="key" cols="12" md="6">
-                <VTextField :model-value="value" :label="formatKey(key)" density="comfortable" variant="outlined" hide-details @update:model-value="securityData[key] = $event" />
-              </VCol>
-            </VRow>
-            <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('security')">
-              Save
-            </VBtn>
-          </VCardText>
-        </VWindowItem>
-      </VWindow>
+      <VCardText>
+        <VRow>
+          <VCol v-for="(value, key) in settings" :key="key" cols="12" md="6">
+            <VTextField :model-value="value" :label="formatKey(key)" density="comfortable" variant="outlined" hide-details @update:model-value="settings[key] = $event" />
+          </VCol>
+        </VRow>
+        <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings">
+          Save
+        </VBtn>
+      </VCardText>
     </VCard>
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top end">
       {{ snackbar.text }}
