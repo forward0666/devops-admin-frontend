@@ -144,16 +144,11 @@ async function confirmDelete() {
 
 <template>
   <div>
-    <VRow class="mb-4 align-center">
-      <VCol cols="12" md="6"><h4 class="text-h4">Department</h4></VCol>
-      <VCol cols="12" md="6" class="d-flex justify-end align-center gap-3">
-        <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="openAddDialog">Add</VBtn>
-      </VCol>
-    </VRow>
-
     <VCard :loading="departmentStore.loading">
-      <VCardText>
+      <VCardText class="d-flex align-center gap-3 flex-wrap">
         <VTextField v-model="search" placeholder="Search" prepend-inner-icon="bx-search" density="compact" hide-details variant="outlined" style="max-inline-size: 280px;" @update:model-value="" />
+        <VSpacer />
+        <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="openAddDialog">Add</VBtn>
       </VCardText>
       <VDivider />
       <VDataTable :headers="headers" :items="flatDepts" :search="search" :items-per-page="10" class="text-no-wrap">
