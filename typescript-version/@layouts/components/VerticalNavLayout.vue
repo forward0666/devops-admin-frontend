@@ -194,8 +194,8 @@ export default defineComponent({
       display: none !important;
     }
 
-    .app-title-wrapper {
-      justify-content: flex-start !important;
+    .nav-header .app-logo {
+      transform: none !important;
     }
   }
 
