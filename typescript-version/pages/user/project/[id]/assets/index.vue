@@ -217,8 +217,8 @@ function exportDomains() {
         <h4 class="text-h4">Domain</h4>
         <div class="d-flex align-center gap-3">
           <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
-          <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
-          <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" @click="exportDomains">Export</VBtn>
+          <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
+          <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
         </div>
       </VCardText>
       <VDivider />
