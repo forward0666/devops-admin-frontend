@@ -45,7 +45,7 @@ watch(isNavCollapsed, (val) => {
       <div class="nav-collapse-btn-wrapper" @click="isNavCollapsed = !isNavCollapsed">
         <span class="collapse-icon">
           <span class="collapse-bar" />
-          <VIcon :icon="isNavCollapsed ? 'bx-chevron-right' : 'bx-chevron-left'" size="18" />
+          <VIcon :icon="isNavCollapsed ? 'bx-chevron-right' : 'bx-chevron-left'" size="22" />
         </span>
       </div>
     </template>
