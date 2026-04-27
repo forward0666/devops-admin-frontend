@@ -192,8 +192,7 @@ export default defineComponent({
       display: none !important;
     }
 
-    .app-title-wrapper h1,
-    .app-title-wrapper {
+    .app-title-wrapper h1 {
       display: none !important;
     }
   }
