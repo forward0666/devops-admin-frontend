@@ -39,7 +39,6 @@ const isAddMemberDialog = ref(false)
 const newMember = ref({ userId: null as number | null })
 const memberHeaders = [
   { title: 'Member', key: 'member', sortable: false },
-  { title: 'Project Role', key: 'role' },
   { title: 'System Role', key: 'systemRole' },
   { title: 'Position', key: 'position' },
   { title: 'Status', key: 'status' },
