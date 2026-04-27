@@ -53,6 +53,7 @@ onMounted(() => {
       <VIcon
         icon="bx-chevron-right"
         class="nav-group-arrow"
+        size="16"
         :class="isOpen && 'rotate-180'"
       />
     </div>
