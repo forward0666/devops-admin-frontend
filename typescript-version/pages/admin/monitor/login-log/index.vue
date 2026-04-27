@@ -65,16 +65,11 @@ async function refresh() {
 
 <template>
   <div>
-    <VRow class="mb-4">
-      <VCol cols="12" md="6"><h4 class="text-h4">Login Log</h4></VCol>
-      <VCol cols="12" md="6" class="d-flex justify-end gap-3">
-        <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" @click="refresh">Refresh</VBtn>
-      </VCol>
-    </VRow>
-
     <VCard class="mb-4">
-      <VCardText class="d-flex flex-wrap gap-4">
+      <VCardText class="d-flex flex-wrap align-center gap-4">
         <VTextField v-model="search" placeholder="Search username / IP" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
+        <VSpacer />
+        <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" size="small" @click="refresh">Refresh</VBtn>
       </VCardText>
     </VCard>
 
