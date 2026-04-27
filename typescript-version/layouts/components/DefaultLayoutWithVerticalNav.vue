@@ -13,7 +13,7 @@ const consoleRole = computed(() => authStore.consoleRole)
       <div class="d-flex h-100 align-center">
         <!-- 👉 Vertical nav toggle in overlay mode -->
         <IconBtn
-          class="ms-n3 d-lg-none"
+          class="d-lg-none"
           @click="toggleVerticalOverlayNavActive(true)"
         >
           <VIcon icon="bx-menu" />
