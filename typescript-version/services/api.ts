@@ -209,7 +209,7 @@ export const positionService = {
 // ============ Settings ============
 export const settingsService = {
   getSystem() {
-    return request<any>({ method: 'get', url: '/manage/settings' })
+    return request<any>({ method: 'get', url: '/manage/setting' })
   },
   updateSystem(data: any) {
     return request<void>({ method: 'put', url: '/manage/setting/system', data })
