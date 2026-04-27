@@ -1,5 +1,7 @@
 <script lang="ts">definePageMeta({ middleware: ["user-project-guard"] })</script>
 <script setup lang="ts">
+import { userConsoleDomainService } from '~/services/api'
+
 const route = useRoute()
 const projectId = computed(() => route.params.id as string)
 
@@ -8,6 +10,8 @@ const name = computed(() => projectStore.projects.find(p => String(p.id) === pro
 
 const searchQuery = ref('')
 const expandedRows = ref<number[]>([])
+const loading = ref(false)
+const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const storageKey = computed(() => `domain-expanded-${projectId.value}`)
 
@@ -31,14 +35,16 @@ watch(() => expandedRows.value, (val) => {
 
 onMounted(loadExpandedState)
 
-const toggleExpand = (item: any) => {
-  if (expandedRows.value.includes(item.id)) { const i = expandedRows.value.indexOf(item.id); expandedRows.value.splice(i, 1) }
-  else expandedRows.value.push(item.id)
+const toggleExpand = (env: string) => {
+  if (expandedRows.value.includes(env)) {
+    const i = expandedRows.value.indexOf(env)
+    expandedRows.value.splice(i, 1)
+  } else {
+    expandedRows.value.push(env)
+  }
 }
 
-const isRowExpanded = (item: any) => {
-  return expandedRows.value.includes(item.id)
-}
+const isRowExpanded = (env: string) => expandedRows.value.includes(env)
 
 const authStore = useAuthStore()
 const canViewSensitive = computed(() => ['sys_admin', 'admin', 'devops'].includes(authStore.role || ''))
@@ -47,65 +53,16 @@ const canManage = computed(() => ['sys_admin', 'admin', 'devops'].includes(authS
 const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'info', dev: 'secondary' }[env] || 'grey')
 const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-test-tube', dev: 'bx-code' }[env] || 'bx-globe')
 
-const domains = ref([
-  { id: 1, env: 'prod', type: 'environment', children: [
-    { id: 11, domain: 'prod.dashboard.jhdevops.com', env: 'prod', type: 'web', remark: 'Production entry' },
-    { id: 12, domain: 'prod.admin.jhdevops.com', env: 'prod', type: 'admin', remark: 'Admin panel' },
-    { id: 13, domain: 'prod.callback.jhdevops.com', env: 'prod', type: 'callback', remark: 'Production callback' },
-    { id: 14, domain: 'prod.api.jhdevops.com', env: 'prod', type: 'api', remark: 'Production API' },
-  ]},
-  { id: 2, env: 'uat', type: 'environment', children: [
-    { id: 21, domain: 'uat.dashboard.jhdevops.com', env: 'uat', type: 'web', remark: 'UAT testing' },
-    { id: 22, domain: 'uat.admin.jhdevops.com', env: 'uat', type: 'admin', remark: 'Admin UAT' },
-    { id: 23, domain: 'uat.callback.jhdevops.com', env: 'uat', type: 'callback', remark: 'Callback UAT' },
-    { id: 24, domain: 'uat.api.jhdevops.com', env: 'uat', type: 'api', remark: 'UAT API' },
-  ]},
-  { id: 3, env: 'test', type: 'environment', children: [
-    { id: 31, domain: 'test.dashboard.jhdevops.com', env: 'test', type: 'web', remark: 'Test environment' },
-    { id: 32, domain: 'test.admin.jhdevops.com', env: 'test', type: 'admin', remark: 'Admin Test' },
-    { id: 33, domain: 'test.callback.jhdevops.com', env: 'test', type: 'callback', remark: 'Callback Test' },
-    { id: 34, domain: 'test.api.jhdevops.com', env: 'test', type: 'api', remark: 'Test API' },
-  ]},
-  { id: 4, env: 'dev', type: 'environment', children: [
-    { id: 41, domain: 'dev.dashboard.jhdevops.com', env: 'dev', type: 'web', remark: 'Development' },
-    { id: 42, domain: 'dev.admin.jhdevops.com', env: 'dev', type: 'admin', remark: 'Admin Dev' },
-    { id: 43, domain: 'dev.callback.jhdevops.com', env: 'dev', type: 'callback', remark: 'Callback Dev' },
-    { id: 44, domain: 'dev.api.jhdevops.com', env: 'dev', type: 'api', remark: 'Dev API' },
-  ]},
-])
+// Domains from API
+const domains = ref<any[]>([])
 
-const flatDomains = computed(() => {
-  const result: any[] = []
-  const flatten = (items: any[], depth: number, parentExpanded: boolean) => {
-    items.forEach(item => {
-      if (!parentExpanded) return
-      result.push({ ...item, depth })
-      if (item.children?.length) {
-        const visibleChildren = item.children.filter((c: any) => {
-          if (c.env === 'prod' && (c.type === 'callback' || c.type === 'api' || c.type === 'admin') && !canViewSensitive.value) return false
-          return true
-        })
-        flatten(visibleChildren, depth + 1, expanded)
-      }
-    })
-  }
-  flatten(domains.value, 0, true)
-  return result
+const envList = computed(() => {
+  const envs = ['prod', 'uat', 'test', 'dev']
+  return envs.map(env => {
+    const children = domains.value.filter(d => d.env === env)
+    return { env, children }
+  })
 })
-
-const filteredDomains = computed(() => {
-  const query = searchQuery.value.toLowerCase()
-  return flatDomains.value.filter(d => !query || (d.domain || d.env || '').toLowerCase().includes(query) || (d.remark || '').toLowerCase().includes(query))
-})
-
-const headers = [
-  { title: 'Domain / Environment', key: 'name' },
-  { title: 'Type', key: 'type' },
-  { title: 'Remark', key: 'remark' },
-  { title: 'Action', key: 'actions', sortable: false },
-]
-
-const typeColor = (type: string) => ({ web: 'primary', admin: 'warning', callback: 'info', api: 'success' }[type] || 'grey')
 
 function getVisibleChildren(env: any) {
   return env.children.filter((c: any) => {
@@ -114,26 +71,100 @@ function getVisibleChildren(env: any) {
   })
 }
 
+// Filtered by search
+const filteredEnvList = computed(() => {
+  const query = searchQuery.value.toLowerCase()
+  if (!query) return envList.value
+  return envList.value.map(env => ({
+    ...env,
+    children: env.children.filter((c: any) =>
+      (c.domain || '').toLowerCase().includes(query) ||
+      (c.type || '').toLowerCase().includes(query) ||
+      (c.remark || '').toLowerCase().includes(query)
+    )
+  })).filter(env => env.children.length > 0)
+})
+
+const typeColor = (type: string) => ({ web: 'primary', admin: 'warning', callback: 'info', api: 'success' }[type] || 'grey')
+
+// Fetch domains
+async function fetchDomains() {
+  loading.value = true
+  try {
+    const res: any = await userConsoleDomainService.list(projectId.value)
+    domains.value = Array.isArray(res) ? res : res?.data || []
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to load domains', color: 'error' }
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchDomains)
+
+// Add
 const isAddDialogVisible = ref(false)
-const isEditDialogVisible = ref(false)
-const isDeleteDialogVisible = ref(false)
 const addFormRef = ref<any>(null)
-const editingItem = ref<any>(null)
-const deletingItem = ref<any>(null)
 const newDomain = ref({ domain: '', env: '', type: '', remark: '' })
 
-function addDomain() {
-  addFormRef.value?.validate().then(({ valid }: any) => {
+async function addDomain() {
+  addFormRef.value?.validate().then(async ({ valid }: any) => {
     if (!valid) return
-    const newId = Date.now()
-    const newItem = { id: newId, domain: newDomain.value.domain, env: newDomain.value.env, type: newDomain.value.type, remark: newDomain.value.remark }
-    const parent = domains.value.find(d => d.env === newDomain.value.env)
-    if (parent) parent.children.push(newItem)
-    newDomain.value = { domain: '', env: '', type: '', remark: '' }
-    isAddDialogVisible.value = false
+    try {
+      await userConsoleDomainService.create({ ...newDomain.value, projectId: projectId.value })
+      newDomain.value = { domain: '', env: '', type: '', remark: '' }
+      isAddDialogVisible.value = false
+      await fetchDomains()
+      snackbar.value = { show: true, text: 'Domain added', color: 'success' }
+    } catch (e: any) {
+      snackbar.value = { show: true, text: e.message || 'Failed to add domain', color: 'error' }
+    }
   })
 }
 
+// Edit
+const isEditDialogVisible = ref(false)
+const editingItem = ref<any>(null)
+
+function openEditDialog(item: any) {
+  editingItem.value = { ...item }
+  isEditDialogVisible.value = true
+}
+
+async function saveEdit() {
+  if (!editingItem.value) return
+  try {
+    await userConsoleDomainService.update(editingItem.value.id, {
+      projectId: projectId.value,
+      domain: editingItem.value.domain,
+      type: editingItem.value.type,
+      remark: editingItem.value.remark,
+    })
+    isEditDialogVisible.value = false
+    await fetchDomains()
+    snackbar.value = { show: true, text: 'Domain updated', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to update domain', color: 'error' }
+  }
+}
+
+// Delete
+const isDeleteDialogVisible = ref(false)
+const deletingItem = ref<any>(null)
+
+async function confirmDelete() {
+  if (!deletingItem.value) return
+  try {
+    await userConsoleDomainService.delete(deletingItem.value.id, projectId.value)
+    isDeleteDialogVisible.value = false
+    await fetchDomains()
+    snackbar.value = { show: true, text: 'Domain removed', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to delete domain', color: 'error' }
+  }
+}
+
+// Import
 const isImportDialogVisible = ref(false)
 const importFile = ref<File | null>(null)
 const isDragging = ref(false)
@@ -149,42 +180,26 @@ function handleFileSelect(e: Event) {
   if (input.files?.[0]) importFile.value = input.files[0]
 }
 
-function confirmImport() {
+async function confirmImport() {
   if (!importFile.value) return
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target?.result as string)
-      if (Array.isArray(data)) {
-        data.forEach((row: any) => {
-          if (row.domain && row.env) {
-            const parent = domains.value.find(d => d.env === row.env)
-            if (parent) {
-              parent.children.push({
-                id: Date.now() + Math.random(),
-                domain: row.domain,
-                env: row.env,
-                type: row.type || 'web',
-                remark: row.remark || '',
-              })
-            }
-          }
-        })
-      }
-    } catch {
-      alert('Invalid JSON file')
+  try {
+    const text = await importFile.value.text()
+    const data = JSON.parse(text)
+    if (Array.isArray(data)) {
+      await userConsoleDomainService.importDomains({ projectId: projectId.value, domains: data })
+      importFile.value = null
+      isImportDialogVisible.value = false
+      await fetchDomains()
+      snackbar.value = { show: true, text: `Imported ${data.length} domains`, color: 'success' }
     }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: 'Invalid JSON file', color: 'error' }
   }
-  reader.readAsText(importFile.value)
-  importFile.value = null
-  isImportDialogVisible.value = false
 }
 
+// Export
 function exportDomains() {
-  const data: any[] = []
-  domains.value.forEach(env => {
-    env.children.forEach(c => data.push({ domain: c.domain, env: c.env, type: c.type, remark: c.remark }))
-  })
+  const data = domains.value.map(d => ({ domain: d.domain, env: d.env, type: d.type, remark: d.remark }))
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -192,30 +207,6 @@ function exportDomains() {
   a.download = `domains-${name.value.replace(/\s+/g, '-')}.json`
   a.click()
   URL.revokeObjectURL(url)
-}
-
-function openEditDialog(item: any) {
-  editingItem.value = { ...item }
-  isEditDialogVisible.value = true
-}
-
-function saveEdit() {
-  if (editingItem.value) {
-    domains.value.forEach(env => {
-      const idx = env.children.findIndex((c: any) => c.id === editingItem.value.id)
-      if (idx !== -1) env.children[idx] = { ...editingItem.value }
-    })
-    isEditDialogVisible.value = false
-  }
-}
-
-function confirmDelete() {
-  if (deletingItem.value) {
-    domains.value.forEach(env => {
-      env.children = env.children.filter((c: any) => c.id !== deletingItem.value.id)
-    })
-  }
-  isDeleteDialogVisible.value = false
 }
 </script>
 
@@ -227,49 +218,53 @@ function confirmDelete() {
         <div class="d-flex align-center gap-3">
           <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
           <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
-          <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
+          <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" @click="exportDomains">Export</VBtn>
         </div>
       </VCardText>
       <VDivider />
-        <template v-for="env in domains" :key="env.id">
-          <div class="d-flex align-center cursor-pointer pa-3" @click="toggleExpand(env)">
-            <VIcon :icon="isRowExpanded(env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
-            <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
-            <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
-            <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
-          </div>
-          <VTable v-show="isRowExpanded(env)" class="text-no-wrap" hover>
-            <thead>
-              <tr class="text-caption text-medium-emphasis">
-                <th style="padding-left: 50px;">Domain</th>
-                <th>Type</th>
-                <th>Remark</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-            <tr v-for="domain in getVisibleChildren(env)" :key="domain.id" class="table-row-hover">
-              <td style="padding-left: 50px;">
-                <div class="d-flex align-center gap-x-2">
-                  <VIcon icon="bx-globe" color="primary" size="18" />
-                  <span class="font-weight-medium">{{ domain.domain }}</span>
-                </div>
-              </td>
-              <td><VChip variant="tonal" :color="typeColor(domain.type)" size="small" label>{{ domain.type }}</VChip></td>
-              <td><span class="text-body-1">{{ domain.remark || '-' }}</span></td>
-              <td>
-                <div class="d-flex gap-1">
-                  <IconBtn size="small" :disabled="!canManage" @click="openEditDialog(domain)"><VIcon icon="bx-edit" size="18" /></IconBtn>
-                  <IconBtn size="small" color="error" :disabled="!canManage" @click="deletingItem = domain; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
-                </div>
-              </td>
+      <VProgressLinear v-if="loading" indeterminate color="primary" />
+      <template v-for="env in filteredEnvList" :key="env.env">
+        <div class="d-flex align-center cursor-pointer pa-3" @click="toggleExpand(env.env)">
+          <VIcon :icon="isRowExpanded(env.env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
+          <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
+          <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
+          <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
+        </div>
+        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover>
+          <thead>
+            <tr class="text-caption text-medium-emphasis">
+              <th style="padding-left: 50px;">Domain</th>
+              <th>Type</th>
+              <th>Remark</th>
+              <th>Action</th>
             </tr>
-            <tr v-if="!env.children.length">
-              <td colspan="4" class="text-center text-medium-emphasis pa-4">No domains</td>
-            </tr>
-            </tbody>
-          </VTable>
-        </template>
+          </thead>
+          <tbody>
+          <tr v-for="domain in getVisibleChildren(env)" :key="domain.id" class="table-row-hover">
+            <td style="padding-left: 50px;">
+              <div class="d-flex align-center gap-x-2">
+                <VIcon icon="bx-globe" color="primary" size="18" />
+                <span class="font-weight-medium">{{ domain.domain }}</span>
+              </div>
+            </td>
+            <td><VChip variant="tonal" :color="typeColor(domain.type)" size="small" label>{{ domain.type }}</VChip></td>
+            <td><span class="text-body-1">{{ domain.remark || '-' }}</span></td>
+            <td>
+              <div class="d-flex gap-1">
+                <IconBtn size="small" :disabled="!canManage" @click="openEditDialog(domain)"><VIcon icon="bx-edit" size="18" /></IconBtn>
+                <IconBtn size="small" color="error" :disabled="!canManage" @click="deletingItem = domain; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="!env.children.length">
+            <td colspan="4" class="text-center text-medium-emphasis pa-4">No domains</td>
+          </tr>
+          </tbody>
+        </VTable>
+      </template>
+      <VCardText v-if="!loading && !domains.length" class="text-center text-medium-emphasis pa-6">
+        No domains configured
+      </VCardText>
     </VCard>
 
     <!-- Import Dialog -->
@@ -286,7 +281,7 @@ function confirmDelete() {
             @dragover.prevent="isDragging = true"
             @dragleave="isDragging = false"
             @drop.prevent="handleFileDrop"
-            @click="$refs.fileInput?.click()"
+            @click="($refs.fileInput as any)?.click()"
           >
             <VIcon icon="bx-upload" size="40" color="medium-emphasis" class="mb-2" />
             <p class="text-body-1 mb-1">Drag & drop JSON file here</p>
@@ -305,7 +300,7 @@ function confirmDelete() {
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isImportDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!importFile" @click="confirmImport">Import</VBtn>
+          <VBtn color="primary" :disabled="!importFile" :loading="loading" @click="confirmImport">Import</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -320,14 +315,14 @@ function confirmDelete() {
         <VCardText>
           <VForm ref="addFormRef">
             <VTextField v-model="newDomain.domain" label="Domain" placeholder="prod.example.com" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Domain is required']" />
-            <VSelect v-model="newDomain.env" label="Environment" :items="['prod', 'uat', 'test', 'dev']" density="comfortable" class="mb-3" variant="outlined" />
+            <VSelect v-model="newDomain.env" label="Environment" :items="['prod', 'uat', 'test', 'dev']" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Environment is required']" />
             <VSelect v-model="newDomain.type" label="Type" :items="['web', 'admin', 'callback', 'api']" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="newDomain.remark" label="Remark" density="comfortable" variant="outlined" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isAddDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" @click="addDomain">Add</VBtn>
+          <VBtn color="primary" :loading="loading" @click="addDomain">Add</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -340,7 +335,7 @@ function confirmDelete() {
           <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
-          <VForm ref="addFormRef">
+          <VForm ref="editFormRef">
             <VTextField v-model="editingItem.domain" label="Domain" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Domain is required']" />
             <VSelect v-model="editingItem.type" label="Type" :items="['web', 'admin', 'callback', 'api']" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="editingItem.remark" label="Remark" density="comfortable" variant="outlined" />
@@ -348,7 +343,7 @@ function confirmDelete() {
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" @click="saveEdit">Save</VBtn>
+          <VBtn color="primary" :loading="loading" @click="saveEdit">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -363,9 +358,14 @@ function confirmDelete() {
         <VCardText>Are you sure you want to remove <strong>{{ deletingItem?.domain }}</strong>?</VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
-          <VBtn color="error" @click="confirmDelete">Remove</VBtn>
+          <VBtn color="error" :loading="loading" @click="confirmDelete">Remove</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- Snackbar -->
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top">
+      {{ snackbar.text }}
+    </VSnackbar>
   </div>
 </template>

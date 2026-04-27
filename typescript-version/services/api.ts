@@ -342,4 +342,22 @@ export const userConsoleProfileService = {
   },
 }
 
+export const userConsoleDomainService = {
+  list(projectId: string) {
+    return request<any>({ method: 'get', url: `/user/domain/list`, params: { projectId } })
+  },
+  create(data: any) {
+    return request<any>({ method: 'post', url: '/user/domain', data })
+  },
+  update(id: string, data: any) {
+    return request<any>({ method: 'put', url: `/user/domain/${id}`, data })
+  },
+  delete(id: string, projectId: string) {
+    return request<void>({ method: 'delete', url: `/user/domain/${id}`, params: { projectId } })
+  },
+  importDomains(data: any) {
+    return request<any>({ method: 'post', url: '/user/domain/import', data })
+  },
+}
+
 export default apiClient
