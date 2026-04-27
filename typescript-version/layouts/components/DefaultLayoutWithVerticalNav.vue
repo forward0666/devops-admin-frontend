@@ -48,7 +48,7 @@ watch(isNavCollapsed, (val) => {
           variant="text"
           @click="isNavCollapsed = !isNavCollapsed"
         >
-          <VIcon :icon="isNavCollapsed ? 'bx-menu' : 'bx-menu-alt-left'" size="20" />
+          <VIcon :icon="isNavCollapsed ? 'bx-chevron-left' : 'bx-chevron-right'" size="20" />
         </IconBtn>
       </div>
     </template>
