@@ -7,17 +7,22 @@ const consoleRole = computed(() => authStore.consoleRole)
 
 const isNavCollapsed = useLocalStorage('nav-collapsed', false)
 
-// Toggle collapsed class on the sidebar element
-onMounted(() => {
+const applyCollapse = () => {
   const nav = document.querySelector('.layout-vertical-nav') as HTMLElement
   const wrapper = document.querySelector('.layout-wrapper') as HTMLElement
-  const apply = (val: boolean) => {
-    nav?.classList.toggle('layout-vertical-nav-collapsed', val)
-    wrapper?.classList.toggle('layout-vertical-nav-collapsed', val)
-  }
-  apply(isNavCollapsed.value)
-  watch(isNavCollapsed, apply)
+  nav?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
+  wrapper?.classList.toggle('layout-vertical-nav-collapsed', isNavCollapsed.value)
+}
+
+onMounted(() => {
+  applyCollapse()
+  watch(isNavCollapsed, applyCollapse)
 })
+
+// Also apply on client-side navigation (Nuxt page transitions)
+if (import.meta.client) {
+  nextTick(applyCollapse)
+}
 </script>
 
 <template>
