@@ -106,6 +106,15 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'View', to: '/admin/project/view' }" />
       </VerticalNavGroup>
 
+      <!-- 👉 Online -->
+      <VerticalNavLink
+        :item="{
+          title: 'Online Users',
+          icon: 'bx-wifi',
+          to: '/admin/monitor/online',
+        }"
+      />
+
       <VerticalNavLink
         :item="{
           title: 'Login Log',
@@ -118,15 +127,6 @@ const isProjectActive = (projectId: number) => {
           title: 'Operation Log',
           icon: 'bx-list-ul',
           to: '/admin/monitor/log',
-        }"
-      />
-
-      <!-- 👉 Online -->
-      <VerticalNavLink
-        :item="{
-          title: 'Online Users',
-          icon: 'bx-wifi',
-          to: '/admin/monitor/online',
         }"
       />
 
