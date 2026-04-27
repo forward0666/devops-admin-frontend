@@ -193,6 +193,10 @@ export default defineComponent({
     .app-title-wrapper h1 {
       display: none !important;
     }
+
+    .app-title-wrapper {
+      justify-content: flex-start !important;
+    }
   }
 
   // 👉 Content height fixed
