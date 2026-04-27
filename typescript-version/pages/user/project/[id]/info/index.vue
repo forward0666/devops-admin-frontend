@@ -142,12 +142,6 @@ onMounted(fetchProject)
     </div>
 
     <div v-else>
-      <VRow class="mb-4">
-        <VCol cols="12" md="6">
-          <h4 class="text-h4">{{ project.name }} - Info</h4>
-        </VCol>
-      </VRow>
-
       <!-- Project Overview -->
       <VCard class="mb-6">
         <VCardItem>
