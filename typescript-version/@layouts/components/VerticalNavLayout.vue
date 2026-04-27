@@ -173,32 +173,32 @@ export default defineComponent({
 
   // Hide text when nav is collapsed
   .layout-vertical-nav.layout-vertical-nav-collapsed {
-    .nav-item-icon,
-    .nav-group-label .nav-item-icon {
-      margin-inline-end: 0 !important;
-      margin-inline-start: 0 !important;
-    }
-
     .nav-link,
+    .nav-group,
     .nav-group-label {
       justify-content: center !important;
-      padding-inline-start: 0 !important;
-      padding-inline-end: 0 !important;
+    }
+
+    // Fix icon alignment for all nesting levels
+    .nav-link,
+    .nav-group > :first-child,
+    .nav-group-children .nav-link > a,
+    .nav-group-children .nav-group > :first-child,
+    .nav-group-children .nav-group-children .nav-link > a,
+    .nav-group-children .nav-group-children .nav-group > :first-child {
+      padding-inline: 0 !important;
+      margin-inline: 0 !important;
+      justify-content: center !important;
+    }
+
+    .nav-item-icon {
+      margin-inline: 0 !important;
     }
 
     .nav-item-title,
     .nav-item-badge,
     .nav-group-arrow {
-      opacity: 0 !important;
-      overflow: hidden !important;
-      inline-size: 0 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      transition: opacity 0.2s ease;
-    }
-
-    .nav-group-label {
-      justify-content: center;
+      display: none !important;
     }
 
     .nav-group-children-wrapper {
