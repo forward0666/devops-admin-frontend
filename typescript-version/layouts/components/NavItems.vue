@@ -109,7 +109,7 @@ const isProjectActive = (projectId: number) => {
       <!-- 👉 Online -->
       <VerticalNavLink
         :item="{
-          title: 'Online Users',
+          title: 'Online User',
           icon: 'bx-wifi',
           to: '/admin/monitor/online',
         }"
