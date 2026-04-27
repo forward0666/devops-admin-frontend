@@ -74,10 +74,7 @@ watch(isNavCollapsed, (val) => {
 
 .nav-collapse-btn-wrapper {
   display: flex;
-  justify-content: center;
-  padding-block: 0.75rem;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  margin-inline: 0.75rem;
   cursor: pointer;
 }
 
@@ -85,7 +82,7 @@ watch(isNavCollapsed, (val) => {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 4px;
+  padding: 8px 12px;
   border-radius: 6px;
   transition: background-color 0.2s;
 
