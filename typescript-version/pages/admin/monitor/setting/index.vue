@@ -7,13 +7,9 @@ async function fetchSettings() {
   loading.value = true
   try {
     const { settingService } = await import('~/services/api')
-    const [sysRes, secRes] = await Promise.all([
-      settingService.getSystem(),
-      settingService.getSecurity(),
-    ])
-    const sys = sysRes?.data ?? sysRes
-    const sec = secRes?.data ?? secRes
-    settings.value = { ...(typeof sys === 'object' ? sys : {}), ...(typeof sec === 'object' ? sec : {}) }
+    const res: any = await settingService.getAll()
+    const data = res?.data ?? res
+    settings.value = (typeof data === 'object' && !Array.isArray(data)) ? data : {}
   }
   catch (e) {
     console.error(e)
@@ -27,18 +23,7 @@ async function saveSettings() {
   loading.value = true
   try {
     const { settingService } = await import('~/services/api')
-    const systemData: Record<string, any> = {}
-    const securityData: Record<string, any> = {}
-    for (const [key, value] of Object.entries(settings.value)) {
-      if (key.startsWith('system.'))
-        systemData[key] = value
-      else if (key.startsWith('security.'))
-        securityData[key] = value
-    }
-    if (Object.keys(systemData).length)
-      await settingService.updateSystem(systemData)
-    if (Object.keys(securityData).length)
-      await settingService.updateSecurity(securityData)
+    await settingService.update(settings.value)
     snackbar.value = { show: true, text: 'Saved', color: 'success' }
   }
   catch (e) {
