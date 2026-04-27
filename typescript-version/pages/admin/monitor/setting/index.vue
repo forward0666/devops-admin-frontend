@@ -3,24 +3,49 @@ const loading = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 const settings = ref<Record<string, any>>({})
 
-const fields: { key: string; label: string; type: 'text' | 'number' | 'switch' }[] = [
-  { key: 'setting.name', label: 'System Name', type: 'text' },
-  { key: 'setting.logo', label: 'System Logo URL', type: 'text' },
-  { key: 'setting.language', label: 'System Language', type: 'text' },
-  { key: 'setting.theme', label: 'System Theme', type: 'text' },
-  { key: 'setting.password.min_length', label: 'Password Min Length', type: 'number' },
-  { key: 'setting.password.require_uppercase', label: 'Password Require Uppercase', type: 'switch' },
-  { key: 'setting.password.require_number', label: 'Password Require Number', type: 'switch' },
-  { key: 'setting.password.require_special', label: 'Password Require Special', type: 'switch' },
-  { key: 'setting.password.expire_days', label: 'Password Expire Days', type: 'number' },
-  { key: 'setting.login.max_attempts', label: 'Login Max Attempts', type: 'number' },
-  { key: 'setting.login.lockout_minutes', label: 'Login Lockout Minutes', type: 'number' },
-  { key: 'setting.login.captcha_enabled', label: 'Login Captcha Enabled', type: 'switch' },
-  { key: 'setting.session.token_expire', label: 'Token Expire Seconds', type: 'number' },
-  { key: 'setting.session.refresh_expire', label: 'Refresh Token Expire Seconds', type: 'number' },
-  { key: 'setting.session.max_concurrent', label: 'Max Concurrent Session', type: 'number' },
-  { key: 'setting.ip.allowed_ips', label: 'IP Allowed List (comma separated)', type: 'text' },
-  { key: 'setting.ip.blocked_ips', label: 'IP Blocked List (comma separated)', type: 'text' },
+const fieldGroups: { title: string; fields: { key: string; label: string; type: 'text' | 'number' | 'switch' }[] }[] = [
+  {
+    title: 'System',
+    fields: [
+      { key: 'setting.name', label: 'System Name', type: 'text' },
+      { key: 'setting.logo', label: 'System Logo URL', type: 'text' },
+      { key: 'setting.language', label: 'System Language', type: 'text' },
+      { key: 'setting.theme', label: 'System Theme', type: 'text' },
+    ],
+  },
+  {
+    title: 'Password',
+    fields: [
+      { key: 'setting.password.min_length', label: 'Password Min Length', type: 'number' },
+      { key: 'setting.password.expire_days', label: 'Password Expire Days', type: 'number' },
+      { key: 'setting.password.require_uppercase', label: 'Password Require Uppercase', type: 'switch' },
+      { key: 'setting.password.require_number', label: 'Password Require Number', type: 'switch' },
+      { key: 'setting.password.require_special', label: 'Password Require Special', type: 'switch' },
+    ],
+  },
+  {
+    title: 'Login',
+    fields: [
+      { key: 'setting.login.max_attempts', label: 'Login Max Attempts', type: 'number' },
+      { key: 'setting.login.lockout_minutes', label: 'Login Lockout Minutes', type: 'number' },
+      { key: 'setting.login.captcha_enabled', label: 'Login Captcha Enabled', type: 'switch' },
+    ],
+  },
+  {
+    title: 'Session',
+    fields: [
+      { key: 'setting.session.token_expire', label: 'Token Expire Seconds', type: 'number' },
+      { key: 'setting.session.refresh_expire', label: 'Refresh Token Expire Seconds', type: 'number' },
+      { key: 'setting.session.max_concurrent', label: 'Max Concurrent Session', type: 'number' },
+    ],
+  },
+  {
+    title: 'IP Control',
+    fields: [
+      { key: 'setting.ip.allowed_ips', label: 'IP Allowed List (comma separated)', type: 'text' },
+      { key: 'setting.ip.blocked_ips', label: 'IP Blocked List (comma separated)', type: 'text' },
+    ],
+  },
 ]
 
 async function fetchSettings() {
@@ -71,11 +96,15 @@ onMounted(fetchSettings)
 </script>
 
 <template>
-  <div>
-    <VCard :loading="loading">
+  <div class="d-flex flex-column gap-4">
+    <VCard v-for="group in fieldGroups" :key="group.title" :loading="loading">
+      <VCardTitle class="text-body-1 font-weight-medium">
+        {{ group.title }}
+      </VCardTitle>
+      <VDivider />
       <VCardText>
         <VRow>
-          <VCol v-for="field in fields" :key="field.key" cols="12" md="6">
+          <VCol v-for="field in group.fields" :key="field.key" cols="12" md="6">
             <VSwitch
               v-if="field.type === 'switch'"
               :model-value="toBool(getVal(field.key))"
@@ -96,11 +125,11 @@ onMounted(fetchSettings)
             />
           </VCol>
         </VRow>
-        <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings">
-          Save
-        </VBtn>
       </VCardText>
     </VCard>
+    <VBtn color="primary" :loading="loading" @click="saveSettings">
+      Save
+    </VBtn>
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top end">
       {{ snackbar.text }}
     </VSnackbar>
