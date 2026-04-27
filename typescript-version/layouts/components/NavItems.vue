@@ -134,7 +134,7 @@ const isProjectActive = (projectId: number) => {
         :item="{
           title: 'Settings',
           icon: 'bx-cog',
-          to: '/admin/monitor/config',
+          to: '/admin/monitor/setting',
         }"
       />
 
