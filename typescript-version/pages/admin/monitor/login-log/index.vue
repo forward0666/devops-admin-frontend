@@ -65,15 +65,13 @@ async function refresh() {
 
 <template>
   <div>
-    <VCard class="mb-4">
+    <VCard :loading="logStore.loading">
       <VCardText class="d-flex flex-wrap align-center gap-4">
         <VTextField v-model="search" placeholder="Search username / IP" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
         <VSpacer />
         <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" size="small" @click="refresh">Refresh</VBtn>
       </VCardText>
-    </VCard>
-
-    <VCard :loading="logStore.loading">
+      <VDivider />
       <VDataTable :headers="headers" :items="filteredLogs" :items-per-page="10" :items-per-page-options="[10, 20, 50, 100]" class="text-no-wrap">
         <template #item.username="{ item }">
           <span class="font-weight-medium">{{ item.username || '-' }}</span>
