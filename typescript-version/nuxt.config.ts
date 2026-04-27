@@ -14,6 +14,10 @@ export default defineNuxtConfig({
         type: 'image/x-icon',
         href: '/favicon.ico',
       }],
+
+      script: [{
+        innerHTML: `if(localStorage.getItem('nav-collapsed')==='true'){document.documentElement.classList.add('nav-collapsed-init')}`
+      }],
     },
   },
 
