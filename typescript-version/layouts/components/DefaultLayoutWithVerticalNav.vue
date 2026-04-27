@@ -7,9 +7,9 @@ const consoleRole = computed(() => authStore.consoleRole)
 
 const isNavCollapsed = ref(false)
 
-onMounted(() => {
-  isNavCollapsed.value = localStorage.getItem('nav-collapsed') === 'true'
-})
+// SSR is disabled, localStorage is available at module level
+const stored = typeof window !== 'undefined' ? localStorage.getItem('nav-collapsed') : null
+if (stored === 'true') isNavCollapsed.value = true
 
 watch(isNavCollapsed, (val) => {
   localStorage.setItem('nav-collapsed', String(val))
