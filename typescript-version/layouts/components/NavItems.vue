@@ -170,7 +170,7 @@ const isProjectActive = (projectId: number) => {
           <VerticalNavGroup :item="{ title: project.name, icon: 'bx-folder' }" :open="isProjectActive(project.id)">
             <VerticalNavLink :item="{ title: 'Info', to: `/user/project/${project.id}/info` }" />
             <VerticalNavLink :item="{ title: 'Member', to: `/user/project/${project.id}/members` }" />
-            <VerticalNavGroup :item="{ title: 'Asset', icon: 'bx-globe' }" :open="isProjectActive(project.id) && currentRoute?.path?.includes('/assets')">
+            <VerticalNavGroup :item="{ title: 'Asset', icon: 'bx-globe' }" :open="isProjectActive(project.id) && (currentRoute?.path?.includes('/assets') || currentRoute?.path?.includes('/middleware'))">
               <VerticalNavLink :item="{ title: 'Domain', to: `/user/project/${project.id}/assets` }" />
               <VerticalNavLink :item="{ title: 'Middleware', to: `/user/project/${project.id}/middleware` }" />
             </VerticalNavGroup>
