@@ -5,22 +5,11 @@ const activeTab = ref('system')
 const loading = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
-// System Settings
 const systemSettings = ref<Record<string, any>>({})
-
-// Security Settings
 const securitySettings = ref<Record<string, any>>({})
-
-// Password Policy
 const passwordPolicy = ref<Record<string, any>>({})
-
-// Login Security
 const loginSettings = ref<Record<string, any>>({})
-
-// IP Control
 const ipSettings = ref<Record<string, any>>({})
-
-// Session
 const sessionSettings = ref<Record<string, any>>({})
 
 async function fetchSettings() {
@@ -40,7 +29,7 @@ async function fetchSettings() {
     loginSettings.value = login?.data || login || {}
     ipSettings.value = ip?.data || ip || {}
     sessionSettings.value = session?.data || session || {}
-  } catch (e: any) {
+  } catch (e) {
     console.error('Failed to fetch settings:', e)
   } finally {
     loading.value = false
@@ -51,56 +40,20 @@ async function saveSettings(section: string) {
   try {
     let data: Record<string, any>
     switch (section) {
-      case 'system':
-        data = systemSettings.value
-        await settingsService.updateSystem(data)
-        break
-      case 'security':
-        data = securitySettings.value
-        await settingsService.updateSecurity(data)
-        break
-      case 'password':
-        data = passwordPolicy.value
-        await settingsService.updatePasswordPolicy(data)
-        break
-      case 'login':
-        data = loginSettings.value
-        await settingsService.updateLoginSettings(data)
-        break
-      case 'ip':
-        data = ipSettings.value
-        await settingsService.updateIpControl(data)
-        break
-      case 'session':
-        data = sessionSettings.value
-        await settingsService.updateSession(data)
-        break
+      case 'system': data = systemSettings.value; await settingsService.updateSystem(data); break
+      case 'security': data = securitySettings.value; await settingsService.updateSecurity(data); break
+      case 'password': data = passwordPolicy.value; await settingsService.updatePasswordPolicy(data); break
+      case 'login': data = loginSettings.value; await settingsService.updateLoginSettings(data); break
+      case 'ip': data = ipSettings.value; await settingsService.updateIpControl(data); break
+      case 'session': data = sessionSettings.value; await settingsService.updateSession(data); break
     }
     snackbar.value = { show: true, text: 'Settings saved successfully', color: 'success' }
-  } catch (e: any) {
+  } catch (e) {
     snackbar.value = { show: true, text: 'Failed to save settings', color: 'error' }
   }
 }
 
 onMounted(fetchSettings)
-
-function formatLabel(key: string) {
-  const labels: Record<string, string> = {
-    'session.token_expire_seconds': 'Token 超时时间 (秒)',
-    'session.refresh_token_expire_seconds': 'Refresh Token 超时时间 (秒)',
-    'session.max_concurrent_sessions': '最大并发会话数',
-  }
-  return labels[key] || key
-}
-
-function getHint(key: string) {
-  const hints: Record<string, string> = {
-    'session.token_expire_seconds': '默认 86400 秒 (24小时)',
-    'session.refresh_token_expire_seconds': '默认 604800 秒 (7天)',
-    'session.max_concurrent_sessions': '同一用户最大同时登录数',
-  }
-  return hints[key] || ''
-}
 </script>
 
 <template>
@@ -114,135 +67,64 @@ function getHint(key: string) {
         <VTab value="session">Session</VTab>
         <VTab value="ip">IP Control</VTab>
       </VTabs>
-
       <VDivider />
-
-      <!-- System Settings -->
       <VWindow v-model="activeTab">
         <VWindowItem value="system">
           <VCardText>
-            <VRow>
-              <VCol v-for="(value, key) in systemSettings" :key="key" cols="12" md="6">
-                <VTextField
-                  :model-value="value"
-                  :label="String(key)"
-                  density="comfortable"
-                  variant="outlined"
-                  hide-details
-                  @update:model-value="systemSettings[key] = $event"
-                />
-              </VCol>
-            </VRow>
+            <VRow><VCol v-for="(value, key) in systemSettings" :key="key" cols="12" md="6">
+              <VTextField :model-value="value" :label="String(key)" density="comfortable" variant="outlined" hide-details @update:model-value="systemSettings[key] = $event" />
+            </VCol></VRow>
             <div v-if="!Object.keys(systemSettings).length" class="text-center text-medium-emphasis pa-4">No system settings found</div>
             <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('system')">Save</VBtn>
           </VCardText>
         </VWindowItem>
-
-        <!-- Security Settings -->
         <VWindowItem value="security">
           <VCardText>
-            <VRow>
-              <VCol v-for="(value, key) in securitySettings" :key="key" cols="12" md="6">
-                <VTextField
-                  :model-value="value"
-                  :label="String(key)"
-                  density="comfortable"
-                  variant="outlined"
-                  hide-details
-                  @update:model-value="securitySettings[key] = $event"
-                />
-              </VCol>
-            </VRow>
+            <VRow><VCol v-for="(value, key) in securitySettings" :key="key" cols="12" md="6">
+              <VTextField :model-value="value" :label="String(key)" density="comfortable" variant="outlined" hide-details @update:model-value="securitySettings[key] = $event" />
+            </VCol></VRow>
             <div v-if="!Object.keys(securitySettings).length" class="text-center text-medium-emphasis pa-4">No security settings found</div>
             <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('security')">Save</VBtn>
           </VCardText>
         </VWindowItem>
-
-        <!-- Password Policy -->
         <VWindowItem value="password">
           <VCardText>
-            <VRow>
-              <VCol v-for="(value, key) in passwordPolicy" :key="key" cols="12" md="6">
-                <VTextField
-                  :model-value="value"
-                  :label="String(key)"
-                  density="comfortable"
-                  variant="outlined"
-                  hide-details
-                  @update:model-value="passwordPolicy[key] = $event"
-                />
-              </VCol>
-            </VRow>
+            <VRow><VCol v-for="(value, key) in passwordPolicy" :key="key" cols="12" md="6">
+              <VTextField :model-value="value" :label="String(key)" density="comfortable" variant="outlined" hide-details @update:model-value="passwordPolicy[key] = $event" />
+            </VCol></VRow>
             <div v-if="!Object.keys(passwordPolicy).length" class="text-center text-medium-emphasis pa-4">No password policy found</div>
             <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('password')">Save</VBtn>
           </VCardText>
         </VWindowItem>
-
-        <!-- Login Security -->
         <VWindowItem value="login">
           <VCardText>
-            <VRow>
-              <VCol v-for="(value, key) in loginSettings" :key="key" cols="12" md="6">
-                <VTextField
-                  :model-value="value"
-                  :label="String(key)"
-                  density="comfortable"
-                  variant="outlined"
-                  hide-details
-                  @update:model-value="loginSettings[key] = $event"
-                />
-              </VCol>
-            </VRow>
-            <div v-if="!Object.keys(loginSettings).length" class="text-center text-medium-emphasis pa-4">No login security settings found</div>
+            <VRow><VCol v-for="(value, key) in loginSettings" :key="key" cols="12" md="6">
+              <VTextField :model-value="value" :label="String(key)" density="comfortable" variant="outlined" hide-details @update:model-value="loginSettings[key] = $event" />
+            </VCol></VRow>
+            <div v-if="!Object.keys(loginSettings).length" class="text-center text-medium-emphasis pa-4">No login settings found</div>
             <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('login')">Save</VBtn>
           </VCardText>
         </VWindowItem>
-
-        <!-- Session -->
         <VWindowItem value="session">
           <VCardText>
-            <VRow>
-              <VCol v-for="(value, key) in sessionSettings" :key="key" cols="12" md="6">
-                <VTextField
-                  :model-value="value"
-                  :label="formatLabel(String(key))"
-                  density="comfortable"
-                  variant="outlined"
-                  :hint="getHint(String(key))"
-                  persistent-hint
-                  @update:model-value="sessionSettings[key] = $event"
-                />
-              </VCol>
-            </VRow>
+            <VRow><VCol v-for="(value, key) in sessionSettings" :key="key" cols="12" md="6">
+              <VTextField :model-value="value" :label="String(key)" density="comfortable" variant="outlined" hide-details @update:model-value="sessionSettings[key] = $event" />
+            </VCol></VRow>
             <div v-if="!Object.keys(sessionSettings).length" class="text-center text-medium-emphasis pa-4">No session settings found</div>
             <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('session')">Save</VBtn>
           </VCardText>
         </VWindowItem>
-
-        <!-- IP Control -->
         <VWindowItem value="ip">
           <VCardText>
-            <VRow>
-              <VCol v-for="(value, key) in ipSettings" :key="key" cols="12" md="6">
-                <VTextField
-                  :model-value="value"
-                  :label="String(key)"
-                  density="comfortable"
-                  variant="outlined"
-                  hide-details
-                  @update:model-value="ipSettings[key] = $event"
-                />
-              </VCol>
-            </VRow>
+            <VRow><VCol v-for="(value, key) in ipSettings" :key="key" cols="12" md="6">
+              <VTextField :model-value="value" :label="String(key)" density="comfortable" variant="outlined" hide-details @update:model-value="ipSettings[key] = $event" />
+            </VCol></VRow>
             <div v-if="!Object.keys(ipSettings).length" class="text-center text-medium-emphasis pa-4">No IP control settings found</div>
             <VBtn color="primary" class="mt-4" :loading="loading" @click="saveSettings('ip')">Save</VBtn>
           </VCardText>
         </VWindowItem>
       </VWindow>
     </VCard>
-
-    <VSnackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top end">
-      {{ snackbar.text }}
-    </VSnackbar>
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top end">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
