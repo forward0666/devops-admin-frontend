@@ -55,7 +55,7 @@ const headers = [
   { title: 'Department', key: 'name' },
   { title: 'Members', key: 'userCount' },
   { title: 'Description', key: 'description' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const },
+  { title: 'Action', key: 'actions', sortable: false, align: 'center' as const },
 ]
 
 const flatDepts = computed(() => {

@@ -140,7 +140,7 @@ const userHeaders = [
   { title: 'Position', key: 'position', sortable: true },
   { title: 'Department', key: 'department', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Action', key: 'actions', sortable: false },
 ]
 
 const roleOptions = ['admin', 'devops', 'user']

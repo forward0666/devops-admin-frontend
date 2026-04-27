@@ -34,7 +34,7 @@ const headers = [
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Progress', key: 'progress', sortable: true },
   { title: 'Created', key: 'created', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Action', key: 'actions', sortable: false },
 ]
 
 function openEdit(project: any) {

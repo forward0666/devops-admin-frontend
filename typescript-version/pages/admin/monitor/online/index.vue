@@ -17,7 +17,7 @@ const search = ref('')
           { title: 'Username', key: 'username' },
           { title: 'IP Address', key: 'ip' },
           { title: 'Login Time', key: 'loginTime', sortable: true },
-          { title: 'Actions', key: 'actions', sortable: false },
+          { title: 'Action', key: 'actions', sortable: false },
         ]"
         :items="[]"
         :items-per-page="10"

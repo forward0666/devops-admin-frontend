@@ -191,7 +191,7 @@ const headers = [
   { title: 'Role', key: 'projectRole', sortable: true },
   { title: 'Position', key: 'userPosition', sortable: true },
   { title: 'Joined', key: 'joinedAt', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Action', key: 'actions', sortable: false },
 ]
 
 onMounted(() => {

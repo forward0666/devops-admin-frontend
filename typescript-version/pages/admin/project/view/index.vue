@@ -42,7 +42,7 @@ const memberHeaders = [
   { title: 'System Role', key: 'systemRole' },
   { title: 'Position', key: 'position' },
   { title: 'Status', key: 'status' },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Action', key: 'actions', sortable: false },
 ]
 
 const getSystemRole = (userId: number) => {
