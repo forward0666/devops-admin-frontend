@@ -192,11 +192,15 @@ export default defineComponent({
       display: none !important;
     }
 
-    .app-title-wrapper h1 {
-      opacity: 0;
+    .app-title-wrapper h1,
+    .app-title-wrapper {
       overflow: hidden;
       inline-size: 0;
+      min-inline-size: 0;
+      opacity: 0;
       margin: 0;
+      padding: 0;
+      pointer-events: none;
     }
   }
 
