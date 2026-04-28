@@ -6,6 +6,54 @@ const search = ref('')
 const isDetailDialogVisible = ref(false)
 const selectedLog = ref<any>(null)
 const dateRange = ref<string[]>([])
+const customFrom = ref('')
+const customTo = ref('')
+const dateMenuOpen = ref(false)
+const showCustomRange = ref(false)
+const selectedPreset = ref('Last 30 days')
+
+const presets = [
+  { label: 'Today', value: '0d' },
+  { label: 'Yesterday', value: '-1d' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
+  { label: 'Last 180 days', value: '180d' },
+  { label: 'Last 365 days', value: '365d' },
+]
+
+function applyPreset(preset: string) {
+  const now = new Date()
+  const from = new Date(now)
+  const days = parseInt(preset)
+  if (days === 0) {
+    // Today: start of today
+    from.setHours(0, 0, 0, 0)
+    dateRange.value = [from.toISOString().split('T')[0], now.toISOString().split('T')[0]]
+    selectedPreset.value = 'Today'
+  } else if (days === -1) {
+    // Yesterday
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    yesterday.setHours(0, 0, 0, 0)
+    dateRange.value = [yesterday.toISOString().split('T')[0], yesterday.toISOString().split('T')[0]]
+    selectedPreset.value = 'Yesterday'
+  } else {
+    from.setDate(from.getDate() - days)
+    dateRange.value = [from.toISOString().split('T')[0], now.toISOString().split('T')[0]]
+    selectedPreset.value = `Last ${days} days`
+  }
+  dateMenuOpen.value = false
+  refresh()
+}
+
+function displayLabel() {
+  if (dateRange.value.length === 2) {
+    if (dateRange.value[0] === dateRange.value[1]) return dateRange.value[0]
+    return `${dateRange.value[0]} ~ ${dateRange.value[1]}`
+  }
+  return 'Date Range'
+}
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
@@ -48,13 +96,15 @@ function resetDateFilter() {
   logStore.fetchLogs()
 }
 
-onMounted(() => {
-  const now = new Date()
-  const from = new Date(now)
-  from.setDate(from.getDate() - 30)
-  dateRange.value = [from.toISOString().split('T')[0], now.toISOString().split('T')[0]]
-  fetchWithDate()
-})
+async function refresh() {
+  try {
+    await fetchWithDate()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to load logs', color: 'error' }
+  }
+}
+
+onMounted(() => applyPreset('30d'))
 
 async function refresh() {
   try {
@@ -70,34 +120,46 @@ async function refresh() {
     <VCard :loading="logStore.loading">
       <VCardText class="d-flex flex-wrap align-center gap-4">
         <VTextField v-model="search" placeholder="Keyword search" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
-        <VMenu :close-on-content-click="false" min-width="auto">
+        <VMenu v-model="dateMenuOpen" :close-on-content-click="false" min-width="280">
           <template #activator="{ props }">
-            <VTextField
-              :model-value="dateRange.length === 2 ? dateRange[0] + ' ~ ' + dateRange[1] : ''"
-              label="Date Range"
-              density="comfortable"
-              hide-details
-              variant="outlined"
-              readonly
-              clearable
-              style="max-inline-size: 17.5rem;"
-              v-bind="props"
-              @click:clear="resetDateFilter"
-            />
+            <VBtn variant="outlined" density="comfortable" size="small" v-bind="props" class="text-none">
+              <VIcon start icon="bx-calendar" size="18" />
+              {{ selectedPreset }}
+              <VIcon end icon="bx-chevron-down" size="16" />
+            </VBtn>
           </template>
-          <VDatepicker
-            v-model="dateRange"
-            :max="new Date().toISOString().split('T')[0]"
-            range
-            hide-header
-            color="primary"
-          >
-            <template #actions>
-              <VSpacer />
-              <VBtn size="small" variant="text" @click="dateRange = []">Clear</VBtn>
-              <VBtn size="small" variant="tonal" color="primary" @click="$emit('update:modelValue', dateRange); refresh()">Apply</VBtn>
-            </template>
-          </VDatepicker>
+          <VCard min-width="280">
+            <VList density="compact" class="pa-0">
+              <VListItem
+                v-for="p in presets" :key="p.value"
+                :active="selectedPreset === p.label"
+                class="cursor-pointer"
+                @click="applyPreset(p.value)"
+              >
+                <VListItemTitle>{{ p.label }}</VListItemTitle>
+              </VListItem>
+              <VDivider />
+              <VListItem @click="showCustomRange = true">
+                <VListItemTitle class="d-flex align-center">
+                  <VIcon icon="bx-calendar-event" size="18" class="me-2" />
+                  Custom Range
+                </VListItemTitle>
+              </VListItem>
+            </VList>
+            <VExpandTransition>
+              <div v-if="showCustomRange" class="pa-3">
+                <div class="d-flex gap-2 align-center mb-2">
+                  <VTextField v-model="customFrom" type="date" label="From" density="compact" hide-details variant="outlined" />
+                  <span class="text-medium-emphasis">~</span>
+                  <VTextField v-model="customTo" type="date" label="To" density="compact" hide-details variant="outlined" />
+                </div>
+                <div class="d-flex justify-end gap-2">
+                  <VBtn size="small" variant="text" @click="showCustomRange = false">Cancel</VBtn>
+                  <VBtn size="small" variant="tonal" color="primary" @click="dateRange = [customFrom, customTo]; selectedPreset = displayLabel(); dateMenuOpen.value = false; showCustomRange = false; refresh()">Apply</VBtn>
+                </div>
+              </div>
+            </VExpandTransition>
+          </VCard>
         </VMenu>
         <VSpacer />
         <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" size="small" @click="refresh">Refresh</VBtn>
