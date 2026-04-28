@@ -5,8 +5,7 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 const search = ref('')
 const isDetailDialogVisible = ref(false)
 const selectedLog = ref<any>(null)
-const dateFrom = ref('')
-const dateTo = ref('')
+const dateRange = ref<string[]>([])
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
@@ -37,23 +36,23 @@ const filteredLogs = computed(() => {
 
 async function fetchWithDate() {
   const params: any = {}
-  if (dateFrom.value) params.startDate = dateFrom.value
-  if (dateTo.value) params.endDate = dateTo.value
+  if (dateRange.value.length === 2) {
+    params.startDate = dateRange.value[0]
+    params.endDate = dateRange.value[1]
+  }
   await logStore.fetchLogs(params)
 }
 
 function resetDateFilter() {
-  dateFrom.value = ''
-  dateTo.value = ''
+  dateRange.value = []
   logStore.fetchLogs()
 }
 
 onMounted(() => {
-  // Default: last 30 days
   const now = new Date()
   const from = new Date(now)
   from.setDate(from.getDate() - 30)
-  dateFrom.value = from.toISOString().split('T')[0]
+  dateRange.value = [from.toISOString().split('T')[0], now.toISOString().split('T')[0]]
   fetchWithDate()
 })
 
@@ -71,9 +70,35 @@ async function refresh() {
     <VCard :loading="logStore.loading">
       <VCardText class="d-flex flex-wrap align-center gap-4">
         <VTextField v-model="search" placeholder="Keyword search" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
-        <VTextField v-model="dateFrom" type="date" label="From" density="comfortable" hide-details variant="outlined" style="max-inline-size: 11.25rem;" />
-        <VTextField v-model="dateTo" type="date" label="To" density="comfortable" hide-details variant="outlined" style="max-inline-size: 11.25rem;" />
-        <VBtn v-if="dateFrom || dateTo" icon="bx-x" variant="text" size="small" @click="resetDateFilter" />
+        <VMenu :close-on-content-click="false" min-width="auto">
+          <template #activator="{ props }">
+            <VTextField
+              :model-value="dateRange.length === 2 ? dateRange[0] + ' ~ ' + dateRange[1] : ''"
+              label="Date Range"
+              density="comfortable"
+              hide-details
+              variant="outlined"
+              readonly
+              clearable
+              style="max-inline-size: 17.5rem;"
+              v-bind="props"
+              @click:clear="resetDateFilter"
+            />
+          </template>
+          <VDatepicker
+            v-model="dateRange"
+            :max="new Date().toISOString().split('T')[0]"
+            range
+            hide-header
+            color="primary"
+          >
+            <template #actions>
+              <VSpacer />
+              <VBtn size="small" variant="text" @click="dateRange = []">Clear</VBtn>
+              <VBtn size="small" variant="tonal" color="primary" @click="$emit('update:modelValue', dateRange); refresh()">Apply</VBtn>
+            </template>
+          </VDatepicker>
+        </VMenu>
         <VSpacer />
         <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" size="small" @click="refresh">Refresh</VBtn>
       </VCardText>
