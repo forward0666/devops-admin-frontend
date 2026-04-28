@@ -3,11 +3,10 @@ const logStore = useOperationLogStore()
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const search = ref('')
-const filterModule = ref('')
-const filterType = ref('')
-const filterStatus = ref('')
 const isDetailDialogVisible = ref(false)
 const selectedLog = ref<any>(null)
+const dateFrom = ref('')
+const dateTo = ref('')
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
@@ -33,22 +32,27 @@ const filteredLogs = computed(() => {
       (l.url || '').toLowerCase().includes(q),
     )
   }
-  if (filterModule.value) items = items.filter((l: any) => (l.resourceType || '').toLowerCase() === filterModule.value.toLowerCase())
-  if (filterType.value) items = items.filter((l: any) => l.operationType === filterType.value)
-  if (filterStatus.value) items = items.filter((l: any) => (l.status || '').toLowerCase() === filterStatus.value.toLowerCase())
   return items
 })
 
-const uniqueModules = computed(() => {
-  console.log('Log store data:', logStore.logs)
-  return [...new Set(logStore.logs.map((l: any) => l.resourceType).filter(Boolean))].sort()
-})
+async function fetchWithDate() {
+  const params: any = {}
+  if (dateFrom.value) params.startDate = dateFrom.value
+  if (dateTo.value) params.endDate = dateTo.value
+  await logStore.fetchLogs(params)
+}
+
+function resetDateFilter() {
+  dateFrom.value = ''
+  dateTo.value = ''
+  logStore.fetchLogs()
+}
 
 onMounted(() => logStore.fetchLogs())
 
 async function refresh() {
   try {
-    await logStore.fetchLogs()
+    await fetchWithDate()
   } catch (e: any) {
     snackbar.value = { show: true, text: e.message || 'Failed to load logs', color: 'error' }
   }
@@ -60,6 +64,9 @@ async function refresh() {
     <VCard :loading="logStore.loading">
       <VCardText class="d-flex flex-wrap align-center gap-4">
         <VTextField v-model="search" placeholder="Keyword search" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
+        <VTextField v-model="dateFrom" type="date" label="From" density="comfortable" hide-details variant="outlined" style="max-inline-size: 11.25rem;" />
+        <VTextField v-model="dateTo" type="date" label="To" density="comfortable" hide-details variant="outlined" style="max-inline-size: 11.25rem;" />
+        <VBtn v-if="dateFrom || dateTo" icon="bx-x" variant="text" size="small" @click="resetDateFilter" />
         <VSpacer />
         <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" size="small" @click="refresh">Refresh</VBtn>
       </VCardText>
