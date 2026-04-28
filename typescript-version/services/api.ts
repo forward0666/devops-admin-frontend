@@ -214,6 +214,9 @@ export const settingService = {
   update(data: any) {
     return request<any>({ method: 'put', url: '/manage/setting', data })
   },
+  getCaptchaStatus() {
+    return request<any>({ method: 'get', url: '/manage/setting/captcha' })
+  },
 }
 
 // ============ Dashboard ============
