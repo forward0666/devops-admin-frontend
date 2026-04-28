@@ -106,13 +106,6 @@ async function refresh() {
 
 onMounted(() => applyPreset('30d'))
 
-async function refresh() {
-  try {
-    await fetchWithDate()
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e.message || 'Failed to load logs', color: 'error' }
-  }
-}
 </script>
 
 <template>
