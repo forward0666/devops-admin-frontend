@@ -48,7 +48,14 @@ function resetDateFilter() {
   logStore.fetchLogs()
 }
 
-onMounted(() => logStore.fetchLogs())
+onMounted(() => {
+  // Default: last 30 days
+  const now = new Date()
+  const from = new Date(now)
+  from.setDate(from.getDate() - 30)
+  dateFrom.value = from.toISOString().split('T')[0]
+  fetchWithDate()
+})
 
 async function refresh() {
   try {
