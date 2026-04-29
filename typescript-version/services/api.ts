@@ -2,7 +2,7 @@ import axios from 'axios'
 import type { ApiResponse } from '~/types/api'
 
 // 环境变量配置
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://192.168.86.9:8081'
 const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 10000
 
 // 创建 axios 实例
@@ -77,7 +77,7 @@ export const authService = {
   async login(username: string, password: string, verificationCode: string, verificationCodeKey: string) {
     return request<any>({
       method: 'post',
-      url: '/manage/login',
+      url: '/login/authLogIn',
       data: { username, password, verificationCode, verificationCodeKey },
     })
   },
@@ -85,14 +85,14 @@ export const authService = {
   async logout() {
     return request<void>({
       method: 'post',
-      url: '/manage/logout',
+      url: '/login/authLogOut',
     })
   },
 
   async validateToken(token: string) {
     return request<{ valid: boolean }>({
       method: 'post',
-      url: '/manage/validate-token',
+      url: '/login/validate-token',
       headers: { Authorization: `Bearer ${token}` },
     })
   },
