@@ -69,23 +69,23 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authService.login(username, password, verificationCode, verificationCodeKey)
 
-        if (response && response.token && response.user) {
+        if (response && response.token) {
           this.token = response.token
           this.user = {
-            id: response.user.id || 1,
-            username: response.user.username,
-            role: (response.user.role as UserRole) || 'user',
-            department: response.user.department,
-            departmentId: response.user.departmentId,
-            email: response.user.email,
-            phone: response.user.phone,
-            fullName: response.user.fullName,
-            avatarUrl: response.user.avatarUrl,
-            position: response.user.position,
-            employeeId: response.user.employeeId,
-            active: response.user.active,
-            emailVerified: response.user.emailVerified,
-            phoneVerified: response.user.phoneVerified,
+            id: response.id || 1,
+            username: response.username,
+            role: (response.role as UserRole) || 'user',
+            email: response.email,
+            fullName: response.fullName,
+            avatarUrl: response.avatar,
+            department: null,
+            departmentId: null,
+            phone: null,
+            position: null,
+            employeeId: null,
+            active: true,
+            emailVerified: false,
+            phoneVerified: false,
           }
 
           // 设置用户角色
