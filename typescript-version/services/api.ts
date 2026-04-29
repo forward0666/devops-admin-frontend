@@ -299,13 +299,13 @@ export const userConsoleMemberService = {
 
 export const userConsoleProfileService = {
   getProfile() {
-    return request<any>({ method: 'get', url: '/user/user/profile' })
+    return request<any>({ method: 'get', url: '/user/profile' })
   },
   updateProfile(data: any) {
-    return request<any>({ method: 'put', url: '/user/user/profile', data })
+    return request<any>({ method: 'put', url: '/user/profile', data })
   },
   changePassword(data: any) {
-    return request<void>({ method: 'put', url: '/user/user/password', data })
+    return request<void>({ method: 'put', url: '/user/password', data })
   },
 }
 
