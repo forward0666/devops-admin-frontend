@@ -240,7 +240,7 @@ const handleLogin = async () => {
                 cols="12"
                 class="text-center"
               >
-                <AuthProvider />
+                <!-- Social login placeholder -->
               </VCol>
             </VRow>
           </VForm>
