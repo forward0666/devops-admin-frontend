@@ -319,7 +319,6 @@ onMounted(() => {
       <VCard>
         <VCardItem>
           <VCardTitle>Invite Member</VCardTitle>
-          <VBtn icon variant="text" @click="isInviteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
           <VTextField v-model="inviteSearch" placeholder="Search by name or email" density="comfortable" class="mb-4" variant="outlined" prepend-inner-icon="bx-search" clearable />

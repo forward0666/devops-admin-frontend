@@ -1,25 +1,57 @@
 <script setup lang="ts">
 import { userConsoleProfileService } from '~/services/api'
 const authStore = useAuthStore()
-const userStore = useUserStore()
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const activeTab = ref('account')
+const profileLoading = ref(false)
 
 const user = computed(() => authStore.user)
 
 const userData = reactive({
-  fullName: user.value?.fullName || user.value?.username || 'User',
-  username: user.value?.username || 'User',
-  email: user.value?.email || '-',
-  role: user.value?.role || 'user',
-  status: user.value?.active !== false ? 'Active' : 'Inactive',
-  department: user.value?.department || '-',
-  phone: user.value?.phone || '-',
-  position: user.value?.position || '-',
-  emailVerified: user.value?.emailVerified || false,
-  phoneVerified: user.value?.phoneVerified || false,
+  fullName: '',
+  username: '',
+  email: '-',
+  role: 'user',
+  status: 'Active',
+  department: '-',
+  phone: '-',
+  position: '-',
+  emailVerified: false,
+  phoneVerified: false,
 })
+
+async function loadProfile() {
+  try {
+    profileLoading.value = true
+    const res: any = await userConsoleProfileService.getProfile()
+    const data = res?.data || res || {}
+    userData.fullName = data.fullName || data.username || ''
+    userData.username = data.username || ''
+    userData.email = data.email || '-'
+    userData.role = data.role || 'user'
+    userData.status = data.active !== false ? 'Active' : 'Inactive'
+    userData.department = data.department || '-'
+    userData.phone = data.phone || '-'
+    userData.position = data.position || '-'
+    userData.emailVerified = data.emailVerified || false
+    userData.phoneVerified = data.phoneVerified || false
+  } catch (e: any) {
+    // Fallback to authStore
+    userData.fullName = user.value?.fullName || user.value?.username || 'User'
+    userData.username = user.value?.username || 'User'
+    userData.email = user.value?.email || '-'
+    userData.role = user.value?.role || 'user'
+    userData.status = user.value?.active !== false ? 'Active' : 'Inactive'
+    userData.department = user.value?.department || '-'
+    userData.phone = user.value?.phone || '-'
+    userData.position = user.value?.position || '-'
+  } finally {
+    profileLoading.value = false
+  }
+}
+
+onMounted(() => loadProfile())
 
 const isEditDialogVisible = ref(false)
 const editForm = ref({ fullName: '', email: '', phone: '' })
@@ -30,9 +62,8 @@ function openEditDialog() {
 }
 
 async function saveProfile() {
-  if (!user.value?.id) return
   try {
-    await userStore.updateUser(user.value.id, {
+    await userConsoleProfileService.updateProfile({
       fullName: editForm.value.fullName,
       email: editForm.value.email,
       phone: editForm.value.phone,
@@ -179,7 +210,7 @@ const resolveAvatarColor = (name: string) => {
                     <VTextField v-model="confirmPassword" :type="isConfirmPasswordVisible ? 'text' : 'password'" label="Confirm Password" placeholder="············" autocomplete="confirm-password" :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'" @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible" />
                   </VCol>
                 </VRow>
-                <VBtn type="submit" variant="elevated" color="primary" class="mt-4" :loading="userStore.loading">Change Password</VBtn>
+                <VBtn type="submit" variant="elevated" color="primary" class="mt-4" :loading="loading">Change Password</VBtn>
               </VCardText>
             </VForm>
           </VCard>
@@ -201,7 +232,7 @@ const resolveAvatarColor = (name: string) => {
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" :loading="userStore.loading" @click="saveProfile">Save</VBtn>
+          <VBtn color="primary" :loading="profileLoading" @click="saveProfile">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
