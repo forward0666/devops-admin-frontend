@@ -8,6 +8,7 @@ interface BotItem {
   id: number
   botName: string
   botUsername: string
+  botType: string
   status: number
   createdAt: string
 }
@@ -19,6 +20,8 @@ const showDeleteDialog = ref(false)
 const selectedBot = ref<BotItem | null>(null)
 const deleteBotName = ref('')
 const snackbar = ref({ show: false, text: '', color: 'success' })
+const showEditDialog = ref(false)
+const editBot = ref({ botName: '', botUsername: '', botType: '' })
 
 const newBot = ref({
   botName: '',
@@ -109,6 +112,31 @@ function confirmDelete(bot: BotItem) {
   showDeleteDialog.value = true
 }
 
+function openEditDialog(bot: BotItem) {
+  selectedBot.value = bot
+  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, botType: (bot as any).botType || 'GENERAL' }
+  showEditDialog.value = true
+}
+
+async function handleEditBot() {
+  if (!selectedBot.value) return
+  loading.value = true
+  try {
+    await telegramBotService.updateStatus(selectedBot.value.botName, selectedBot.value.status)
+    showEditDialog.value = false
+    await loadBots()
+    snackbar.text = 'Bot updated'
+    snackbar.color = 'success'
+    snackbar.show = true
+  } catch (e: any) {
+    snackbar.text = e?.message || 'Failed to update bot'
+    snackbar.color = 'error'
+    snackbar.show = true
+  } finally {
+    loading.value = false
+  }
+}
+
 async function handleDeleteBot() {
   if (!selectedBot.value || deleteBotName.value !== selectedBot.value.botName) return
   loading.value = true
@@ -175,15 +203,34 @@ onMounted(() => { loadBots() })
         </template>
 
         <template #item.action="{ item }">
-          <VBtn
-            icon
-            variant="text"
-            color="error"
-            size="small"
-            @click="confirmDelete(item)"
-          >
-            <VIcon icon="bx-trash" />
-          </VBtn>
+          <VTooltip text="Edit">
+            <template #activator="{ props }">
+              <VBtn
+                v-bind="props"
+                icon
+                variant="text"
+                color="primary"
+                size="small"
+                @click="openEditDialog(item)"
+              >
+                <VIcon icon="bx-edit" />
+              </VBtn>
+            </template>
+          </VTooltip>
+          <VTooltip text="Delete">
+            <template #activator="{ props }">
+              <VBtn
+                v-bind="props"
+                icon
+                variant="text"
+                color="error"
+                size="small"
+                @click="confirmDelete(item)"
+              >
+                <VIcon icon="bx-trash" />
+              </VBtn>
+            </template>
+          </VTooltip>
         </template>
 
         <template #no-data>
@@ -248,6 +295,45 @@ onMounted(() => { loadBots() })
           <VBtn variant="outlined" @click="showAddDialog = false">Cancel</VBtn>
           <VBtn color="primary" :disabled="!newBot.botName || !newBot.botUsername || !newBot.token" @click="handleAddBot">
             Register
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Edit Bot Dialog -->
+    <VDialog v-model="showEditDialog" max-width="500">
+      <VCard>
+        <VCardTitle class="d-flex align-center">
+          <VIcon icon="bx-edit" class="me-2" />
+          Edit Bot
+        </VCardTitle>
+        <VDivider />
+        <VCardText>
+          <VTextField
+            v-model="editBot.botName"
+            label="Bot Name"
+            class="mb-4"
+            disabled
+          />
+          <VTextField
+            v-model="editBot.botUsername"
+            label="Bot Username"
+            class="mb-4"
+            disabled
+          />
+          <VSelect
+            v-model="editBot.botType"
+            :items="botTypes"
+            item-title="title"
+            item-value="value"
+            label="Bot Type"
+          />
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn variant="outlined" @click="showEditDialog = false">Cancel</VBtn>
+          <VBtn color="primary" @click="handleEditBot">
+            Save
           </VBtn>
         </VCardActions>
       </VCard>
