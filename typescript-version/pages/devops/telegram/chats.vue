@@ -247,7 +247,7 @@ onMounted(async () => {
       </VCard>
     </VDialog>
 
-    <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="top end">
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="top end" style="z-index: 9999">
       {{ snackbar.text }}
     </VSnackbar>
   </div>
