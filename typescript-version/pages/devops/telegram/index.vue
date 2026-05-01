@@ -203,6 +203,20 @@ async function handleSetWebhook() {
   }
 }
 
+async function handleDeleteWebhook() {
+  if (!selectedBot.value || !confirm('Delete webhook for this bot?')) return
+  detailLoading.value = true
+  try {
+    await telegramBotService.deleteWebhook(selectedBot.value.botName)
+    await loadBotDetail()
+    snackbar.value = { show: true, text: 'Webhook deleted', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed to delete webhook', color: 'error' }
+  } finally {
+    detailLoading.value = false
+  }
+}
+
 onMounted(() => { loadBots() })
 </script>
 
@@ -380,6 +394,9 @@ onMounted(() => { loadBots() })
                 </VList>
                 <VBtn variant="outlined" color="primary" class="mt-4" @click="showSetWebhookDialog = true">
                   <VIcon start icon="bx-cog" />Set Webhook
+                </VBtn>
+                <VBtn variant="outlined" color="error" class="mt-4 ms-2" @click="handleDeleteWebhook">
+                  <VIcon start icon="bx-trash" />Delete Webhook
                 </VBtn>
               </div>
               <div v-else class="text-center py-4 text-medium-emphasis">
