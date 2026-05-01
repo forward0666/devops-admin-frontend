@@ -185,10 +185,10 @@ onMounted(() => { loadBots() })
           <VChip size="small" color="primary" variant="tonal" class="me-2">Lv1</VChip>
           <span class="text-h6">{{ main.title || main.menuKey }}</span>
           <VSpacer />
-          <VBtn icon="mdi-arrow-up" size="x-small" variant="text" @click="moveSortOrder(main, 'up')" />
-          <VBtn icon="mdi-arrow-down" size="x-small" variant="text" @click="moveSortOrder(main, 'down')" />
-          <VBtn icon="mdi-pencil" size="x-small" variant="text" @click="openEditDialog(main)" />
-          <VBtn icon="mdi-delete" size="x-small" variant="text" color="error" @click="deleteMenu(main.id)" />
+          <VBtn icon size="x-small" variant="text" @click="moveSortOrder(main, 'up')"><VIcon icon="bx-chevron-up" /></VBtn>
+          <VBtn icon size="x-small" variant="text" @click="moveSortOrder(main, 'down')"><VIcon icon="bx-chevron-down" /></VBtn>
+          <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(main)"><VIcon icon="bx-edit" /></VBtn>
+          <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(main.id)"><VIcon icon="bx-trash" /></VBtn>
         </div>
         <VAlert v-if="main.buttons" type="info" variant="tonal" density="compact" class="mb-2">
           <pre class="text-caption ma-0" style="white-space: pre-wrap">{{ buttonsPreview(main.buttons) }}</pre>
@@ -205,10 +205,10 @@ onMounted(() => { loadBots() })
               <VChip size="small" color="secondary" variant="tonal" class="me-2">Lv2</VChip>
               <span class="text-subtitle-1">{{ sub.title || sub.menuKey }}</span>
               <VSpacer />
-              <VBtn icon="mdi-arrow-up" size="x-small" variant="text" @click="moveSortOrder(sub, 'up')" />
-              <VBtn icon="mdi-arrow-down" size="x-small" variant="text" @click="moveSortOrder(sub, 'down')" />
-              <VBtn icon="mdi-pencil" size="x-small" variant="text" @click="openEditDialog(sub)" />
-              <VBtn icon="mdi-delete" size="x-small" variant="text" color="error" @click="deleteMenu(sub.id)" />
+              <VBtn icon size="x-small" variant="text" @click="moveSortOrder(sub, 'up')"><VIcon icon="bx-chevron-up" /></VBtn>
+              <VBtn icon size="x-small" variant="text" @click="moveSortOrder(sub, 'down')"><VIcon icon="bx-chevron-down" /></VBtn>
+              <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(sub)"><VIcon icon="bx-edit" /></VBtn>
+              <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(sub.id)"><VIcon icon="bx-trash" /></VBtn>
             </div>
             <VAlert v-if="sub.buttons" type="info" variant="tonal" density="compact">
               <pre class="text-caption ma-0" style="white-space: pre-wrap">{{ buttonsPreview(sub.buttons) }}</pre>
@@ -220,13 +220,13 @@ onMounted(() => { loadBots() })
         </template>
 
         <VBtn size="small" variant="text" class="mt-2" @click="openCreateDialog(2, main.id)">
-          <VIcon icon="mdi-plus" size="small" class="me-1" /> Add Sub Menu
+          <VIcon icon="bx-plus" size="small" class="me-1" /> Add Sub Menu
         </VBtn>
       </VCardText>
     </VCard>
 
     <VBtn v-if="selectedBot" color="primary" @click="openCreateDialog(1)">
-      <VIcon icon="mdi-plus" class="me-1" /> Add Main Menu
+      <VIcon icon="bx-plus" class="me-1" /> Add Main Menu
     </VBtn>
 
     <!-- Create/Edit Dialog -->
