@@ -15,21 +15,12 @@ interface ChatItem {
   createdAt?: string
 }
 
-interface BlacklistItem {
-  botName: string
-  chatId: string
-  redisKey: string
-}
-
-const tab = ref('authorized')
 const chats = ref<ChatItem[]>([])
-const blacklist = ref<BlacklistItem[]>([])
 const bots = ref<any[]>([])
 const loading = ref(false)
 const selectedBot = ref<string>('')
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
-// Add chat dialog
 const showAddDialog = ref(false)
 const newChat = ref({ botName: '', chatId: '', chatName: '', type: 'private' })
 
@@ -40,7 +31,7 @@ const chatTypes = [
   { title: 'Channel', value: 'channel' },
 ]
 
-const authorizedHeaders = [
+const headers = [
   { title: 'Bot', key: 'botName', width: '180px' },
   { title: 'Chat ID', key: 'chatId', width: '150px' },
   { title: 'Name', key: 'chatName', width: '200px' },
@@ -50,21 +41,7 @@ const authorizedHeaders = [
   { title: 'Action', key: 'action', width: '100px', sortable: false },
 ]
 
-const blacklistHeaders = [
-  { title: 'Bot', key: 'botName', width: '200px' },
-  { title: 'Chat ID', key: 'chatId', width: '180px' },
-  { title: 'Action', key: 'action', width: '120px', sortable: false },
-]
-
-watch(tab, () => {
-  if (tab.value === 'authorized') loadChats()
-  else loadBlacklist()
-})
-
-watch(selectedBot, () => {
-  if (tab.value === 'authorized') loadChats()
-  else loadBlacklist()
-})
+watch(selectedBot, () => loadChats())
 
 async function loadBots() {
   try {
@@ -95,19 +72,6 @@ async function loadChats() {
     }
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed to load chats', color: 'error' }
-  } finally {
-    loading.value = false
-  }
-}
-
-async function loadBlacklist() {
-  loading.value = true
-  try {
-    const res = await telegramBotService.getBlacklist(selectedBot.value || undefined)
-    blacklist.value = res?.blacklist || []
-  } catch (e: any) {
-    blacklist.value = []
-    snackbar.value = { show: true, text: e?.message || 'Failed to load blacklist', color: 'error' }
   } finally {
     loading.value = false
   }
@@ -150,19 +114,6 @@ async function removeChat(chat: ChatItem) {
   }
 }
 
-async function removeBlacklist(item: BlacklistItem) {
-  loading.value = true
-  try {
-    await telegramBotService.removeBlacklist(item.botName, item.chatId)
-    await loadBlacklist()
-    snackbar.value = { show: true, text: 'Blacklist removed', color: 'success' }
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Failed to remove', color: 'error' }
-  } finally {
-    loading.value = false
-  }
-}
-
 onMounted(async () => {
   await loadBots()
   await loadChats()
@@ -171,16 +122,20 @@ onMounted(async () => {
 
 <template>
   <div>
-    <VTabs v-model="tab" color="primary">
-      <VTab value="authorized">Authorized Chat</VTab>
-      <VTab value="blacklist">
-        Blacklist
-        <VChip v-if="blacklist.length > 0" size="x-small" color="error" class="ms-2">{{ blacklist.length }}</VChip>
-      </VTab>
-    </VTabs>
+    <VCard class="mb-4">
+      <VCardText class="d-flex align-center py-3">
+        <div class="flex-grow-1">
+          <h4 class="text-h4 mb-1">Authorized Chat</h4>
+          <p class="text-body-2 text-medium-emphasis mb-0">Manage chat authorizations for Telegram bots</p>
+        </div>
+        <VBtn color="primary" @click="showAddDialog = true">
+          <VIcon start icon="bx-plus" />Add Chat
+        </VBtn>
+      </VCardText>
+    </VCard>
 
     <!-- Filter -->
-    <VCard class="mt-4 mb-4">
+    <VCard class="mb-4">
       <VCardText>
         <VRow dense>
           <VCol cols="12" md="4">
@@ -192,11 +147,11 @@ onMounted(async () => {
               label="Filter by Bot"
               density="compact"
               clearable
-              @update:model-value="tab === 'authorized' ? loadChats() : loadBlacklist()"
+              @update:model-value="loadChats()"
             />
           </VCol>
           <VCol cols="12" md="2">
-            <VBtn variant="outlined" block :loading="loading" @click="tab === 'authorized' ? loadChats() : loadBlacklist()">
+            <VBtn variant="outlined" block :loading="loading" @click="loadChats">
               <VIcon start icon="bx-refresh" />Refresh
             </VBtn>
           </VCol>
@@ -204,19 +159,10 @@ onMounted(async () => {
       </VCardText>
     </VCard>
 
-    <!-- Authorized Chat Tab -->
-    <VCard v-if="tab === 'authorized'">
-      <VCardText class="d-flex align-center py-3">
-        <div class="flex-grow-1">
-          <h4 class="text-h4 mb-1">Authorized Chat</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Manage chat authorizations for Telegram bots</p>
-        </div>
-        <VBtn color="primary" @click="showAddDialog = true">
-          <VIcon start icon="bx-plus" />Add Chat
-        </VBtn>
-      </VCardText>
+    <!-- Chat List -->
+    <VCard>
       <VDataTable
-        :headers="authorizedHeaders"
+        :headers="headers"
         :items="chats"
         :loading="loading"
         item-key="id"
@@ -244,35 +190,6 @@ onMounted(async () => {
         </template>
         <template #no-data>
           <div class="text-center py-8 text-medium-emphasis">No authorized chats found</div>
-        </template>
-      </VDataTable>
-    </VCard>
-
-    <!-- Blacklist Tab -->
-    <VCard v-if="tab === 'blacklist'">
-      <VCardText class="py-3">
-        <h4 class="text-h4 mb-1">Blacklist</h4>
-        <p class="text-body-2 text-medium-emphasis mb-0">Auto-blacklisted users after 2 unauthorized attempts (30 days TTL)</p>
-      </VCardText>
-      <VDataTable
-        :headers="blacklistHeaders"
-        :items="blacklist"
-        :loading="loading"
-        item-key="redisKey"
-        density="comfortable"
-        :items-per-page="15"
-      >
-        <template #item.action="{ item }">
-          <VTooltip text="Remove from Blacklist">
-            <template #activator="{ props }">
-              <VBtn v-bind="props" icon variant="text" color="warning" size="small" @click="removeBlacklist(item)">
-                <VIcon icon="bx-lock-open-alt" />
-              </VBtn>
-            </template>
-          </VTooltip>
-        </template>
-        <template #no-data>
-          <div class="text-center py-8 text-medium-emphasis">No blacklisted users</div>
         </template>
       </VDataTable>
     </VCard>

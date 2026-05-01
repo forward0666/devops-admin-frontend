@@ -169,8 +169,14 @@ const isProjectActive = (projectId: number) => {
         />
         <VerticalNavLink
           :item="{
-            title: 'Authorized Chats',
+            title: 'Authorized Chat',
             to: '/devops/telegram/chats',
+          }"
+        />
+        <VerticalNavLink
+          :item="{
+            title: 'Blacklist',
+            to: '/devops/telegram/blacklist',
           }"
         />
         <VerticalNavLink
