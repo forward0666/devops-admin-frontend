@@ -19,8 +19,6 @@ const form = ref({
   menuKey: '',
   title: '',
   buttons: JSON.stringify([[{ text: '', callbackData: '' }]]),
-  [{"text": "", "callbackData": ""}]
-]',
   parentId: null as number | null,
   sortOrder: 0,
 })
