@@ -179,6 +179,12 @@ const isProjectActive = (projectId: number) => {
             to: '/devops/telegram/whitelist',
           }"
         />
+        <VerticalNavLink
+          :item="{
+            title: 'Menu Config',
+            to: '/devops/telegram/menu',
+          }"
+        />
       </VerticalNavGroup>
     </template>
 

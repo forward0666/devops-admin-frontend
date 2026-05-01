@@ -421,6 +421,22 @@ export const telegramBotService = {
   removeWhitelistIp(ip: string, domainType: string) {
     return request<void>({ method: 'delete', url: `/bot/whitelist/ips/${ip}`, params: { domainType }, headers: BOT_HEADERS })
   },
+  // Menu
+  getMenus(botName: string) {
+    return request<any>({ method: 'get', url: `/bot/menu/bot/${botName}`, headers: BOT_HEADERS })
+  },
+  getMenu(id: number) {
+    return request<any>({ method: 'get', url: `/bot/menu/${id}`, headers: BOT_HEADERS })
+  },
+  createMenu(data: any) {
+    return request<any>({ method: 'post', url: '/bot/menu', data, headers: BOT_HEADERS })
+  },
+  updateMenu(id: number, data: any) {
+    return request<any>({ method: 'put', url: `/bot/menu/${id}`, data, headers: BOT_HEADERS })
+  },
+  deleteMenu(id: number) {
+    return request<void>({ method: 'delete', url: `/bot/menu/${id}`, headers: BOT_HEADERS })
+  },
 }
 
 export default apiClient
