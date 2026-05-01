@@ -21,7 +21,7 @@ const selectedBot = ref<BotItem | null>(null)
 const deleteBotName = ref('')
 const snackbar = ref({ show: false, text: '', color: 'success' })
 const showEditDialog = ref(false)
-const editBot = ref({ botName: '', botUsername: '', botType: '', status: 1 })
+const editBot = ref({ botName: '', botUsername: '', token: '', botType: '', status: 1 })
 const editStatusItems = [
   { title: 'Enabled', value: 1 },
   { title: 'Disabled', value: 0 },
@@ -118,7 +118,7 @@ function confirmDelete(bot: BotItem) {
 
 function openEditDialog(bot: BotItem) {
   selectedBot.value = bot
-  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, botType: bot.botType || 'GENERAL', status: bot.status }
+  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, token: '', botType: bot.botType || 'GENERAL', status: bot.status }
   showEditDialog.value = true
 }
 
@@ -126,7 +126,11 @@ async function handleEditBot() {
   if (!selectedBot.value) return
   loading.value = true
   try {
-    await telegramBotService.update(selectedBot.value.botName, { botType: editBot.value.botType, status: editBot.value.status })
+    await telegramBotService.update(selectedBot.value.botName, {
+      botType: editBot.value.botType,
+      status: editBot.value.status,
+      ...(editBot.value.token ? { token: editBot.value.token } : {}),
+    })
     showEditDialog.value = false
     await loadBots()
     snackbar.text = 'Bot updated'
@@ -319,6 +323,14 @@ onMounted(() => { loadBots() })
             label="Bot Username"
             class="mb-4"
             disabled
+          />
+          <VTextField
+            v-model="editBot.token"
+            label="Bot Token"
+            placeholder="Leave empty to keep current token"
+            class="mb-4"
+            type="password"
+            hint="Only fill this to change the token"
           />
           <VSelect
             v-model="editBot.botType"
