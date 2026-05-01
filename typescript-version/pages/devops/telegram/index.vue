@@ -34,6 +34,8 @@ const webhookInfo = ref<any>(null)
 const authorizedChats = ref<any[]>([])
 const authStats = ref<any>(null)
 const detailLoading = ref(false)
+const showSetWebhookDialog = ref(false)
+const webhookForm = ref({ url: '', secretToken: '' })
 
 const newBot = ref({
   botName: '',
@@ -167,6 +169,22 @@ async function removeChatAuth(id: number) {
     snackbar.value = { show: true, text: 'Authorization removed', color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed to remove', color: 'error' }
+  }
+}
+
+async function handleSetWebhook() {
+  if (!selectedBot.value || !webhookForm.value.url) return
+  detailLoading.value = true
+  try {
+    await telegramBotService.setWebhook(selectedBot.value.botName, webhookForm.value.url, webhookForm.value.secretToken || undefined)
+    showSetWebhookDialog.value = false
+    webhookForm.value = { url: '', secretToken: '' }
+    await loadBotDetail()
+    snackbar.value = { show: true, text: 'Webhook set successfully', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed to set webhook', color: 'error' }
+  } finally {
+    detailLoading.value = false
   }
 }
 
@@ -338,6 +356,9 @@ onMounted(() => { loadBots() })
                   <VListItem v-if="webhookInfo.last_error_date" title="Last Error" :subtitle="`[${new Date(webhookInfo.last_error_date * 1000).toLocaleString()}] ${webhookInfo.last_error_message || ''}`" prepend-icon="bx-error" />
                   <VListItem v-if="webhookInfo.allowed_updates" title="Allowed Updates" :subtitle="webhookInfo.allowed_updates.join(', ')" prepend-icon="bx-filter" />
                 </VList>
+                <VBtn variant="outlined" color="primary" class="mt-4" @click="showSetWebhookDialog = true">
+                  <VIcon start icon="bx-cog" />Set Webhook
+                </VBtn>
               </div>
               <div v-else class="text-center py-4 text-medium-emphasis">
                 No webhook info available
@@ -412,6 +433,36 @@ onMounted(() => { loadBots() })
         <VCardActions>
           <VSpacer />
           <VBtn variant="outlined" @click="showDetailDialog = false">Close</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Set Webhook Dialog -->
+    <VDialog v-model="showSetWebhookDialog" max-width="500">
+      <VCard>
+        <VCardTitle class="d-flex align-center">
+          <VIcon icon="bx-cog" class="me-2" />Set Webhook
+        </VCardTitle>
+        <VDivider />
+        <VCardText>
+          <p class="text-body-2 text-medium-emphasis mb-4">Bot: <strong>{{ selectedBot?.botName }}</strong></p>
+          <VTextField
+            v-model="webhookForm.url"
+            label="Webhook URL"
+            placeholder="https://your-domain.com/callback/MyBot"
+            class="mb-4"
+            :rules="[(v: string) => !!v || 'Required']"
+          />
+          <VTextField
+            v-model="webhookForm.secretToken"
+            label="Secret Token (optional)"
+            placeholder="Leave empty to use existing"
+          />
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn variant="outlined" @click="showSetWebhookDialog = false">Cancel</VBtn>
+          <VBtn color="primary" :loading="detailLoading" :disabled="!webhookForm.url" @click="handleSetWebhook">Set</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
