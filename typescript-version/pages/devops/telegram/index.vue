@@ -28,6 +28,7 @@ const newBot = ref({
 })
 
 const botTypes = [
+  { title: 'General', value: 'GENERAL' },
   { title: 'IP White List', value: 'IP_WHITE_LIST' },
   { title: 'Customer Service', value: 'CUSTOMER_SERVICE' },
   { title: 'Tool', value: 'TOOL' },
