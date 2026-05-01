@@ -175,7 +175,7 @@ const isProjectActive = (projectId: number) => {
         />
         <VerticalNavLink
           :item="{
-            title: 'Blacklist',
+            title: 'Blacklist Chat',
             to: '/devops/telegram/blacklist',
           }"
         />
