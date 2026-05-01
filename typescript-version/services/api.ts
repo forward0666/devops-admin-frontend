@@ -412,25 +412,4 @@ export const telegramSessionService = {
   },
 }
 
-export const telegramHealthService = {
-  overall() {
-    return request<any>({ method: 'get', url: '/bot/health/overall', headers: BOT_HEADERS })
-  },
-  cache() {
-    return request<any>({ method: 'get', url: '/bot/health/cache', headers: BOT_HEADERS })
-  },
-  database() {
-    return request<any>({ method: 'get', url: '/bot/health/database', headers: BOT_HEADERS })
-  },
-  telegramApi(botName?: string) {
-    return request<any>({ method: 'get', url: '/bot/health/telegram-api', params: { botName }, headers: BOT_HEADERS })
-  },
-  botMetrics() {
-    return request<any>({ method: 'get', url: '/bot/health/metrics/bots', headers: BOT_HEADERS })
-  },
-  messageMetrics(period = 'day') {
-    return request<any>({ method: 'get', url: '/bot/health/metrics/messages', params: { period }, headers: BOT_HEADERS })
-  },
-}
-
 export default apiClient

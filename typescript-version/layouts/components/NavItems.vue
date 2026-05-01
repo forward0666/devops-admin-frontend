@@ -173,12 +173,6 @@ const isProjectActive = (projectId: number) => {
             to: '/devops/telegram/whitelist',
           }"
         />
-        <VerticalNavLink
-          :item="{
-            title: 'Health',
-            to: '/devops/telegram/health',
-          }"
-        />
       </VerticalNavGroup>
     </template>
 
