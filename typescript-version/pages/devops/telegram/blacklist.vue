@@ -17,9 +17,12 @@ const selectedBot = ref<string>('')
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const headers = [
-  { title: 'Bot', key: 'botName', width: '200px' },
-  { title: 'Chat ID', key: 'chatId', width: '180px' },
-  { title: 'Action', key: 'action', width: '120px', sortable: false },
+  { title: 'Bot', key: 'botName', width: '160px' },
+  { title: 'User ID', key: 'userId', width: '120px' },
+  { title: 'Username', key: 'username', width: '140px' },
+  { title: 'Telegram', key: 'tgUsername', width: '160px' },
+  { title: 'Chat ID', key: 'chatId', width: '150px' },
+  { title: 'Action', key: 'action', width: '100px', sortable: false },
 ]
 
 watch(selectedBot, () => loadBlacklist())
