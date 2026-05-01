@@ -113,7 +113,7 @@ onMounted(async () => {
           <VTooltip text="Remove from Blacklist">
             <template #activator="{ props }">
               <VBtn v-bind="props" icon variant="text" color="warning" size="small" @click="removeBlacklist(item)">
-                <VIcon icon="streamline-block:basic-ui-check-2" />
+                <VIcon icon="mdi-check-circle" />
               </VBtn>
             </template>
           </VTooltip>
