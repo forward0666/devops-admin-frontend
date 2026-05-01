@@ -72,7 +72,7 @@ async function request<T = any>(config: {
   const response = await apiClient.request<ApiResponse<T>>(config)
   const { code, message, data } = response.data
 
-  if (code === 200)
+  if (code === 200 || code === 201)
     return data
 
   throw new Error(message || '请求失败')

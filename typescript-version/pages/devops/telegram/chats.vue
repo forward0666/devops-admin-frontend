@@ -85,7 +85,7 @@ async function handleAddChat() {
   try {
     const bot = bots.value.find(b => b.botName === newChat.value.botName)
     if (!bot) throw new Error('Bot not found')
-    await telegramBotService.addAuthorizedChat(
+    const res = await telegramBotService.addAuthorizedChat(
       newChat.value.botName,
       bot.id,
       Number(newChat.value.chatId),
@@ -97,7 +97,8 @@ async function handleAddChat() {
     await loadChats()
     snackbar.value = { show: true, text: 'Chat authorized successfully', color: 'success' }
   } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Failed to add chat', color: 'error' }
+    console.error('addAuthorizedChat error:', e)
+    snackbar.value = { show: true, text: e?.response?.data?.message || e?.message || 'Failed to add chat', color: 'error' }
   } finally {
     loading.value = false
   }
