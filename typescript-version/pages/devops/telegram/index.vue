@@ -22,8 +22,9 @@ const deleteBotName = ref('')
 const newBot = ref({
   botName: '',
   botUsername: '',
-  botToken: '',
+  token: '',
   botType: 'IP_WHITE_LIST',
+  secretToken: '',
 })
 
 const botTypes = [
@@ -60,12 +61,12 @@ async function loadBots() {
 }
 
 async function handleAddBot() {
-  if (!newBot.value.botName || !newBot.value.botUsername || !newBot.value.botToken) return
+  if (!newBot.value.botName || !newBot.value.botUsername || !newBot.value.token) return
   loading.value = true
   try {
     await telegramBotService.addBot(newBot.value)
     showAddDialog.value = false
-    newBot.value = { botName: '', botUsername: '', botToken: '', botType: 'IP_WHITE_LIST' }
+    newBot.value = { botName: '', botUsername: '', token: '', botType: 'IP_WHITE_LIST', secretToken: '' }
     await loadBots()
   } catch (e: any) {
     console.error('Failed to add bot:', e)
@@ -198,12 +199,19 @@ onMounted(() => { loadBots() })
               :rules="[(v: string) => !!v || 'Required']"
             />
             <VTextField
-              v-model="newBot.botToken"
+              v-model="newBot.token"
               label="Bot Token"
               placeholder="123456:ABC-DEF..."
               class="mb-4"
               type="password"
               :rules="[(v: string) => !!v || 'Required']"
+            />
+            <VTextField
+              v-model="newBot.secretToken"
+              label="Secret Token (for webhook verification)"
+              placeholder="Leave empty to auto-generate"
+              class="mb-4"
+              hint="Used to verify Telegram webhook requests"
             />
             <VSelect
               v-model="newBot.botType"
@@ -218,7 +226,7 @@ onMounted(() => { loadBots() })
         <VCardActions>
           <VSpacer />
           <VBtn variant="outlined" @click="showAddDialog = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!newBot.botName || !newBot.botUsername || !newBot.botToken" @click="handleAddBot">
+          <VBtn color="primary" :disabled="!newBot.botName || !newBot.botUsername || !newBot.token" @click="handleAddBot">
             Register
           </VBtn>
         </VCardActions>

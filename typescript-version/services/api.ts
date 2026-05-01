@@ -367,7 +367,7 @@ export const telegramBotService = {
   updateStatus(name: string, status: number) {
     return request<any>({ method: 'put', url: `/bot/bots/${name}/status`, params: { status }, headers: { 'X-Encrypted-Data': BOT_SECRET } })
   },
-  addBot(data: { botName: string; botUsername: string; botToken: string; botType: string }) {
+  addBot(data: { botName: string; botUsername: string; token: string; botType: string; secretToken?: string }) {
     return request<any>({ method: 'post', url: '/bot/addBot', data, headers: { 'X-Encrypted-Data': BOT_SECRET } })
   },
   deleteBot(name: string) {
