@@ -367,11 +367,12 @@ onMounted(() => { loadBots() })
                 <VList density="compact">
                   <VListItem title="URL" :subtitle="webhookInfo.url || 'Not set'" prepend-icon="bx-link" />
                   <VListItem title="Has Custom Certificate" :subtitle="String(webhookInfo.has_custom_certificate ?? false)" prepend-icon="bx-certification" />
-                  <VListItem title="Pending Updates" :subtitle="String(webhookInfo.pending_update_count ?? 0)" prepend-icon="bx-message">
-                    <template #append>
-                      <VBtn v-if="(webhookInfo.pending_update_count ?? 0) > 0" size="x-small" color="warning" variant="tonal" :loading="resetLoading" @click="handleResetUpdates">
-                        Reset
-                      </VBtn>
+                  <VListItem title="Pending Updates" prepend-icon="bx-message">
+                    <template #subtitle>
+                      <span class="d-flex align-center">
+                        {{ String(webhookInfo.pending_update_count ?? 0) }}
+                        <VBtn v-if="(webhookInfo.pending_update_count ?? 0) > 0" size="x-small" color="warning" variant="text" icon="bx-refresh" class="ms-2" :loading="resetLoading" @click="handleResetUpdates" />
+                      </span>
                     </template>
                   </VListItem>
                   <VListItem v-if="webhookInfo.last_error_date" title="Last Error" :subtitle="`[${new Date(webhookInfo.last_error_date * 1000).toLocaleString()}] ${webhookInfo.last_error_message || ''}`" prepend-icon="bx-error" />
