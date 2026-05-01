@@ -138,27 +138,6 @@ async function deleteMenu(id: number) {
   }
 }
 
-  const sameLevel = menus.value.filter((m: any) => m.menuLevel === menu.menuLevel && m.parentId === menu.parentId)
-  const idx = sameLevel.findIndex((m: any) => m.id === menu.id)
-  if ((direction === 'up' && idx <= 0) || (direction === 'down' && idx >= sameLevel.length - 1)) return
-
-  const swapIdx = direction === 'up' ? idx - 1 : idx + 1
-  const swapMenu = sameLevel[swapIdx]
-
-  // Swap sort orders
-  const origOrder = menu.sortOrder
-  try {
-    loading.value = true
-    await telegramBotService.updateMenu(menu.id, { ...menu, sortOrder: swapMenu.sortOrder })
-    await telegramBotService.updateMenu(swapMenu.id, { ...swapMenu, sortOrder: origOrder })
-    await loadMenus()
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Failed to reorder', color: 'error' }
-  } finally {
-    loading.value = false
-  }
-}
-
 onMounted(() => { loadBots() })
 </script>
 
