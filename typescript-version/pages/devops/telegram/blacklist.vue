@@ -52,7 +52,7 @@ async function loadBlacklist() {
 async function removeBlacklist(item: BlacklistItem) {
   loading.value = true
   try {
-    await telegramBotService.removeBlacklist(item.botName, item.chatId)
+    await telegramBotService.removeBlacklist(item.botName, item.userId)
     await loadBlacklist()
     snackbar.value = { show: true, text: 'Blacklist removed', color: 'success' }
   } catch (e: any) {

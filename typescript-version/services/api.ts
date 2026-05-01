@@ -404,8 +404,8 @@ export const telegramBotService = {
   getBlacklist(botName?: string) {
     return request<any>({ method: 'get', url: '/bot/blacklist/list', params: botName ? { botName } : {}, headers: BOT_HEADERS })
   },
-  removeBlacklist(botName: string, chatId: string) {
-    return request<void>({ method: 'delete', url: '/bot/blacklist/remove', params: { botName, chatId }, headers: BOT_HEADERS })
+  removeBlacklist(botName: string, userId: string) {
+    return request<void>({ method: 'delete', url: '/bot/blacklist/remove', params: { botName, userId }, headers: BOT_HEADERS })
   },
   // Sessions
   getSession(userId: number) {
