@@ -195,7 +195,7 @@ onMounted(() => { loadBots() })
           <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(main.id)"><VIcon icon="bx-trash" /></VBtn>
         </div>
         <VAlert v-if="main.buttons" type="info" variant="tonal" density="compact" class="mb-2">
-          <pre class="text-caption ma-0" style="white-space: pre-wrap">{{ buttonsPreview(main.buttons) }}</pre>
+          <pre class="text-caption ma-0 text-left" style="white-space: pre-wrap">{{ buttonsPreview(main.buttons) }}</pre>
         </VAlert>
         <div class="text-caption text-medium-emphasis">
           menuKey: {{ main.menuKey }} · sortOrder: {{ main.sortOrder }}
