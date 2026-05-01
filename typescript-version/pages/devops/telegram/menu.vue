@@ -138,7 +138,6 @@ async function deleteMenu(id: number) {
   }
 }
 
-async function moveSortOrder(menu: any, direction: 'up' | 'down') {
   const sameLevel = menus.value.filter((m: any) => m.menuLevel === menu.menuLevel && m.parentId === menu.parentId)
   const idx = sameLevel.findIndex((m: any) => m.id === menu.id)
   if ((direction === 'up' && idx <= 0) || (direction === 'down' && idx >= sameLevel.length - 1)) return
@@ -189,8 +188,6 @@ onMounted(() => { loadBots() })
           <VChip size="small" color="primary" variant="tonal" class="me-2">Lv1</VChip>
           <span class="text-h6">{{ main.title || main.menuKey }}</span>
           <VSpacer />
-          <VBtn icon size="x-small" variant="text" @click="moveSortOrder(main, 'up')"><VIcon icon="bx-chevron-up" /></VBtn>
-          <VBtn icon size="x-small" variant="text" @click="moveSortOrder(main, 'down')"><VIcon icon="bx-chevron-down" /></VBtn>
           <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(main)"><VIcon icon="bx-edit" /></VBtn>
           <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(main.id)"><VIcon icon="bx-trash" /></VBtn>
         </div>
@@ -209,8 +206,6 @@ onMounted(() => { loadBots() })
               <VChip size="small" color="secondary" variant="tonal" class="me-2">Lv2</VChip>
               <span class="text-subtitle-1">{{ sub.title || sub.menuKey }}</span>
               <VSpacer />
-              <VBtn icon size="x-small" variant="text" @click="moveSortOrder(sub, 'up')"><VIcon icon="bx-chevron-up" /></VBtn>
-              <VBtn icon size="x-small" variant="text" @click="moveSortOrder(sub, 'down')"><VIcon icon="bx-chevron-down" /></VBtn>
               <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(sub)"><VIcon icon="bx-edit" /></VBtn>
               <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(sub.id)"><VIcon icon="bx-trash" /></VBtn>
             </div>
