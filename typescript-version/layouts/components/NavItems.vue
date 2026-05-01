@@ -34,10 +34,15 @@ if (import.meta.client) {
   watch(() => authStore.consoleRole, fetchUserProjects)
 }
 
-function switchConsole(role: 'admin' | 'user') {
+function switchConsole(role: 'admin' | 'user' | 'devops') {
   const authStore = useAuthStore()
   authStore.setConsoleRole(role)
-  navigateTo(role === 'admin' ? '/admin/dashboard' : '/user/dashboard')
+  const routeMap: Record<string, string> = {
+    admin: '/admin/dashboard',
+    devops: '/devops/dashboard',
+    user: '/user/dashboard',
+  }
+  navigateTo(routeMap[role] || '/user/dashboard')
 }
 
 const isProjectActive = (projectId: number) => {
@@ -149,6 +154,20 @@ const isProjectActive = (projectId: number) => {
           to: '/devops/dashboard',
         }"
       />
+
+      <VerticalNavGroup
+        :item="{
+          title: 'Telegram',
+          icon: 'bx-bot',
+        }"
+      >
+        <VerticalNavLink
+          :item="{
+            title: 'Bot Manager',
+            to: '/devops/telegram',
+          }"
+        />
+      </VerticalNavGroup>
     </template>
 
     <template v-else>

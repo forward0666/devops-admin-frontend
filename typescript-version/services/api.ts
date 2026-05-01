@@ -25,10 +25,12 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    // Gateway 服务间认证
+    // Gateway 服务间认证（如果请求已自带 X-Encrypted-Data 则跳过全局的）
     if (!config.headers)
       config.headers = {}
-    config.headers['X-Encrypted-Data'] = import.meta.env.VITE_GATEWAY_SECRET || ''
+    if (!config.headers['X-Encrypted-Data']) {
+      config.headers['X-Encrypted-Data'] = import.meta.env.VITE_GATEWAY_SECRET || ''
+    }
 
     return config
   },
@@ -39,14 +41,18 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 401 → 清 Token + 跳转登录
+    // 401 → 清 Token + 跳转登录（仅限非 bot 路由）
     if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      localStorage.removeItem('auth')
+      const requestUrl = error.config?.url || ''
+      // bot 路由的 401 不触发全局登出（使用独立的 BotAuth 密钥）
+      if (!requestUrl.startsWith('/bot/')) {
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('auth_user')
+        localStorage.removeItem('auth')
 
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login'))
-        window.location.href = '/login'
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login'))
+          window.location.href = '/login'
+      }
     }
 
     return Promise.reject(error)
@@ -342,6 +348,30 @@ export const userConsoleMiddlewareService = {
   },
   importMiddlewares(data: any) {
     return request<any>({ method: 'post', url: '/user/middleware/import', data })
+  },
+}
+
+// ===== Telegram Bot Manager =====
+const BOT_SECRET = 'Xz8wVc4yBt5eQd1aRn7hUk2jGs6fLmMp'
+
+export const telegramBotService = {
+  list() {
+    return request<any>({ method: 'get', url: '/bot/bots', headers: { 'X-Encrypted-Data': BOT_SECRET } })
+  },
+  getByName(name: string) {
+    return request<any>({ method: 'get', url: `/bot/bots/${name}`, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+  },
+  getStatus(name: string) {
+    return request<any>({ method: 'get', url: `/bot/bots/${name}/status`, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+  },
+  updateStatus(name: string, status: number) {
+    return request<any>({ method: 'put', url: `/bot/bots/${name}/status`, params: { status }, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+  },
+  addBot(data: { botName: string; botUsername: string; botToken: string; botType: string }) {
+    return request<any>({ method: 'post', url: '/bot/addBot', data, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+  },
+  deleteBot(name: string) {
+    return request<void>({ method: 'delete', url: `/bot/bots/${name}`, headers: { 'X-Encrypted-Data': BOT_SECRET } })
   },
 }
 
