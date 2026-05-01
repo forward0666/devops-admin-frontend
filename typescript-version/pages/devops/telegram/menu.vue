@@ -18,7 +18,7 @@ const form = ref({
   menuLevel: 1,
   menuKey: '',
   title: '',
-  buttons: '[
+  buttons: JSON.stringify([[{ text: '', callbackData: '' }]]),
   [{"text": "", "callbackData": ""}]
 ]',
   parentId: null as number | null,
@@ -90,11 +90,9 @@ function openCreateDialog(level: number, parentId?: number) {
   form.value = {
     botName: selectedBot.value,
     menuLevel: level,
-    buttons: '[
-  [{"text": "", "callbackData": ""}]
-]',
+    menuKey: '',
     title: '',
-    buttons: '[\n  {"text": "", "callbackData": ""}\n]',
+    buttons: JSON.stringify([[{ text: '', callbackData: '' }]]),
     parentId: parentId || null,
     sortOrder: nextOrder,
   }
