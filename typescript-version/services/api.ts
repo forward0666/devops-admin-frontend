@@ -377,38 +377,49 @@ export const telegramBotService = {
   deleteBot(name: string) {
     return request<void>({ method: 'delete', url: `/bot/bots/${name}`, headers: BOT_HEADERS })
   },
-}
-
-export const telegramWhitelistService = {
-  list(domainType?: string) {
-    return request<any>({ method: 'get', url: '/bot/whitelist/ips', params: { domainType }, headers: BOT_HEADERS })
+  // Webhook
+  getWebhookInfo(botName: string) {
+    return request<any>({ method: 'get', url: '/bot/getWebhookInfo', params: { botName }, headers: BOT_HEADERS })
   },
-  add(ip: string, username: string, domainType: string) {
-    return request<any>({ method: 'post', url: '/bot/whitelist/ips', params: { ip, username, domainType }, headers: BOT_HEADERS })
+  setWebhook(botName: string, url: string, secretToken?: string) {
+    return request<any>({ method: 'post', url: '/bot/setWebhook', data: { botName, url, secretToken }, headers: BOT_HEADERS })
   },
-  remove(ip: string, domainType: string) {
-    return request<void>({ method: 'delete', url: `/bot/whitelist/ips/${ip}`, params: { domainType }, headers: BOT_HEADERS })
+  // Authorized Chats
+  getAuthorizedChats(botName: string) {
+    return request<any>({ method: 'get', url: `/bot/chats/authorization/query/bot/${botName}/chats`, headers: BOT_HEADERS })
   },
-  batchAdd(data: { domainType: string; username: string; items: { ip: string }[] }) {
-    return request<any>({ method: 'post', url: '/bot/whitelist/ips/batch', data, headers: BOT_HEADERS })
+  getAuthorizationStats(botName: string) {
+    return request<any>({ method: 'get', url: `/bot/chats/authorization/query/bot/${botName}/stats`, headers: BOT_HEADERS })
   },
-  audit(limit = 50, offset = 0) {
-    return request<any>({ method: 'get', url: '/bot/whitelist/audit', params: { limit, offset }, headers: BOT_HEADERS })
+  addAuthorizedChat(botName: string, botConfigId: number, chatId: number, chatName?: string, type = 'private') {
+    return request<any>({ method: 'post', url: '/bot/chats/authorization/add', params: { botName, botConfigId, chatId, chatName, type }, headers: BOT_HEADERS })
   },
-}
-
-export const telegramSessionService = {
-  get(userId: number) {
+  deleteAuthorization(id: number) {
+    return request<void>({ method: 'delete', url: `/bot/chats/authorization/query/${id}`, headers: BOT_HEADERS })
+  },
+  // Sessions
+  getSession(userId: number) {
     return request<any>({ method: 'get', url: `/bot/sessions/user/${userId}`, headers: BOT_HEADERS })
   },
-  clear(userId: number) {
+  clearSession(userId: number) {
     return request<void>({ method: 'delete', url: `/bot/sessions/user/${userId}`, headers: BOT_HEADERS })
   },
-  stats() {
+  sessionStats() {
     return request<any>({ method: 'get', url: '/bot/sessions/stats', headers: BOT_HEADERS })
   },
-  active(limit = 100) {
-    return request<any>({ method: 'get', url: '/bot/sessions/active', params: { limit }, headers: BOT_HEADERS })
+  // Group Cleanup
+  cleanupStats() {
+    return request<any>({ method: 'get', url: '/bot/groupMessageCleanUp/stats', headers: BOT_HEADERS })
+  },
+  // Whitelist
+  getWhitelistIps(domainType?: string) {
+    return request<any>({ method: 'get', url: '/bot/whitelist/ips', params: { domainType }, headers: BOT_HEADERS })
+  },
+  addWhitelistIp(ip: string, username: string, domainType: string) {
+    return request<any>({ method: 'post', url: '/bot/whitelist/ips', params: { ip, username, domainType }, headers: BOT_HEADERS })
+  },
+  removeWhitelistIp(ip: string, domainType: string) {
+    return request<void>({ method: 'delete', url: `/bot/whitelist/ips/${ip}`, params: { domainType }, headers: BOT_HEADERS })
   },
 }
 

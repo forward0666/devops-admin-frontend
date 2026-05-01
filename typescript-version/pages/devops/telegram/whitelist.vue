@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { telegramWhitelistService } from '~/services/api'
+import { telegramBotService } from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
@@ -16,7 +16,7 @@ const domainTypes = ['default', 'production', 'staging']
 async function loadIps() {
   loading.value = true
   try {
-    const res = await telegramWhitelistService.list(newDomainType.value)
+    const res = await telegramBotService.getWhitelistIps(newDomainType.value)
     ips.value = Array.isArray(res?.ips) ? res.ips : []
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed to load', color: 'error' }
@@ -29,7 +29,7 @@ async function addIp() {
   if (!newIp.value || !newUsername.value) return
   loading.value = true
   try {
-    await telegramWhitelistService.add(newIp.value, newUsername.value, newDomainType.value)
+    await telegramBotService.addWhitelistIp(newIp.value, newUsername.value, newDomainType.value)
     newIp.value = ''
     await loadIps()
     snackbar.value = { show: true, text: 'IP added to whitelist', color: 'success' }
@@ -43,7 +43,7 @@ async function addIp() {
 async function removeIp(ip: string) {
   loading.value = true
   try {
-    await telegramWhitelistService.remove(ip, newDomainType.value)
+    await telegramBotService.removeWhitelistIp(ip, newDomainType.value)
     await loadIps()
     snackbar.value = { show: true, text: `${ip} removed`, color: 'success' }
   } catch (e: any) {

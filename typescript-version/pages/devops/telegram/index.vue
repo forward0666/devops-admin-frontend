@@ -27,6 +27,14 @@ const editStatusItems = [
   { title: 'Disabled', value: 0 },
 ]
 
+// Detail dialog
+const showDetailDialog = ref(false)
+const detailTab = ref('webhook')
+const webhookInfo = ref<any>(null)
+const authorizedChats = ref<any[]>([])
+const authStats = ref<any>(null)
+const detailLoading = ref(false)
+
 const newBot = ref({
   botName: '',
   botUsername: '',
@@ -48,12 +56,7 @@ const headers = [
   { title: 'Type', key: 'botType', width: '150px' },
   { title: 'Status', key: 'status', width: '120px' },
   { title: 'Created', key: 'createdAt', width: '180px' },
-  { title: 'Action', key: 'action', width: '150px', sortable: false },
-]
-
-const statusItems = [
-  { title: 'Enabled', value: 1 },
-  { title: 'Disabled', value: 0 },
+  { title: 'Action', key: 'action', width: '200px', sortable: false },
 ]
 
 async function loadBots() {
@@ -62,10 +65,7 @@ async function loadBots() {
     const res = await telegramBotService.list()
     bots.value = Array.isArray(res?.bots) ? res.bots : []
   } catch (e: any) {
-    console.error('Failed to load bots:', e)
-    snackbar.text = e?.message || 'Failed to load bot list'
-    snackbar.color = 'error'
-    snackbar.show = true
+    snackbar.value = { show: true, text: e?.message || 'Failed to load bot list', color: 'error' }
     bots.value = []
   } finally {
     loading.value = false
@@ -80,31 +80,9 @@ async function handleAddBot() {
     showAddDialog.value = false
     newBot.value = { botName: '', botUsername: '', token: '', botType: 'IP_WHITE_LIST', secretToken: '' }
     await loadBots()
-    snackbar.text = 'Bot registered successfully'
-    snackbar.color = 'success'
-    snackbar.show = true
+    snackbar.value = { show: true, text: 'Bot registered successfully', color: 'success' }
   } catch (e: any) {
-    snackbar.text = e?.message || 'Failed to register bot'
-    snackbar.color = 'error'
-    snackbar.show = true
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleToggleStatus(bot: BotItem) {
-  const newStatus = bot.status === 1 ? 0 : 1
-  loading.value = true
-  try {
-    await telegramBotService.updateStatus(bot.botName, newStatus)
-    bot.status = newStatus
-    snackbar.text = `${bot.botName} ${newStatus === 1 ? 'enabled' : 'disabled'}`
-    snackbar.color = 'success'
-    snackbar.show = true
-  } catch (e: any) {
-    snackbar.text = e?.message || 'Failed to update status'
-    snackbar.color = 'error'
-    snackbar.show = true
+    snackbar.value = { show: true, text: e?.message || 'Failed to register bot', color: 'error' }
   } finally {
     loading.value = false
   }
@@ -133,13 +111,9 @@ async function handleEditBot() {
     })
     showEditDialog.value = false
     await loadBots()
-    snackbar.text = 'Bot updated'
-    snackbar.color = 'success'
-    snackbar.show = true
+    snackbar.value = { show: true, text: 'Bot updated', color: 'success' }
   } catch (e: any) {
-    snackbar.text = e?.message || 'Failed to update bot'
-    snackbar.color = 'error'
-    snackbar.show = true
+    snackbar.value = { show: true, text: e?.message || 'Failed to update bot', color: 'error' }
   } finally {
     loading.value = false
   }
@@ -152,15 +126,47 @@ async function handleDeleteBot() {
     await telegramBotService.deleteBot(selectedBot.value.botName)
     showDeleteDialog.value = false
     await loadBots()
-    snackbar.text = `${selectedBot.value.botName} deleted`
-    snackbar.color = 'success'
-    snackbar.show = true
+    snackbar.value = { show: true, text: `${selectedBot.value.botName} deleted`, color: 'success' }
   } catch (e: any) {
-    snackbar.text = e?.message || 'Failed to delete bot'
-    snackbar.color = 'error'
-    snackbar.show = true
+    snackbar.value = { show: true, text: e?.message || 'Failed to delete bot', color: 'error' }
   } finally {
     loading.value = false
+  }
+}
+
+async function openDetail(bot: BotItem) {
+  selectedBot.value = bot
+  detailTab.value = 'webhook'
+  showDetailDialog.value = true
+  await loadBotDetail()
+}
+
+async function loadBotDetail() {
+  if (!selectedBot.value) return
+  detailLoading.value = true
+  try {
+    const [wh, chats, stats] = await Promise.all([
+      telegramBotService.getWebhookInfo(selectedBot.value.botName),
+      telegramBotService.getAuthorizedChats(selectedBot.value.botName),
+      telegramBotService.getAuthorizationStats(selectedBot.value.botName),
+    ])
+    webhookInfo.value = wh?.webhookInfo || wh
+    authorizedChats.value = chats?.authorizedChats || []
+    authStats.value = stats
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed to load details', color: 'error' }
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+async function removeChatAuth(id: number) {
+  try {
+    await telegramBotService.deleteAuthorization(id)
+    authorizedChats.value = authorizedChats.value.filter((c: any) => c.id !== id)
+    snackbar.value = { show: true, text: 'Authorization removed', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed to remove', color: 'error' }
   }
 }
 
@@ -206,30 +212,23 @@ onMounted(() => { loadBots() })
         </template>
 
         <template #item.action="{ item }">
+          <VTooltip text="Details">
+            <template #activator="{ props }">
+              <VBtn v-bind="props" icon variant="text" color="info" size="small" @click="openDetail(item)">
+                <VIcon icon="bx-info-circle" />
+              </VBtn>
+            </template>
+          </VTooltip>
           <VTooltip text="Edit">
             <template #activator="{ props }">
-              <VBtn
-                v-bind="props"
-                icon
-                variant="text"
-                color="primary"
-                size="small"
-                @click="openEditDialog(item)"
-              >
+              <VBtn v-bind="props" icon variant="text" color="primary" size="small" @click="openEditDialog(item)">
                 <VIcon icon="bx-edit" />
               </VBtn>
             </template>
           </VTooltip>
           <VTooltip text="Delete">
             <template #activator="{ props }">
-              <VBtn
-                v-bind="props"
-                icon
-                variant="text"
-                color="error"
-                size="small"
-                @click="confirmDelete(item)"
-              >
+              <VBtn v-bind="props" icon variant="text" color="error" size="small" @click="confirmDelete(item)">
                 <VIcon icon="bx-trash" />
               </VBtn>
             </template>
@@ -254,51 +253,17 @@ onMounted(() => { loadBots() })
         <VDivider />
         <VCardText>
           <VForm @submit.prevent="handleAddBot">
-            <VTextField
-              v-model="newBot.botName"
-              label="Bot Name"
-              placeholder="My Bot"
-              class="mb-4"
-              :rules="[(v: string) => !!v || 'Required']"
-            />
-            <VTextField
-              v-model="newBot.botUsername"
-              label="Bot Username"
-              placeholder="@my_bot"
-              class="mb-4"
-              :rules="[(v: string) => !!v || 'Required']"
-            />
-            <VTextField
-              v-model="newBot.token"
-              label="Bot Token"
-              placeholder="123456:ABC-DEF..."
-              class="mb-4"
-              type="password"
-              :rules="[(v: string) => !!v || 'Required']"
-            />
-            <VTextField
-              v-model="newBot.secretToken"
-              label="Secret Token (for webhook verification)"
-              placeholder="Leave empty to auto-generate"
-              class="mb-4"
-              hint="Used to verify Telegram webhook requests"
-            />
-            <VSelect
-              v-model="newBot.botType"
-              :items="botTypes"
-              item-title="title"
-              item-value="value"
-              label="Bot Type"
-              class="mb-4"
-            />
+            <VTextField v-model="newBot.botName" label="Bot Name" placeholder="My Bot" class="mb-4" :rules="[(v: string) => !!v || 'Required']" />
+            <VTextField v-model="newBot.botUsername" label="Bot Username" placeholder="@my_bot" class="mb-4" :rules="[(v: string) => !!v || 'Required']" />
+            <VTextField v-model="newBot.token" label="Bot Token" placeholder="123456:ABC-DEF..." class="mb-4" type="password" :rules="[(v: string) => !!v || 'Required']" />
+            <VTextField v-model="newBot.secretToken" label="Secret Token" placeholder="Leave empty to auto-generate" class="mb-4" hint="Used to verify Telegram webhook requests" />
+            <VSelect v-model="newBot.botType" :items="botTypes" item-title="title" item-value="value" label="Bot Type" />
           </VForm>
         </VCardText>
         <VCardActions>
           <VSpacer />
           <VBtn variant="outlined" @click="showAddDialog = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!newBot.botName || !newBot.botUsername || !newBot.token" @click="handleAddBot">
-            Register
-          </VBtn>
+          <VBtn color="primary" :disabled="!newBot.botName || !newBot.botUsername || !newBot.token" @click="handleAddBot">Register</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -307,54 +272,20 @@ onMounted(() => { loadBots() })
     <VDialog v-model="showEditDialog" max-width="500">
       <VCard>
         <VCardTitle class="d-flex align-center">
-          <VIcon icon="bx-edit" class="me-2" />
-          Edit Bot
+          <VIcon icon="bx-edit" class="me-2" />Edit Bot
         </VCardTitle>
         <VDivider />
         <VCardText>
-          <VTextField
-            v-model="editBot.botName"
-            label="Bot Name"
-            class="mb-4"
-            disabled
-          />
-          <VTextField
-            v-model="editBot.botUsername"
-            label="Bot Username"
-            class="mb-4"
-            disabled
-          />
-          <VTextField
-            v-model="editBot.token"
-            label="Bot Token"
-            placeholder="Leave empty to keep current token"
-            class="mb-4"
-            type="password"
-            hint="Only fill this to change the token"
-          />
-          <VSelect
-            v-model="editBot.botType"
-            :items="botTypes"
-            item-title="title"
-            item-value="value"
-            label="Bot Type"
-            class="mb-4"
-          />
-          <VSelect
-            v-model="editBot.status"
-            :items="editStatusItems"
-            item-title="title"
-            item-value="value"
-            label="Status"
-            class="mb-4"
-          />
+          <VTextField v-model="editBot.botName" label="Bot Name" class="mb-4" disabled />
+          <VTextField v-model="editBot.botUsername" label="Bot Username" class="mb-4" disabled />
+          <VTextField v-model="editBot.token" label="Bot Token" placeholder="Leave empty to keep current" class="mb-4" type="password" hint="Only fill to change token" />
+          <VSelect v-model="editBot.botType" :items="botTypes" item-title="title" item-value="value" label="Bot Type" class="mb-4" />
+          <VSelect v-model="editBot.status" :items="editStatusItems" item-title="title" item-value="value" label="Status" />
         </VCardText>
         <VCardActions>
           <VSpacer />
           <VBtn variant="outlined" @click="showEditDialog = false">Cancel</VBtn>
-          <VBtn color="primary" @click="handleEditBot">
-            Save
-          </VBtn>
+          <VBtn color="primary" @click="handleEditBot">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -366,26 +297,125 @@ onMounted(() => { loadBots() })
         <VCardText>
           <p>Are you sure you want to delete <strong>{{ selectedBot?.botName }}</strong>?</p>
           <p class="text-body-2 text-medium-emphasis mt-2">Type the bot name to confirm:</p>
-          <VTextField
-            v-model="deleteBotName"
-            :placeholder="selectedBot?.botName"
-            density="compact"
-            class="mt-2"
-          />
+          <VTextField v-model="deleteBotName" :placeholder="selectedBot?.botName" density="compact" class="mt-2" />
         </VCardText>
         <VCardActions>
           <VSpacer />
           <VBtn variant="outlined" @click="showDeleteDialog = false">Cancel</VBtn>
-          <VBtn
-            color="error"
-            :disabled="deleteBotName !== selectedBot?.botName"
-            @click="handleDeleteBot"
-          >
-            Delete
-          </VBtn>
+          <VBtn color="error" :disabled="deleteBotName !== selectedBot?.botName" @click="handleDeleteBot">Delete</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- Detail Dialog -->
+    <VDialog v-model="showDetailDialog" max-width="700">
+      <VCard>
+        <VCardTitle class="d-flex align-center">
+          <VIcon icon="bx-info-circle" class="me-2" />
+          {{ selectedBot?.botName }}
+          <VChip :color="selectedBot?.status === 1 ? 'success' : 'error'" size="small" class="ms-2">
+            {{ selectedBot?.status === 1 ? 'Enabled' : 'Disabled' }}
+          </VChip>
+        </VCardTitle>
+        <VDivider />
+        <VTabs v-model="detailTab" grow>
+          <VTab value="webhook">Webhook</VTab>
+          <VTab value="chats">Authorized Chats</VTab>
+        </VTabs>
+        <VDivider />
+        <VCardText>
+          <VWindow v-model="detailTab">
+            <!-- Webhook Tab -->
+            <VWindowItem value="webhook">
+              <div v-if="detailLoading" class="text-center py-4">
+                <VProgressCircular indeterminate />
+              </div>
+              <div v-else-if="webhookInfo">
+                <VList density="compact">
+                  <VListItem title="URL" :subtitle="webhookInfo.url || 'Not set'" prepend-icon="bx-link" />
+                  <VListItem title="Has Custom Certificate" :subtitle="String(webhookInfo.has_custom_certificate ?? false)" prepend-icon="bx-certification" />
+                  <VListItem title="Pending Updates" :subtitle="String(webhookInfo.pending_update_count ?? 0)" prepend-icon="bx-message" />
+                  <VListItem v-if="webhookInfo.last_error_date" title="Last Error" :subtitle="`[${new Date(webhookInfo.last_error_date * 1000).toLocaleString()}] ${webhookInfo.last_error_message || ''}`" prepend-icon="bx-error" />
+                  <VListItem v-if="webhookInfo.allowed_updates" title="Allowed Updates" :subtitle="webhookInfo.allowed_updates.join(', ')" prepend-icon="bx-filter" />
+                </VList>
+              </div>
+              <div v-else class="text-center py-4 text-medium-emphasis">
+                No webhook info available
+              </div>
+            </VWindowItem>
+
+            <!-- Authorized Chats Tab -->
+            <VWindowItem value="chats">
+              <div v-if="detailLoading" class="text-center py-4">
+                <VProgressCircular indeterminate />
+              </div>
+              <div v-else>
+                <!-- Stats -->
+                <VRow v-if="authStats" class="mb-3">
+                  <VCol cols="4">
+                    <VCard variant="tonal" color="primary">
+                      <VCardText class="text-center pa-2">
+                        <div class="text-h5">{{ authStats.totalAuthorizations || 0 }}</div>
+                        <div class="text-caption">Total</div>
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+                  <VCol cols="4">
+                    <VCard variant="tonal" color="success">
+                      <VCardText class="text-center pa-2">
+                        <div class="text-h5">{{ authStats.activeAuthorizations || 0 }}</div>
+                        <div class="text-caption">Active</div>
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+                  <VCol cols="4">
+                    <VCard variant="tonal" color="error">
+                      <VCardText class="text-center pa-2">
+                        <div class="text-h5">{{ authStats.inactiveAuthorizations || 0 }}</div>
+                        <div class="text-caption">Inactive</div>
+                      </VCardText>
+                    </VCard>
+                  </VCol>
+                </VRow>
+
+                <!-- Chat List -->
+                <VDataTable
+                  :headers="[
+                    { title: 'Chat ID', key: 'chatId', width: '150px' },
+                    { title: 'Name', key: 'chatName', width: '200px' },
+                    { title: 'Type', key: 'type', width: '100px' },
+                    { title: 'Status', key: 'status', width: '100px' },
+                    { title: 'Action', key: 'action', width: '80px', sortable: false },
+                  ]"
+                  :items="authorizedChats"
+                  density="compact"
+                  :items-per-page="10"
+                >
+                  <template #item.status="{ item }">
+                    <VChip :color="item.status === 1 ? 'success' : 'error'" size="x-small">
+                      {{ item.status === 1 ? 'Active' : 'Inactive' }}
+                    </VChip>
+                  </template>
+                  <template #item.action="{ item }">
+                    <VBtn icon variant="text" color="error" size="x-small" @click="removeChatAuth(item.id)">
+                      <VIcon icon="bx-trash" />
+                    </VBtn>
+                  </template>
+                  <template #no-data>
+                    <div class="text-center py-4 text-medium-emphasis">No authorized chats</div>
+                  </template>
+                </VDataTable>
+              </div>
+            </VWindowItem>
+          </VWindow>
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn variant="outlined" @click="showDetailDialog = false">Close</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
     <!-- Snackbar -->
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="top end">
       {{ snackbar.text }}
