@@ -36,6 +36,7 @@ const authStats = ref<any>(null)
 const detailLoading = ref(false)
 const showSetWebhookDialog = ref(false)
 const webhookForm = ref({ url: '', secretToken: '' })
+const resetLoading = ref(false)
 
 const newBot = ref({
   botName: '',
@@ -169,6 +170,20 @@ async function removeChatAuth(id: number) {
     snackbar.value = { show: true, text: 'Authorization removed', color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed to remove', color: 'error' }
+  }
+}
+
+async function handleResetUpdates() {
+  if (!selectedBot.value) return
+  resetLoading.value = true
+  try {
+    await telegramBotService.resetPendingUpdates(selectedBot.value.botName)
+    await loadBotDetail()
+    snackbar.value = { show: true, text: 'Pending updates cleared', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed to reset', color: 'error' }
+  } finally {
+    resetLoading.value = false
   }
 }
 
@@ -352,7 +367,13 @@ onMounted(() => { loadBots() })
                 <VList density="compact">
                   <VListItem title="URL" :subtitle="webhookInfo.url || 'Not set'" prepend-icon="bx-link" />
                   <VListItem title="Has Custom Certificate" :subtitle="String(webhookInfo.has_custom_certificate ?? false)" prepend-icon="bx-certification" />
-                  <VListItem title="Pending Updates" :subtitle="String(webhookInfo.pending_update_count ?? 0)" prepend-icon="bx-message" />
+                  <VListItem title="Pending Updates" :subtitle="String(webhookInfo.pending_update_count ?? 0)" prepend-icon="bx-message">
+                    <template #append>
+                      <VBtn v-if="(webhookInfo.pending_update_count ?? 0) > 0" size="x-small" color="warning" variant="tonal" :loading="resetLoading" @click="handleResetUpdates">
+                        Reset
+                      </VBtn>
+                    </template>
+                  </VListItem>
                   <VListItem v-if="webhookInfo.last_error_date" title="Last Error" :subtitle="`[${new Date(webhookInfo.last_error_date * 1000).toLocaleString()}] ${webhookInfo.last_error_message || ''}`" prepend-icon="bx-error" />
                   <VListItem v-if="webhookInfo.allowed_updates" title="Allowed Updates" :subtitle="webhookInfo.allowed_updates.join(', ')" prepend-icon="bx-filter" />
                 </VList>

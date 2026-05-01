@@ -381,6 +381,9 @@ export const telegramBotService = {
   getWebhookInfo(botName: string) {
     return request<any>({ method: 'get', url: '/bot/getWebhookInfo', params: { botName }, headers: BOT_HEADERS })
   },
+  resetPendingUpdates(botName: string) {
+    return request<any>({ method: 'post', url: '/bot/resetPendingUpdates', params: { botName }, headers: BOT_HEADERS })
+  },
   setWebhook(botName: string, url: string, secretToken?: string) {
     return request<any>({ method: 'post', url: '/bot/setWebhook', data: { botName, url, secretToken }, headers: BOT_HEADERS })
   },
