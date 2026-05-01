@@ -450,6 +450,9 @@ export const telegramBotService = {
   deleteGroupProject(id: number) {
     return request<void>({ method: 'delete', url: `/bot/groupProject/${id}`, headers: BOT_HEADERS })
   },
+  updateGroupProject(id: number, data: { chatTitle: string; projectId: number; projectName: string }) {
+    return request<any>({ method: 'put', url: `/bot/groupProject/${id}`, data, headers: BOT_HEADERS })
+  },
 }
 
 export default apiClient

@@ -11,7 +11,8 @@ const selectedBot = ref('')
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const dialog = ref(false)
-const form = ref({ botName: '', chatId: '', chatTitle: '', projectId: '', projectName: '' })
+const isEdit = ref(false)
+const form = ref({ id: 0, botName: '', chatId: '', chatTitle: '', projectId: '', projectName: '' })
 
 async function loadBots() {
   try {
@@ -34,26 +35,47 @@ async function loadData() {
 }
 
 function openAddDialog() {
-  form.value = { botName: selectedBot.value, chatId: '', chatTitle: '', projectId: '', projectName: '' }
+  isEdit.value = false
+  form.value = { id: 0, botName: selectedBot.value, chatId: '', chatTitle: '', projectId: '', projectName: '' }
   dialog.value = true
 }
 
-async function createBinding() {
+function openEditDialog(item: any) {
+  isEdit.value = true
+  form.value = {
+    id: item.id,
+    botName: item.botName,
+    chatId: item.chatId,
+    chatTitle: item.chatTitle,
+    projectId: String(item.projectId),
+    projectName: item.projectName,
+  }
+  dialog.value = true
+}
+
+async function submitForm() {
   if (!form.value.botName || !form.value.chatId || !form.value.projectId) return
   loading.value = true
   try {
-    await telegramBotService.createGroupProject({
-      botName: form.value.botName,
-      chatId: Number(form.value.chatId),
+    const payload = {
       chatTitle: form.value.chatTitle,
       projectId: Number(form.value.projectId),
       projectName: form.value.projectName,
-    })
+    }
+    if (isEdit.value) {
+      await telegramBotService.updateGroupProject(form.value.id, payload)
+    } else {
+      await telegramBotService.createGroupProject({
+        botName: form.value.botName,
+        chatId: Number(form.value.chatId),
+        ...payload,
+      })
+    }
     dialog.value = false
-    snackbar.value = { show: true, text: 'Binding created', color: 'success' }
+    snackbar.value = { show: true, text: isEdit.value ? 'Updated' : 'Created', color: 'success' }
     await loadData()
   } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Failed to create', color: 'error' }
+    snackbar.value = { show: true, text: e?.message || 'Failed', color: 'error' }
   } finally {
     loading.value = false
   }
@@ -117,7 +139,7 @@ onMounted(async () => {
           { title: 'Chat Title', key: 'chatTitle' },
           { title: 'Project ID', key: 'projectId' },
           { title: 'Project Name', key: 'projectName' },
-          { title: 'Action', key: 'action', width: '100px', sortable: false },
+          { title: 'Action', key: 'action', width: '120px', sortable: false },
         ]"
         :items="groupProjects"
         :loading="loading"
@@ -125,6 +147,9 @@ onMounted(async () => {
         :items-per-page="20"
       >
         <template #item.action="{ item }">
+          <VBtn icon variant="text" color="primary" size="small" @click="openEditDialog(item)">
+            <VIcon icon="bx-edit" />
+          </VBtn>
           <VBtn icon variant="text" color="error" size="small" @click="deleteBinding(item.id)">
             <VIcon icon="bx-trash" />
           </VBtn>
@@ -135,13 +160,13 @@ onMounted(async () => {
       </VDataTable>
     </VCard>
 
-    <!-- Add Dialog -->
+    <!-- Add/Edit Dialog -->
     <VDialog v-model="dialog" max-width="500">
       <VCard>
-        <VCardTitle>Add Group-Project Binding</VCardTitle>
+        <VCardTitle>{{ isEdit ? 'Edit' : 'Add' }} Group-Project Binding</VCardTitle>
         <VCardText>
-          <VSelect v-model="form.botName" :items="bots" item-title="botName" item-value="botName" label="Bot" density="compact" />
-          <VTextField v-model="form.chatId" label="Chat ID" placeholder="-1001234567890" density="compact" type="number" class="mt-3" />
+          <VSelect v-model="form.botName" :items="bots" item-title="botName" item-value="botName" label="Bot" density="compact" :disabled="isEdit" />
+          <VTextField v-model="form.chatId" label="Chat ID" placeholder="-1001234567890" density="compact" type="number" class="mt-3" :disabled="isEdit" />
           <VTextField v-model="form.chatTitle" label="Chat Title" placeholder="Group name" density="compact" class="mt-3" />
           <VTextField v-model="form.projectId" label="Project ID" placeholder="1" density="compact" type="number" class="mt-3" />
           <VTextField v-model="form.projectName" label="Project Name" placeholder="Project display name" density="compact" class="mt-3" />
@@ -149,7 +174,9 @@ onMounted(async () => {
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!form.botName || !form.chatId || !form.projectId" :loading="loading" @click="createBinding">Create</VBtn>
+          <VBtn color="primary" :disabled="!form.botName || !form.chatId || !form.projectId" :loading="loading" @click="submitForm">
+            {{ isEdit ? 'Save' : 'Create' }}
+          </VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
