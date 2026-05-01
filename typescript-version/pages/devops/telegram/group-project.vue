@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { telegramBotService } from '~/services/api'
+import { ref, onMounted, watch } from 'vue'
+import { telegramBotService, projectService } from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
 const bots = ref<any[]>([])
+const projects = ref<any[]>([])
 const groupProjects = ref<any[]>([])
 const loading = ref(false)
 const selectedBot = ref('')
@@ -12,12 +13,18 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const dialog = ref(false)
 const isEdit = ref(false)
-const form = ref({ id: 0, botName: '', chatId: '', chatTitle: '', projectId: '', projectName: '' })
+const form = ref({ id: 0, botName: '', chatId: '', chatTitle: '', projectId: '' as any, projectName: '' })
 
 async function loadBots() {
   try {
     const res = await telegramBotService.list()
     bots.value = res?.bots || res || []
+  } catch { /* ignore */ }
+}
+
+async function loadProjects() {
+  try {
+    projects.value = await projectService.list() || []
   } catch { /* ignore */ }
 }
 
@@ -34,9 +41,14 @@ async function loadData() {
   }
 }
 
+function onProjectSelect(id: any) {
+  const p = projects.value.find((x: any) => x.id === id)
+  form.value.projectName = p?.name || ''
+}
+
 function openAddDialog() {
   isEdit.value = false
-  form.value = { id: 0, botName: selectedBot.value, chatId: '', chatTitle: '', projectId: '', projectName: '' }
+  form.value = { id: 0, botName: selectedBot.value, chatId: '', chatTitle: '', projectId: null, projectName: '' }
   dialog.value = true
 }
 
@@ -47,7 +59,7 @@ function openEditDialog(item: any) {
     botName: item.botName,
     chatId: item.chatId,
     chatTitle: item.chatTitle,
-    projectId: String(item.projectId),
+    projectId: item.projectId,
     projectName: item.projectName,
   }
   dialog.value = true
@@ -96,7 +108,7 @@ async function deleteBinding(id: number) {
 }
 
 onMounted(async () => {
-  await loadBots()
+  await Promise.all([loadBots(), loadProjects()])
   if (bots.value.length > 0) {
     selectedBot.value = bots.value[0].botName
     await loadData()
@@ -168,8 +180,16 @@ onMounted(async () => {
           <VSelect v-model="form.botName" :items="bots" item-title="botName" item-value="botName" label="Bot" density="compact" :disabled="isEdit" />
           <VTextField v-model="form.chatId" label="Chat ID" placeholder="-1001234567890" density="compact" type="number" class="mt-3" :disabled="isEdit" />
           <VTextField v-model="form.chatTitle" label="Chat Title" placeholder="Group name" density="compact" class="mt-3" />
-          <VTextField v-model="form.projectId" label="Project ID" placeholder="1" density="compact" type="number" class="mt-3" />
-          <VTextField v-model="form.projectName" label="Project Name" placeholder="Project display name" density="compact" class="mt-3" />
+          <VSelect
+            v-model="form.projectId"
+            :items="projects"
+            item-title="name"
+            item-value="id"
+            label="Project"
+            density="compact"
+            class="mt-3"
+            @update:model-value="onProjectSelect"
+          />
         </VCardText>
         <VCardActions>
           <VSpacer />
