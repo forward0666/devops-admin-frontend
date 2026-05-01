@@ -346,6 +346,7 @@ onMounted(() => { loadBots() })
             item-title="title"
             item-value="value"
             label="Status"
+            class="mb-4"
           />
         </VCardText>
         <VCardActions>
