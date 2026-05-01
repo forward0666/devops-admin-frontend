@@ -186,14 +186,9 @@ onMounted(() => { loadBots() })
         :items-per-page="10"
       >
         <template #item.status="{ item }">
-          <VSwitch
-            :model-value="item.status === 1"
-            :label="item.status === 1 ? 'Enabled' : 'Disabled'"
-            color="success"
-            density="compact"
-            hide-details
-            @update:model-value="handleToggleStatus(item)"
-          />
+          <VChip :color="item.status === 1 ? 'success' : 'error'" size="small" variant="flat">
+            {{ item.status === 1 ? 'Enabled' : 'Disabled' }}
+          </VChip>
         </template>
 
         <template #item.createdAt="{ item }">
