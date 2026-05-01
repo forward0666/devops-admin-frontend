@@ -400,6 +400,13 @@ export const telegramBotService = {
   deleteAuthorization(id: number) {
     return request<void>({ method: 'delete', url: `/bot/chats/authorization/query/${id}`, headers: BOT_HEADERS })
   },
+  // Blacklist
+  getBlacklist(botName?: string) {
+    return request<any>({ method: 'get', url: '/bot/blacklist/list', params: botName ? { botName } : {}, headers: BOT_HEADERS })
+  },
+  removeBlacklist(botName: string, chatId: string) {
+    return request<void>({ method: 'delete', url: '/bot/blacklist/remove', params: { botName, chatId }, headers: BOT_HEADERS })
+  },
   // Sessions
   getSession(userId: number) {
     return request<any>({ method: 'get', url: `/bot/sessions/user/${userId}`, headers: BOT_HEADERS })
