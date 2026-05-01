@@ -18,6 +18,7 @@ const showAddDialog = ref(false)
 const showDeleteDialog = ref(false)
 const selectedBot = ref<BotItem | null>(null)
 const deleteBotName = ref('')
+const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const newBot = ref({
   botName: '',
@@ -55,6 +56,9 @@ async function loadBots() {
     bots.value = Array.isArray(res?.bots) ? res.bots : []
   } catch (e: any) {
     console.error('Failed to load bots:', e)
+    snackbar.text = e?.message || 'Failed to load bot list'
+    snackbar.color = 'error'
+    snackbar.show = true
     bots.value = []
   } finally {
     loading.value = false
@@ -69,8 +73,13 @@ async function handleAddBot() {
     showAddDialog.value = false
     newBot.value = { botName: '', botUsername: '', token: '', botType: 'IP_WHITE_LIST', secretToken: '' }
     await loadBots()
+    snackbar.text = 'Bot registered successfully'
+    snackbar.color = 'success'
+    snackbar.show = true
   } catch (e: any) {
-    console.error('Failed to add bot:', e)
+    snackbar.text = e?.message || 'Failed to register bot'
+    snackbar.color = 'error'
+    snackbar.show = true
   } finally {
     loading.value = false
   }
@@ -82,8 +91,13 @@ async function handleToggleStatus(bot: BotItem) {
   try {
     await telegramBotService.updateStatus(bot.botName, newStatus)
     bot.status = newStatus
+    snackbar.text = `${bot.botName} ${newStatus === 1 ? 'enabled' : 'disabled'}`
+    snackbar.color = 'success'
+    snackbar.show = true
   } catch (e: any) {
-    console.error('Failed to update status:', e)
+    snackbar.text = e?.message || 'Failed to update status'
+    snackbar.color = 'error'
+    snackbar.show = true
   } finally {
     loading.value = false
   }
@@ -102,8 +116,13 @@ async function handleDeleteBot() {
     await telegramBotService.deleteBot(selectedBot.value.botName)
     showDeleteDialog.value = false
     await loadBots()
+    snackbar.text = `${selectedBot.value.botName} deleted`
+    snackbar.color = 'success'
+    snackbar.show = true
   } catch (e: any) {
-    console.error('Failed to delete bot:', e)
+    snackbar.text = e?.message || 'Failed to delete bot'
+    snackbar.color = 'error'
+    snackbar.show = true
   } finally {
     loading.value = false
   }
@@ -261,5 +280,9 @@ onMounted(() => { loadBots() })
         </VCardActions>
       </VCard>
     </VDialog>
+    <!-- Snackbar -->
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="top end">
+      {{ snackbar.text }}
+    </VSnackbar>
   </div>
 </template>
