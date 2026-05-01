@@ -440,6 +440,16 @@ export const telegramBotService = {
   deleteMenu(id: number) {
     return request<void>({ method: 'delete', url: `/bot/menu/${id}`, headers: BOT_HEADERS })
   },
+  // Group Project
+  getGroupProjects(botName: string) {
+    return request<any>({ method: 'get', url: `/bot/groupProject/bot/${botName}`, headers: BOT_HEADERS })
+  },
+  createGroupProject(data: { botName: string; chatId: number; chatTitle: string; projectId: number; projectName: string }) {
+    return request<any>({ method: 'post', url: '/bot/groupProject', data, headers: BOT_HEADERS })
+  },
+  deleteGroupProject(id: number) {
+    return request<void>({ method: 'delete', url: `/bot/groupProject/${id}`, headers: BOT_HEADERS })
+  },
 }
 
 export default apiClient
