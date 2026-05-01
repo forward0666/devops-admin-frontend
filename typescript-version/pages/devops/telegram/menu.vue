@@ -18,7 +18,9 @@ const form = ref({
   menuLevel: 1,
   menuKey: '',
   title: '',
-  buttons: '[\n  {\"text\": \"\", \"callbackData\": \"\"}\n]',
+  buttons: '[
+  [{"text": "", "callbackData": ""}]
+]',
   parentId: null as number | null,
   sortOrder: 0,
 })
@@ -35,15 +37,22 @@ const subMenus = computed(() => {
 
 function parseButtons(buttonsStr: string) {
   try {
-    return JSON.parse(buttonsStr) || []
+    const parsed = JSON.parse(buttonsStr)
+    if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0])) return parsed
+    // 兼容旧一维格式
+    if (Array.isArray(parsed)) return parsed.map(b => [b])
+    return []
   } catch {
     return []
   }
 }
 
 function buttonsPreview(buttonsStr: string) {
-  const btns = parseButtons(buttonsStr)
-  return btns.map((b: any) => `${b.text || '(empty)'} → ${b.callbackData || '(empty)'}`).join('\n')
+  const rows = parseButtons(buttonsStr)
+  return rows.map(row => {
+    if (row.length === 0) return '--- 分隔线 ---'
+    return row.map((b: any) => `${b.text || '(empty)'} → ${b.callbackData || '(empty)'}`).join('  |  ')
+  }).join('\n')
 }
 
 async function loadBots() {
@@ -81,7 +90,9 @@ function openCreateDialog(level: number, parentId?: number) {
   form.value = {
     botName: selectedBot.value,
     menuLevel: level,
-    menuKey: '',
+    buttons: '[
+  [{"text": "", "callbackData": ""}]
+]',
     title: '',
     buttons: '[\n  {"text": "", "callbackData": ""}\n]',
     parentId: parentId || null,
@@ -230,7 +241,7 @@ onMounted(() => { loadBots() })
             rows="6"
             density="compact"
             class="mb-2 font-monospace"
-            hint='Format: [{"text":"Button Text","callbackData":"callback_data_KEY"}]'
+            hint='Each row is an array. Example: [[{"text":"A","callbackData":"x"},{"text":"B","callbackData":"y"}],[{"text":"C","callbackData":"z"}]] [] = separator'
             persistent-hint
           />
         </VCardText>
