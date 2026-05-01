@@ -239,7 +239,7 @@ onMounted(() => { loadBots() })
         <VCardTitle>{{ editingMenu ? 'Edit Menu' : 'Create Menu' }}</VCardTitle>
         <VCardText>
           <VTextField v-model="form.title" label="Title" density="compact" class="mb-3" />
-          <VTextField v-model="form.menuKey" label="Menu Key (callback_data identifier)" density="compact" class="mb-3" />
+          <VTextField v-model="form.menuKey" label="Menu Key (callback_data identifier)" density="compact" class="mb-3" :rules="[(v: string) => !!v && v.trim() !== '' || 'Required']" />
           <VSelect v-model="form.menuLevel" :items="[{ title: 'Main Menu', value: 1 }, { title: 'Sub Menu', value: 2 }]" label="Level" density="compact" class="mb-3" />
           <VSelect
             v-if="form.menuLevel === 2"
@@ -263,7 +263,7 @@ onMounted(() => { loadBots() })
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
-          <VBtn color="primary" :loading="loading" @click="saveMenu">Save</VBtn>
+          <VBtn color="primary" :loading="loading" :disabled="!form.menuKey?.trim()" @click="saveMenu">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
