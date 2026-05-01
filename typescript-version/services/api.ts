@@ -353,28 +353,83 @@ export const userConsoleMiddlewareService = {
 
 // ===== Telegram Bot Manager =====
 const BOT_SECRET = 'Xz8wVc4yBt5eQd1aRn7hUk2jGs6fLmMp'
+const BOT_HEADERS = { 'X-Encrypted-Data': BOT_SECRET }
 
 export const telegramBotService = {
   list() {
-    return request<any>({ method: 'get', url: '/bot/bots', headers: { 'X-Encrypted-Data': BOT_SECRET } })
+    return request<any>({ method: 'get', url: '/bot/bots', headers: BOT_HEADERS })
   },
   getByName(name: string) {
-    return request<any>({ method: 'get', url: `/bot/bots/${name}`, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+    return request<any>({ method: 'get', url: `/bot/bots/${name}`, headers: BOT_HEADERS })
   },
   getStatus(name: string) {
-    return request<any>({ method: 'get', url: `/bot/bots/${name}/status`, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+    return request<any>({ method: 'get', url: `/bot/bots/${name}/status`, headers: BOT_HEADERS })
   },
   updateStatus(name: string, status: number) {
-    return request<any>({ method: 'put', url: `/bot/bots/${name}/status`, params: { status }, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+    return request<any>({ method: 'put', url: `/bot/bots/${name}/status`, params: { status }, headers: BOT_HEADERS })
   },
-  update(name: string, data: { botType: string; status: number }) {
-    return request<any>({ method: 'put', url: `/bot/bots/${name}`, data, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+  update(name: string, data: { botType?: string; status?: number; token?: string }) {
+    return request<any>({ method: 'put', url: `/bot/bots/${name}`, data, headers: BOT_HEADERS })
   },
   addBot(data: { botName: string; botUsername: string; token: string; botType: string; secretToken?: string }) {
-    return request<any>({ method: 'post', url: '/bot/addBot', data, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+    return request<any>({ method: 'post', url: '/bot/addBot', data, headers: BOT_HEADERS })
   },
   deleteBot(name: string) {
-    return request<void>({ method: 'delete', url: `/bot/bots/${name}`, headers: { 'X-Encrypted-Data': BOT_SECRET } })
+    return request<void>({ method: 'delete', url: `/bot/bots/${name}`, headers: BOT_HEADERS })
+  },
+}
+
+export const telegramWhitelistService = {
+  list(domainType?: string) {
+    return request<any>({ method: 'get', url: '/bot/whitelist/ips', params: { domainType }, headers: BOT_HEADERS })
+  },
+  add(ip: string, username: string, domainType: string) {
+    return request<any>({ method: 'post', url: '/bot/whitelist/ips', params: { ip, username, domainType }, headers: BOT_HEADERS })
+  },
+  remove(ip: string, domainType: string) {
+    return request<void>({ method: 'delete', url: `/bot/whitelist/ips/${ip}`, params: { domainType }, headers: BOT_HEADERS })
+  },
+  batchAdd(data: { domainType: string; username: string; items: { ip: string }[] }) {
+    return request<any>({ method: 'post', url: '/bot/whitelist/ips/batch', data, headers: BOT_HEADERS })
+  },
+  audit(limit = 50, offset = 0) {
+    return request<any>({ method: 'get', url: '/bot/whitelist/audit', params: { limit, offset }, headers: BOT_HEADERS })
+  },
+}
+
+export const telegramSessionService = {
+  get(userId: number) {
+    return request<any>({ method: 'get', url: `/bot/sessions/user/${userId}`, headers: BOT_HEADERS })
+  },
+  clear(userId: number) {
+    return request<void>({ method: 'delete', url: `/bot/sessions/user/${userId}`, headers: BOT_HEADERS })
+  },
+  stats() {
+    return request<any>({ method: 'get', url: '/bot/sessions/stats', headers: BOT_HEADERS })
+  },
+  active(limit = 100) {
+    return request<any>({ method: 'get', url: '/bot/sessions/active', params: { limit }, headers: BOT_HEADERS })
+  },
+}
+
+export const telegramHealthService = {
+  overall() {
+    return request<any>({ method: 'get', url: '/bot/health/overall', headers: BOT_HEADERS })
+  },
+  cache() {
+    return request<any>({ method: 'get', url: '/bot/health/cache', headers: BOT_HEADERS })
+  },
+  database() {
+    return request<any>({ method: 'get', url: '/bot/health/database', headers: BOT_HEADERS })
+  },
+  telegramApi(botName?: string) {
+    return request<any>({ method: 'get', url: '/bot/health/telegram-api', params: { botName }, headers: BOT_HEADERS })
+  },
+  botMetrics() {
+    return request<any>({ method: 'get', url: '/bot/health/metrics/bots', headers: BOT_HEADERS })
+  },
+  messageMetrics(period = 'day') {
+    return request<any>({ method: 'get', url: '/bot/health/metrics/messages', params: { period }, headers: BOT_HEADERS })
   },
 }
 
