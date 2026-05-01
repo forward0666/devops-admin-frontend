@@ -74,14 +74,18 @@ async function loadMenus() {
 
 function openCreateDialog(level: number, parentId?: number) {
   editingMenu.value = null
+  const sameLevel = menus.value.filter((m: any) =>
+    m.menuLevel === level && (level === 1 || m.parentId === parentId)
+  )
+  const nextOrder = sameLevel.length > 0 ? Math.max(...sameLevel.map((m: any) => m.sortOrder ?? 0)) + 1 : 0
   form.value = {
     botName: selectedBot.value,
     menuLevel: level,
     menuKey: '',
     title: '',
-    buttons: '[\n  {\"text\": \"\", \"callbackData\": \"\"}\n]',
+    buttons: '[\n  {"text": "", "callbackData": ""}\n]',
     parentId: parentId || null,
-    sortOrder: menus.value.filter((m: any) => m.menuLevel === level).length,
+    sortOrder: nextOrder,
   }
   dialog.value = true
 }
