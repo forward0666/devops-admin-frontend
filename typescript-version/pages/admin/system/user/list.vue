@@ -37,7 +37,10 @@ function openEditDialog(user: any) {
 async function saveEditUser() {
   if (!editingUser.value) return
   try {
-    await userStore.updateUser(editingUser.value.id, editingUser.value)
+    await userStore.updateUser(editingUser.value.id, {
+      ...editingUser.value,
+      tgUsername: editingUser.value.tgUsername?.replace(/^@/, ''),
+    })
     isEditUserDialogVisible.value = false
     showSnack('User updated')
     await userStore.fetchUsers()
@@ -76,7 +79,7 @@ async function addUser() {
       password: newUser.value.password,
       fullName: newUser.value.fullName.trim(),
       email: newUser.value.email,
-      tgUsername: newUser.value.tgUsername,
+      tgUsername: newUser.value.tgUsername?.replace(/^@/, ''),
       role: newUser.value.role,
       departmentId: newUser.value.departmentId,
       position: newUser.value.position,
@@ -309,7 +312,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
           <VTextField v-model="newUser.password" label="Password" type="password" :rules="[v => !!v || 'Password is required']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="newUser.fullName" label="Full Name" :rules="[v => !!v?.trim() || 'Full Name is required']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="newUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="newUser.tgUsername" label="Telegram" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="newUser.tgUsername" label="Telegram" density="comfortable" class="mb-3" variant="outlined" prefix="@" />
           <VSelect v-model="newUser.role" label="Role" :items="roleOptions" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newUser.position" label="Position" :items="positionOptions" density="comfortable" variant="outlined" />
@@ -332,7 +335,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
           <VTextField v-model="editingUser.username" label="Username" :rules="[v => !!v?.trim() || 'Username is required']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editingUser.tgUsername" label="Telegram" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editingUser.tgUsername" label="Telegram" density="comfortable" class="mb-3" variant="outlined" prefix="@" />
           <VTextField v-model="editingUser.phone" label="Phone" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingUser.role" label="Role" :items="roleOptions" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingUser.active" label="Status" :items="[{ title: 'Active', value: true }, { title: 'Inactive', value: false }]" density="comfortable" class="mb-3" variant="outlined" />
