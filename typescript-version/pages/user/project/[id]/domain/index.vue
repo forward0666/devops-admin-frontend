@@ -253,13 +253,13 @@ function exportDomains() {
       <VDivider />
       <VProgressLinear v-if="loading" indeterminate color="primary" />
       <template v-for="env in filteredEnvList" :key="env.env">
-        <div class="d-flex align-center cursor-pointer pa-3" @click="toggleExpand(env.env)">
+        <div class="d-flex align-center cursor-pointer px-3 py-1" @click="toggleExpand(env.env)">
           <VIcon :icon="isRowExpanded(env.env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
           <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
           <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
           <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
         </div>
-        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover>
+        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover density="compact">
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th style="padding-left: 50px;">Domain</th>
