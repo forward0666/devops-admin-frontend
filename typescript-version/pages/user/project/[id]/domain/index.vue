@@ -81,6 +81,9 @@ const envColor = (env: string) => ({ prod: 'success', uat: 'warning', test: 'inf
 const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube', test: 'bx-test-tube', dev: 'bx-code' }[env] || 'bx-globe')
 
 // Domains from API
+const sortKey = ref<string>('domain')
+const sortDir = ref<'asc' | 'desc'>('asc')
+
 const domains = ref<any[]>([])
 
 const envList = computed(() => {
@@ -93,10 +96,14 @@ const envList = computed(() => {
 
 function getVisibleChildren(env: any) {
   const pr = myProjectRole.value
-  return env.children.filter((c: any) => {
-    // Member in prod: only show web type
+  const filtered = env.children.filter((c: any) => {
     if (c.env === 'prod' && pr === 'Member' && c.type !== 'web') return false
     return true
+  })
+  return [...filtered].sort((a: any, b: any) => {
+    const av = String(a[sortKey.value] || '').toLowerCase()
+    const bv = String(b[sortKey.value] || '').toLowerCase()
+    return sortDir.value === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av)
   })
 }
 
@@ -262,9 +269,15 @@ function exportDomains() {
         <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover density="compact">
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="padding-left: 50px;">Domain</th>
-              <th>Type</th>
-              <th>Remark</th>
+              <th style="padding-left: 50px;">
+                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'domain'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Domain <VIcon size="16" :icon="sortKey === 'domain' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
+              </th>
+              <th>
+                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'type'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Type <VIcon size="16" :icon="sortKey === 'type' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
+              </th>
+              <th>
+                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'remark'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Remark <VIcon size="16" :icon="sortKey === 'remark' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
+              </th>
               <th>Action</th>
             </tr>
           </thead>
