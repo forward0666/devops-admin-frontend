@@ -227,9 +227,11 @@ async function confirmImport() {
       isImportDialogVisible.value = false
       await fetchDomains()
       snackbar.value = { show: true, text: `Imported ${data.length} domains`, color: 'success' }
+      return
     }
+    snackbar.value = { show: true, text: 'Invalid JSON format, expected array', color: 'error' }
   } catch (e: any) {
-    snackbar.value = { show: true, text: 'Invalid JSON file', color: 'error' }
+    snackbar.value = { show: true, text: e?.message || 'Import failed', color: 'error' }
   }
 }
 
