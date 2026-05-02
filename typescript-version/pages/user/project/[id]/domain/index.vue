@@ -301,7 +301,6 @@ function exportDomains() {
       <VCard>
         <VCardItem>
           <VCardTitle>Import Domains</VCardTitle>
-          <VBtn icon variant="text" @click="isImportDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
           <div
@@ -339,7 +338,6 @@ function exportDomains() {
       <VCard>
         <VCardItem>
           <VCardTitle>Add Domain</VCardTitle>
-          <VBtn icon variant="text" @click="isAddDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>
           <VForm ref="addFormRef">
