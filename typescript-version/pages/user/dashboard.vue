@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const features = [
   { icon: 'bx-shield-quarter', title: 'Role-Based Access Control', desc: 'Fine-grained permission system with Admin and User consoles. Sys admins, admins, and DevOps engineers have dedicated management views.', color: 'primary' },
-  { icon: 'bx-briefcase', title: 'Project Management', desc: 'Create and manage projects with team members, track progress, and organize assets. Each project has its own Info, Member, and Asset modules.', color: 'info' },
+  { icon: 'bx-briefcase', title: 'Project Management', desc: 'Create and manage projects with team members, track progress, and organize assets. Each project has its own Info, Member, Domain, and Middleware modules.', color: 'info' },
   { icon: 'bx-group', title: 'Team Collaboration', desc: 'Invite members to projects, assign roles like Project Lead or Developer. Real-time team overview and member management.', color: 'success' },
   { icon: 'bx-bar-chart-alt-2', title: 'System Monitoring', desc: 'Login logs, operation logs, and online user tracking. Full audit trail of all system activities.', color: 'warning' },
   { icon: 'bx-buildings', title: 'Organization Structure', desc: 'Department management with hierarchical teams. Users are organized by department and position for clear accountability.', color: 'secondary' },
