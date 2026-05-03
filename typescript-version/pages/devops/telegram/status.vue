@@ -78,29 +78,6 @@ onUnmounted(() => {
     </VAlert>
 
     <template v-if="status">
-      <!-- Active Requests -->
-      <VCard class="mb-4">
-        <VCardTitle class="d-flex align-center">
-          <VIcon start :color="(status.activeRequests?.count || 0) > 0 ? 'error' : 'success'">bx-transfer-alt</VIcon>
-          Active Webhook Requests
-          <VSpacer />
-          <VChip :color="(status.activeRequests?.count || 0) > 0 ? 'error' : 'success'" size="small" label>
-            {{ status.activeRequests?.count || 0 }}
-          </VChip>
-        </VCardTitle>
-        <VCardText v-if="(status.activeRequests?.requests?.length || 0) > 0">
-          <VAlert type="error" variant="tonal" class="mb-3" density="compact">
-            ⚠️ These requests are stuck and not completing!
-          </VAlert>
-          <div v-for="(req, idx) in status.activeRequests.requests" :key="idx" class="text-body-2 mb-1 font-monospace">
-            {{ req }}
-          </div>
-        </VCardText>
-        <VCardText v-else class="text-medium-emphasis">
-          ✅ No stuck requests
-        </VCardText>
-      </VCard>
-
       <!-- Redis -->
       <VCard class="mb-4">
         <VCardTitle class="d-flex align-center">
