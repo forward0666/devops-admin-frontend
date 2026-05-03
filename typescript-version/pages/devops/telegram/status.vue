@@ -61,12 +61,11 @@ onUnmounted(() => {
       <div class="d-flex gap-2">
         <VBtn
           size="small"
-          :variant="autoRefresh ? 'flat' : 'tonal'"
-          :color="autoRefresh ? 'success' : 'default'"
+          variant="tonal"
           @click="autoRefresh = !autoRefresh; startAutoRefresh()"
         >
-          <VIcon start size="16">bx-refresh</VIcon>
-          {{ autoRefresh ? 'Auto (3s)' : 'Paused' }}
+          <VIcon start size="16">{{ autoRefresh ? 'bx-pause' : 'bx-refresh' }}</VIcon>
+          {{ autoRefresh ? 'Pause' : 'Auto (3s)' }}
         </VBtn>
         <VBtn size="small" variant="tonal" @click="fetchStatus">
           <VIcon start size="16">bx-reload</VIcon>
