@@ -4,7 +4,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 const loading = ref(true)
 const status = ref<any>(null)
 const deletions = ref<any[]>([])
-const autoRefresh = ref(true)
+const autoRefresh = ref(false)
 let timer: ReturnType<typeof setInterval> | null = null
 
 async function fetchStatus() {
@@ -25,9 +25,11 @@ async function fetchStatus() {
 }
 
 function startAutoRefresh() {
-  if (timer) clearInterval(timer)
   if (autoRefresh.value) {
     timer = setInterval(fetchStatus, 3000)
+  } else if (timer) {
+    clearInterval(timer)
+    timer = null
   }
 }
 
@@ -42,7 +44,6 @@ function formatMs(ms: number) {
 
 onMounted(() => {
   fetchStatus()
-  startAutoRefresh()
 })
 
 onUnmounted(() => {
