@@ -421,6 +421,13 @@ export const telegramBotService = {
   cleanupStats() {
     return request<any>({ method: 'get', url: '/bot/groupMessageCleanUp/stats', headers: BOT_HEADERS })
   },
+  // Service Status
+  getServiceStatus() {
+    return request<any>({ method: 'get', url: '/bot/serviceStatus', headers: BOT_HEADERS })
+  },
+  getPendingDeletions() {
+    return request<any>({ method: 'get', url: '/bot/serviceStatus/pendingDeletions', headers: BOT_HEADERS })
+  },
   // Menu
   getMenus(botName: string) {
     return request<any>({ method: 'get', url: `/bot/menu/bot/${botName}`, headers: BOT_HEADERS })
