@@ -421,16 +421,6 @@ export const telegramBotService = {
   cleanupStats() {
     return request<any>({ method: 'get', url: '/bot/groupMessageCleanUp/stats', headers: BOT_HEADERS })
   },
-  // Whitelist
-  getWhitelistIps(domainType?: string) {
-    return request<any>({ method: 'get', url: '/bot/whitelist/ips', params: { domainType }, headers: BOT_HEADERS })
-  },
-  addWhitelistIp(ip: string, username: string, domainType: string) {
-    return request<any>({ method: 'post', url: '/bot/whitelist/ips', params: { ip, username, domainType }, headers: BOT_HEADERS })
-  },
-  removeWhitelistIp(ip: string, domainType: string) {
-    return request<void>({ method: 'delete', url: `/bot/whitelist/ips/${ip}`, params: { domainType }, headers: BOT_HEADERS })
-  },
   // Menu
   getMenus(botName: string) {
     return request<any>({ method: 'get', url: `/bot/menu/bot/${botName}`, headers: BOT_HEADERS })
