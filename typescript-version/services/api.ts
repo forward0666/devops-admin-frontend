@@ -423,10 +423,10 @@ export const telegramBotService = {
   },
   // Service Status
   getServiceStatus() {
-    return request<any>({ method: 'get', url: '/bot/serviceStatus', headers: BOT_HEADERS })
+    return apiClient.get('/bot/serviceStatus', { headers: BOT_HEADERS }).then(r => r.data)
   },
   getPendingDeletions() {
-    return request<any>({ method: 'get', url: '/bot/serviceStatus/pendingDeletions', headers: BOT_HEADERS })
+    return apiClient.get('/bot/serviceStatus/pendingDeletions', { headers: BOT_HEADERS }).then(r => r.data)
   },
   // Menu
   getMenus(botName: string) {

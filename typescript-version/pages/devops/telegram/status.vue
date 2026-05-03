@@ -18,6 +18,7 @@ async function fetchStatus() {
     deletions.value = deletionsRes
   } catch (e: any) {
     console.error('Failed to fetch service status', e)
+    status.value = { error: e.message || 'API unavailable' }
   } finally {
     loading.value = false
   }
@@ -73,8 +74,12 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <VAlert v-if="loading" type="info" variant="tonal" class="mb-4">
+    <VAlert v-if="loading && !status" type="info" variant="tonal" class="mb-4">
       Loading...
+    </VAlert>
+
+    <VAlert v-if="status?.error" type="error" variant="tonal" class="mb-4">
+      ❌ Failed to connect: {{ status.error }}
     </VAlert>
 
     <template v-if="status">
