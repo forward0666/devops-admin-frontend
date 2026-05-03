@@ -422,6 +422,9 @@ export const telegramBotService = {
     return request<any>({ method: 'get', url: '/bot/groupMessageCleanUp/stats', headers: BOT_HEADERS })
   },
   // Service Status
+  clearActiveRequests() {
+    return apiClient.delete('/bot/serviceStatus/activeRequests', { headers: BOT_HEADERS }).then(r => r.data)
+  },
   getServiceStatus() {
     return apiClient.get('/bot/serviceStatus', { headers: BOT_HEADERS }).then(r => r.data)
   },

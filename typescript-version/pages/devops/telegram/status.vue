@@ -28,6 +28,16 @@ async function fetchStatus() {
   }
 }
 
+async function handleClearRequests() {
+  try {
+    const { telegramBotService } = await import('~/services/api')
+    await telegramBotService.clearActiveRequests()
+    await fetchStatus()
+  } catch (e: any) {
+    console.error('Failed to clear requests', e)
+  }
+}
+
 function startAutoRefresh() {
   if (autoRefresh.value) {
     timer = setInterval(fetchStatus, 3000)
@@ -93,6 +103,9 @@ onUnmounted(() => {
           <VIcon start :color="(status.activeRequests?.count || 0) > 0 ? 'error' : 'success'">bx-transfer-alt</VIcon>
           Active Requests
           <VSpacer />
+          <VBtn v-if="callbackRequests.length > 0" size="x-small" variant="tonal" color="error" @click="handleClearRequests">
+            Clear
+          </VBtn>
           <VChip :color="callbackRequests.length > 0 ? 'error' : 'success'" size="small" label>
             {{ callbackRequests.length }}
           </VChip>
