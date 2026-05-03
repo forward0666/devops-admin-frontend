@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const loading = ref(true)
 const status = ref<any>(null)
 const deletions = ref<any[]>([])
 const autoRefresh = ref(false)
+const callbackRequests = computed(() => {
+  if (!status.value?.activeRequests?.requests) return []
+  return status.value.activeRequests.requests.filter((r: string) => r.includes('POST') && r.includes('callback'))
+})
 let timer: ReturnType<typeof setInterval> | null = null
 
 async function fetchStatus() {
@@ -89,15 +93,15 @@ onUnmounted(() => {
           <VIcon start :color="(status.activeRequests?.count || 0) > 0 ? 'error' : 'success'">bx-transfer-alt</VIcon>
           Active Requests
           <VSpacer />
-          <VChip :color="(status.activeRequests?.count || 0) > 0 ? 'error' : 'success'" size="small" label>
-            {{ status.activeRequests?.count || 0 }}
+          <VChip :color="callbackRequests.length > 0 ? 'error' : 'success'" size="small" label>
+            {{ callbackRequests.length }}
           </VChip>
         </VCardTitle>
         <VCardText v-if="(status.activeRequests?.count || 0) > 0">
           <VAlert type="error" variant="tonal" class="mb-3" density="compact">
-            ⚠️ These requests are stuck!
+            ⚠️ {{ callbackRequests.length }} stuck webhook request(s)
           </VAlert>
-          <div v-for="(req, idx) in status.activeRequests.requests" :key="idx" class="text-body-2 mb-1 font-monospace" style="color: rgb(var(--v-theme-error))">
+          <div v-for="(req, idx) in callbackRequests" :key="idx" class="text-body-2 mb-1 font-monospace" style="color: rgb(var(--v-theme-error))">
             {{ req }}
           </div>
         </VCardText>
