@@ -61,9 +61,9 @@ onUnmounted(() => {
           size="small"
           :variant="autoRefresh ? 'flat' : 'tonal'"
           :color="autoRefresh ? 'success' : 'default'"
-          @click="toggleAutoRefresh"
+          @click="autoRefresh = !autoRefresh; startAutoRefresh()"
         >
-          <VIcon start size="16">{{ autoRefresh ? 'bx-refresh' : 'bx-pause' }}</VIcon>
+          <VIcon start size="16">bx-refresh</VIcon>
           {{ autoRefresh ? 'Auto (3s)' : 'Paused' }}
         </VBtn>
         <VBtn size="small" variant="tonal" @click="fetchStatus">
