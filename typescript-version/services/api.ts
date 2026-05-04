@@ -25,11 +25,18 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    // Gateway 服务间认证（如果请求已自带 X-Encrypted-Data 则跳过全局的）
+    // Gateway 服务间认证（根据路径前缀使用不同密钥）
     if (!config.headers)
       config.headers = {}
     if (!config.headers['X-Encrypted-Data']) {
-      config.headers['X-Encrypted-Data'] = import.meta.env.VITE_GATEWAY_SECRET || ''
+      const url = config.url || ''
+      if (url.startsWith('/bot/')) {
+        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_BOT_SECRET || ''
+      } else if (url.startsWith('/login/') || url.startsWith('/auth/')) {
+        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_LOGIN_SECRET || ''
+      } else {
+        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_GATEWAY_SECRET || ''
+      }
     }
 
     return config
@@ -352,8 +359,7 @@ export const userConsoleMiddlewareService = {
 }
 
 // ===== Telegram Bot Manager =====
-const BOT_SECRET = 'Xz8wVc4yBt5eQd1aRn7hUk2jGs6fLmMp'
-const BOT_HEADERS = { 'X-Encrypted-Data': BOT_SECRET }
+const BOT_HEADERS = { 'X-Encrypted-Data': import.meta.env.VITE_BOT_SECRET || '' }
 
 export const telegramBotService = {
   list() {
