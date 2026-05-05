@@ -9,6 +9,22 @@ const dbUser = ref<any>(null)
 const loading = ref(false)
 const activeTab = ref('account')
 const newPassword = ref('')
+const unlocking = ref(false)
+
+async function unlockUser() {
+  unlocking.value = true
+  try {
+    const { request } = await import('~/services/api')
+    await request({ method: 'post', url: `/manage/user/unlock/${userId.value}` })
+    await userStore.fetchUsers()
+    dbUser.value = userStore.users.find((u: any) => u.id === userId.value) || null
+    snackbar.value = { show: true, text: 'Account unlocked', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed to unlock', color: 'error' }
+  } finally {
+    unlocking.value = false
+  }
+}
 
 async function resetPassword() {
   if (!userId.value || !newPassword.value) {
@@ -152,6 +168,17 @@ const userData = computed(() => {
         </div>
 
         <div v-if="activeTab === 'security'" class="mt-6">
+          <VCard class="mb-4">
+            <VCardItem><VCardTitle>Login Lock</VCardTitle></VCardItem>
+            <VDivider />
+            <VCardText class="d-flex align-center gap-3">
+              <VChip variant="tonal" :color="dbUser?.locked ? 'error' : 'success'" size="small" label>{{ dbUser?.locked ? 'Locked' : 'Unlocked' }}</VChip>
+              <VBtn v-if="dbUser?.locked" color="primary" size="small" :loading="unlocking" @click="unlockUser">
+                <VIcon icon="bx-lock-open-alt" size="18" class="me-1" />Unlock Account
+              </VBtn>
+              <span v-else class="text-body-2 text-medium-emphasis">Account is not locked.</span>
+            </VCardText>
+          </VCard>
           <VCard>
             <VCardItem><VCardTitle>Reset Password</VCardTitle></VCardItem>
             <VDivider />

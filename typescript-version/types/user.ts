@@ -15,6 +15,7 @@ export interface User {
   createdBy?: number
   updatedBy?: number
   active: boolean
+  locked: boolean
   emailVerified: boolean
   phoneVerified: boolean
   lastLoginAt?: string

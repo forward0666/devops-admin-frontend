@@ -143,6 +143,7 @@ const userHeaders = [
   { title: 'Position', key: 'position', sortable: true },
   { title: 'Department', key: 'department', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
+  { title: 'Lock', key: 'locked', sortable: true },
   { title: 'Action', key: 'actions', sortable: false },
 ]
 
@@ -281,6 +282,12 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
         <template #item.status="{ item }">
           <VChip variant="tonal" :color="resolveUserStatusVariant(item.active)" size="small" label>
             {{ item.active ? 'Active' : 'Inactive' }}
+          </VChip>
+        </template>
+
+        <template #item.locked="{ item }">
+          <VChip variant="tonal" :color="item.locked ? 'error' : 'success'" size="small" label>
+            {{ item.locked ? 'Lock' : 'Unlock' }}
           </VChip>
         </template>
 
