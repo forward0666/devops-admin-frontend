@@ -143,6 +143,69 @@ const isAddDialogVisible = ref(false)
 const addFormRef = ref<any>(null)
 const newDomain = ref({ domain: '', env: '', type: '', remark: '', cdn: '' })
 
+// Multi-select
+const selectedDomains = ref<string[]>([])
+
+const expandedVisibleDomains = computed(() => {
+  const list: any[] = []
+  for (const env of filteredEnvList.value) {
+    if (isRowExpanded(env.env)) list.push(...getVisibleChildren(env))
+  }
+  return list
+})
+
+const allExpandedDomainsSelected = computed(() => expandedVisibleDomains.value.length > 0 && expandedVisibleDomains.value.every((d: any) => selectedDomains.value.includes(d.id)))
+const someExpandedDomainsSelected = computed(() => expandedVisibleDomains.value.some((d: any) => selectedDomains.value.includes(d.id)) && !allExpandedDomainsSelected.value)
+
+function toggleSelect(id: string) {
+ const i = selectedDomains.value.indexOf(id)
+ if (i >= 0) selectedDomains.value.splice(i, 1)
+ else selectedDomains.value.push(id)
+}
+
+function toggleSelectAll(val: boolean) {
+ if (val) {
+   for (const d of expandedVisibleDomains.value) {
+     if (!selectedDomains.value.includes(d.id)) selectedDomains.value.push(d.id)
+   }
+ } else {
+   selectedDomains.value = []
+ }
+}
+
+// Bulk edit
+const isBulkEditDialogVisible = ref(false)
+const bulkForm = ref({ type: '', remark: '', cdn: '' })
+const bulkSaving = ref(false)
+
+function resetBulkForm() { bulkForm.value = { type: '', remark: '', cdn: '' } }
+watch(isBulkEditDialogVisible, (v) => { if (v) resetBulkForm() })
+
+async function bulkUpdate() {
+  if (!selectedDomains.value.length) return
+  bulkSaving.value = true
+  try {
+    const body: any = { projectId: Number(projectId.value), ids: selectedDomains.value }
+    if (bulkForm.value.type.trim()) body.type = bulkForm.value.type.trim()
+    if (bulkForm.value.remark.trim()) body.remark = bulkForm.value.remark.trim()
+    if (bulkForm.value.cdn.trim()) body.cdn = bulkForm.value.cdn.trim()
+    if (!body.type && !body.remark && !body.cdn) {
+      snackbar.value = { show: true, text: '请至少填写一个字段', color: 'warning' }
+      bulkSaving.value = false
+      return
+    }
+    await userConsoleDomainService.bulkUpdate(body)
+    snackbar.value = { show: true, text: `已更新 ${selectedDomains.value.length} 条记录`, color: 'success' }
+    selectedDomains.value = []
+    isBulkEditDialogVisible.value = false
+    await fetchDomains()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || '更新失败', color: 'error' }
+  } finally {
+    bulkSaving.value = false
+  }
+}
+
 async function addDomain() {
   addFormRef.value?.validate().then(async ({ valid }: any) => {
     if (!valid) return
@@ -258,6 +321,7 @@ function exportDomains() {
           <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
           <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
           <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
+          <VBtn prepend-icon="bx-edit" variant="tonal" color="warning" size="small" :disabled="!canManage || !selectedDomains.length" @click="isBulkEditDialogVisible = true">Edit ({{ selectedDomains.length }})</VBtn>
         </div>
       </VCardText>
       <VDivider />
@@ -265,7 +329,8 @@ function exportDomains() {
       <VTable v-if="domains.length" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
         <thead>
           <tr class="text-caption text-medium-emphasis">
-            <th style="padding-left: 50px;">Domain</th>
+            <th style="width: 40px; padding-left: 50px;"><VCheckbox density="compact" hide-details :model-value="allExpandedDomainsSelected" :indeterminate="someExpandedDomainsSelected" @update:model-value="toggleSelectAll" /></th>
+            <th>Domain</th>
             <th style="width: 90px;">Type</th>
             <th style="width: 140px;">Remark</th>
             <th style="width: 160px;">CDN</th>
@@ -275,7 +340,7 @@ function exportDomains() {
         <tbody>
         <template v-for="env in filteredEnvList" :key="env.env">
           <tr class="cursor-pointer" @click="toggleExpand(env.env)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-            <td style="padding-left: 50px;" colspan="5">
+            <td style="padding-left: 50px;" colspan="6">
               <div class="d-flex align-center">
                 <VIcon :icon="isRowExpanded(env.env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                 <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
@@ -286,7 +351,8 @@ function exportDomains() {
           </tr>
           <template v-if="isRowExpanded(env.env)">
             <tr v-for="domain in getVisibleChildren(env)" :key="domain.id" class="table-row-hover">
-              <td style="padding-left: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <td style="width: 40px; padding-left: 50px;"><VCheckbox density="compact" hide-details :model-value="selectedDomains.includes(domain.id)" @update:model-value="toggleSelect(domain.id)" /></td>
+              <td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 <div class="d-flex align-center gap-x-2">
                   <VIcon icon="bx-globe" color="primary" size="18" />
                   <span class="font-weight-medium">{{ domain.domain }}</span>
@@ -303,7 +369,7 @@ function exportDomains() {
               </td>
             </tr>
             <tr v-if="!env.children.length">
-              <td colspan="5" class="text-center text-medium-emphasis pa-4">No domains</td>
+              <td colspan="6" class="text-center text-medium-emphasis pa-4">No domains</td>
             </tr>
           </template>
         </template>
@@ -391,6 +457,26 @@ function exportDomains() {
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
           <VBtn color="primary" :loading="loading" @click="saveEdit">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Bulk Edit Dialog -->
+    <VDialog v-model="isBulkEditDialogVisible" max-width="500">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Edit ({{ selectedDomains.length }} selected)</VCardTitle>
+          <template #append><VBtn icon variant="text" @click="isBulkEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn></template>
+        </VCardItem>
+        <VCardText>
+          <div class="text-body-2 text-medium-emphasis mb-4">Leave field empty to keep unchanged.</div>
+          <VSelect v-model="bulkForm.type" :items="['web', 'admin', 'callback', 'api']" label="Type" clearable density="comfortable" variant="outlined" class="mb-3" />
+          <VTextField v-model="bulkForm.remark" label="Remark" density="comfortable" variant="outlined" clearable class="mb-3" />
+          <VTextField v-model="bulkForm.cdn" label="CDN" density="comfortable" variant="outlined" clearable class="mb-3" />
+        </VCardText>
+        <VCardActions class="justify-end pa-4">
+          <VBtn variant="tonal" @click="isBulkEditDialogVisible = false">Cancel</VBtn>
+          <VBtn color="primary" :loading="bulkSaving" @click="bulkUpdate">Update</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

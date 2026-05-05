@@ -338,6 +338,9 @@ export const userConsoleDomainService = {
   importDomains(data: any) {
     return request<any>({ method: 'post', url: '/user/domain/import', data })
   },
+  bulkUpdate(data: any) {
+    return request<any>({ method: 'post', url: '/user/domain/bulkUpdate', data })
+  },
 }
 
 export const userConsoleMiddlewareService = {
