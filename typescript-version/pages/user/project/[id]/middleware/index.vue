@@ -34,6 +34,39 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const storageKey = computed(() => `middleware-expanded-${projectId.value}`)
 
+// Bulk edit
+const selectedMiddlewares = ref<string[]>([])
+const allSelected = computed(() => envList.value.every(e => e.children.length > 0 ? e.children.every(m => selectedMiddlewares.value.includes(m.id)) : true) && selectedMiddlewares.value.length > 0)
+const toggleSelectAll = () => {
+  if (allSelected.value) { selectedMiddlewares.value = [] }
+  else { selectedMiddlewares.value = middlewares.value.map((m: any) => m.id) }
+}
+const toggleSelect = (id: string) => {
+  const i = selectedMiddlewares.value.indexOf(id)
+  if (i >= 0) selectedMiddlewares.value.splice(i, 1)
+  else selectedMiddlewares.value.push(id)
+}
+const isBulkEditDialogVisible = ref(false)
+const bulkForm = ref({ type: '', protocol: '', remark: '' })
+
+async function confirmBulkEdit() {
+  try {
+    const fields: any = {}
+    if (bulkForm.value.type) fields.type = bulkForm.value.type
+    if (bulkForm.value.protocol) fields.protocol = bulkForm.value.protocol
+    if (bulkForm.value.remark) fields.remark = bulkForm.value.remark
+    if (!Object.keys(fields).length) return
+    await userConsoleMiddlewareService.bulkUpdate({ projectId: projectId.value, ids: selectedMiddlewares.value, ...fields })
+    isBulkEditDialogVisible.value = false
+    selectedMiddlewares.value = []
+    bulkForm.value = { type: '', protocol: '', remark: '' }
+    await fetchMiddlewares()
+    snackbar.value = { show: true, text: 'Bulk updated', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed', color: 'error' }
+  }
+}
+
 function loadExpandedState() {
   if (import.meta.client) {
     const saved = localStorage.getItem(storageKey.value)
@@ -90,14 +123,14 @@ onMounted(() => { fetchMyRole(); fetchMiddlewares() })
 // Add
 const isAddDialogVisible = ref(false)
 const addFormRef = ref<any>(null)
-const newMiddleware = ref({ name: '', env: '', protocol: '', externalAddr: '', internalAddr: '', svcAddr: '', remark: '' })
+const newMiddleware = ref({ name: '', env: '', type: '', protocol: '', externalAddr: '', internalAddr: '', svcAddr: '', remark: '' })
 
 async function addMiddleware() {
   addFormRef.value?.validate().then(async ({ valid }: any) => {
     if (!valid) return
     try {
       await userConsoleMiddlewareService.create({ ...newMiddleware.value, projectId: projectId.value })
-      newMiddleware.value = { name: '', env: '', protocol: '', externalAddr: '', internalAddr: '', svcAddr: '', remark: '' }
+      newMiddleware.value = { name: '', env: '', type: '', protocol: '', externalAddr: '', internalAddr: '', svcAddr: '', remark: '' }
       isAddDialogVisible.value = false
       await fetchMiddlewares()
       snackbar.value = { show: true, text: 'Middleware added', color: 'success' }
@@ -122,6 +155,7 @@ async function saveEdit() {
     await userConsoleMiddlewareService.update(editingItem.value.id, {
       projectId: projectId.value,
       name: editingItem.value.name,
+      type: editingItem.value.type,
       protocol: editingItem.value.protocol,
       externalAddr: editingItem.value.externalAddr,
       internalAddr: editingItem.value.internalAddr,
@@ -205,12 +239,12 @@ function exportMiddlewares() {
 <template>
   <div>
     <VCard>
-      <VCardText class="d-flex justify-space-between align-center flex-wrap gap-3">
-        <h4 class="text-h4">Middleware</h4>
+      <VCardText class="d-flex justify-end align-center flex-wrap gap-3">
         <div class="d-flex align-center gap-3">
           <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Middleware</VBtn>
           <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
-          <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" @disabled="!canManage" @click="exportMiddlewares">Export</VBtn>
+          <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportMiddlewares">Export</VBtn>
+          <VBtn prepend-icon="bx-edit" variant="tonal" color="warning" size="small" :disabled="!canManage || !selectedMiddlewares.length" @click="isBulkEditDialogVisible = true">Edit ({{ selectedMiddlewares.length }})</VBtn>
         </div>
       </VCardText>
       <VDivider />
@@ -218,7 +252,9 @@ function exportMiddlewares() {
       <VTable v-if="middlewares.length" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
         <thead>
           <tr class="text-caption text-medium-emphasis">
-            <th style="padding-left: 50px;">Name</th>
+            <th style="padding-left: 50px; width: 40px;"><VCheckbox :model-value="allSelected" hide-details density="compact" @click="toggleSelectAll" /></th>
+            <th>Name</th>
+            <th style="width: 90px;">Type</th>
             <th style="width: 280px;">Address</th>
             <th style="width: 90px;">Protocol</th>
             <th style="width: 140px;">Remark</th>
@@ -228,7 +264,7 @@ function exportMiddlewares() {
         <tbody>
         <template v-for="env in envList" :key="env.env">
           <tr class="cursor-pointer" @click="toggleExpand(env.env)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-            <td style="padding-left: 50px;" colspan="5">
+            <td style="padding-left: 50px;" colspan="7">
               <div class="d-flex align-center">
                 <VIcon :icon="isRowExpanded(env.env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                 <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
@@ -239,12 +275,13 @@ function exportMiddlewares() {
           </tr>
           <template v-if="isRowExpanded(env.env)">
             <tr v-for="mw in env.children" :key="mw.id" class="table-row-hover">
-              <td style="padding-left: 50px;">
+              <td style="padding-left: 50px;"><VCheckbox :model-value="selectedMiddlewares.includes(mw.id)" hide-details density="compact" @click.stop="toggleSelect(mw.id)" /></td>
                 <div class="d-flex align-center gap-x-2">
                   <VIcon icon="bx-cube" color="primary" size="18" />
                   <span class="font-weight-medium">{{ mw.name }}</span>
                 </div>
               </td>
+              <td><VChip variant="tonal" :color="mw.type === 'cloud' ? 'info' : 'success'" size="small" label>{{ mw.type || '-' }}</VChip></td>
               <td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 <div class="d-flex flex-column text-body-2" style="line-height: 1.6;">
                   <span><span class="text-medium-emphasis font-weight-medium">ext:</span> {{ emptyAddr(mw.externalAddr) }}</span>
@@ -262,15 +299,13 @@ function exportMiddlewares() {
               </td>
             </tr>
             <tr v-if="!env.children.length">
-              <td colspan="5" class="text-center text-medium-emphasis pa-4">No middleware</td>
+              <td colspan="7" class="text-center text-medium-emphasis pa-4">-</td>
             </tr>
           </template>
         </template>
         </tbody>
       </VTable>
-      <VCardText v-if="!loading && !middlewares.length" class="text-center text-medium-emphasis pa-6">
-        No middleware configured
-      </VCardText>
+      <VCardText v-if="!loading && !middlewares.length" />
     </VCard>
 
     <!-- Import Dialog -->
@@ -322,6 +357,7 @@ function exportMiddlewares() {
           <VForm ref="addFormRef">
             <VTextField v-model="newMiddleware.name" label="Name" placeholder="nginx-proxy" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Name is required']" />
             <VSelect v-model="newMiddleware.env" label="Environment" :items="['prod', 'uat', 'test', 'dev']" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Environment is required']" />
+            <VSelect v-model="newMiddleware.type" label="Type" :items="['self-host', 'cloud']" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Type is required']" />
             <VTextField v-model="newMiddleware.protocol" label="Protocol" placeholder="HTTP/HTTPS" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="newMiddleware.externalAddr" label="External Address" placeholder="proxy.jhdevops.com" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="newMiddleware.internalAddr" label="Internal Address" placeholder="10.0.1.10" density="comfortable" class="mb-3" variant="outlined" />
@@ -346,6 +382,7 @@ function exportMiddlewares() {
         <VCardText>
           <VForm ref="editFormRef">
             <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Name is required']" />
+            <VSelect v-model="editingItem.type" label="Type" :items="['self-host', 'cloud']" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="editingItem.protocol" label="Protocol" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="editingItem.externalAddr" label="External Address" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="editingItem.internalAddr" label="Internal Address" density="comfortable" class="mb-3" variant="outlined" />
@@ -356,6 +393,25 @@ function exportMiddlewares() {
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
           <VBtn color="primary" :loading="loading" @click="saveEdit">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Bulk Edit Dialog -->
+    <VDialog v-model="isBulkEditDialogVisible" max-width="450">
+      <VCard>
+        <VCardItem>
+          <VCardTitle>Bulk Edit Middlewares ({{ selectedMiddlewares.length }})</VCardTitle>
+          <VBtn icon variant="text" @click="isBulkEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
+        </VCardItem>
+        <VCardText>
+          <VSelect v-model="bulkForm.type" label="Type" :items="['self-host', 'cloud']" density="comfortable" class="mb-3" variant="outlined" clearable />
+          <VTextField v-model="bulkForm.protocol" label="Protocol" placeholder="HTTP/HTTPS" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="bulkForm.remark" label="Remark" density="comfortable" variant="outlined" />
+        </VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isBulkEditDialogVisible = false">Cancel</VBtn>
+          <VBtn color="primary" :loading="loading" @click="confirmBulkEdit">Update</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

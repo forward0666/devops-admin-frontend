@@ -359,6 +359,9 @@ export const userConsoleMiddlewareService = {
   importMiddlewares(data: any) {
     return request<any>({ method: 'post', url: '/user/middleware/import', data })
   },
+  bulkUpdate(data: any) {
+    return request<any>({ method: 'post', url: '/user/middleware/bulkUpdate', data })
+  },
 }
 
 // ===== Telegram Bot Manager =====
