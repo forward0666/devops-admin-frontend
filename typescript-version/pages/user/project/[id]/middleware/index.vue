@@ -215,53 +215,59 @@ function exportMiddlewares() {
       </VCardText>
       <VDivider />
       <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <template v-for="env in envList" :key="env.env">
-        <div class="d-flex align-center cursor-pointer pa-3" @click="toggleExpand(env.env)">
-          <VIcon :icon="isRowExpanded(env.env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
-          <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
-          <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
-          <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ env.children.length }}</VChip>
-        </div>
-        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover>
-          <thead>
-            <tr class="text-caption text-medium-emphasis">
-              <th style="padding-left: 50px;">Name</th>
-              <th style="min-width: 260px;">Address</th>
-              <th>Protocol</th>
-              <th>Remark</th>
-              <th>Action</th>
+      <VTable v-if="middlewares.length" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
+        <thead>
+          <tr class="text-caption text-medium-emphasis">
+            <th style="padding-left: 50px;">Name</th>
+            <th style="width: 280px;">Address</th>
+            <th style="width: 90px;">Protocol</th>
+            <th style="width: 140px;">Remark</th>
+            <th style="width: 90px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        <template v-for="env in envList" :key="env.env">
+          <tr class="cursor-pointer" @click="toggleExpand(env.env)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
+            <td style="padding-left: 50px;" colspan="5">
+              <div class="d-flex align-center">
+                <VIcon :icon="isRowExpanded(env.env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
+                <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
+                <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
+                <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ env.children.length }}</VChip>
+              </div>
+            </td>
+          </tr>
+          <template v-if="isRowExpanded(env.env)">
+            <tr v-for="mw in env.children" :key="mw.id" class="table-row-hover">
+              <td style="padding-left: 50px;">
+                <div class="d-flex align-center gap-x-2">
+                  <VIcon icon="bx-cube" color="primary" size="18" />
+                  <span class="font-weight-medium">{{ mw.name }}</span>
+                </div>
+              </td>
+              <td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <div class="d-flex flex-column text-body-2" style="line-height: 1.6;">
+                  <span><span class="text-medium-emphasis font-weight-medium">ext:</span> {{ emptyAddr(mw.externalAddr) }}</span>
+                  <span><span class="text-medium-emphasis font-weight-medium">int:</span> {{ emptyAddr(mw.internalAddr) }}</span>
+                  <span><span class="text-medium-emphasis font-weight-medium">svc:</span> {{ emptyAddr(mw.svcAddr) }}</span>
+                </div>
+              </td>
+              <td><VChip variant="tonal" color="primary" size="small" label>{{ mw.protocol || '-' }}</VChip></td>
+              <td><span class="text-body-1">{{ mw.remark || '-' }}</span></td>
+              <td>
+                <div class="d-flex gap-1">
+                  <IconBtn size="small" :disabled="!canManage" @click="openEditDialog(mw)"><VIcon icon="bx-edit" size="18" /></IconBtn>
+                  <IconBtn size="small" color="error" :disabled="!canManage" @click="deletingItem = mw; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-          <tr v-for="mw in env.children" :key="mw.id" class="table-row-hover">
-            <td style="padding-left: 50px;">
-              <div class="d-flex align-center gap-x-2">
-                <VIcon icon="bx-cube" color="primary" size="18" />
-                <span class="font-weight-medium">{{ mw.name }}</span>
-              </div>
-            </td>
-            <td>
-              <div class="d-flex flex-column text-body-2" style="line-height: 1.6;">
-                <span><span class="text-medium-emphasis font-weight-medium">external:</span> {{ emptyAddr(mw.externalAddr) }}</span>
-                <span><span class="text-medium-emphasis font-weight-medium">internal:</span> {{ emptyAddr(mw.internalAddr) }}</span>
-                <span><span class="text-medium-emphasis font-weight-medium">svc:</span> {{ emptyAddr(mw.svcAddr) }}</span>
-              </div>
-            </td>
-            <td><VChip variant="tonal" color="primary" size="small" label>{{ mw.protocol || '-' }}</VChip></td>
-            <td><span class="text-body-1">{{ mw.remark || '-' }}</span></td>
-            <td>
-              <div class="d-flex gap-1">
-                <IconBtn size="small" :disabled="!canManage" @click="openEditDialog(mw)"><VIcon icon="bx-edit" size="18" /></IconBtn>
-                <IconBtn size="small" color="error" :disabled="!canManage" @click="deletingItem = mw; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="!env.children.length">
-            <td colspan="5" class="text-center text-medium-emphasis pa-4">No middleware</td>
-          </tr>
-          </tbody>
-        </VTable>
-      </template>
+            <tr v-if="!env.children.length">
+              <td colspan="5" class="text-center text-medium-emphasis pa-4">No middleware</td>
+            </tr>
+          </template>
+        </template>
+        </tbody>
+      </VTable>
       <VCardText v-if="!loading && !middlewares.length" class="text-center text-medium-emphasis pa-6">
         No middleware configured
       </VCardText>

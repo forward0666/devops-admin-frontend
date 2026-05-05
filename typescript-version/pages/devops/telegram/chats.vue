@@ -37,7 +37,7 @@ const headers = [
   { title: 'Name', key: 'chatName', width: '200px' },
   { title: 'Type', key: 'type', width: '120px' },
   { title: 'Status', key: 'status', width: '100px' },
-  { title: 'Created', key: 'createdAt', width: '180px' },
+  { title: 'Created', key: 'createdAt', width: '220px' },
   { title: 'Action', key: 'action', width: '100px', sortable: false },
 ]
 
