@@ -262,49 +262,53 @@ function exportDomains() {
       </VCardText>
       <VDivider />
       <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <template v-for="env in filteredEnvList" :key="env.env">
-        <div class="d-flex align-center cursor-pointer px-3 py-1" @click="toggleExpand(env.env)">
-          <VIcon :icon="isRowExpanded(env.env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
-          <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
-          <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
-          <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
-        </div>
-        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
-          <thead>
-            <tr class="text-caption text-medium-emphasis">
-              <th style="padding-left: 50px; width: auto; min-width: 200px;">
-                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'domain'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Domain <VIcon size="16" :icon="sortKey === 'domain' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
-              </th>
-              <th style="width: 90px;">Type</th>
-              <th style="width: 140px;">Remark</th>
-              <th style="width: 160px;">CDN</th>
-              <th style="width: 90px;">Action</th>
+      <VTable v-if="domains.length" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
+        <thead>
+          <tr class="text-caption text-medium-emphasis">
+            <th style="padding-left: 50px;">Domain</th>
+            <th style="width: 90px;">Type</th>
+            <th style="width: 140px;">Remark</th>
+            <th style="width: 160px;">CDN</th>
+            <th style="width: 90px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        <template v-for="env in filteredEnvList" :key="env.env">
+          <tr class="cursor-pointer" @click="toggleExpand(env.env)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
+            <td style="padding-left: 50px;" colspan="5">
+              <div class="d-flex align-center">
+                <VIcon :icon="isRowExpanded(env.env) ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
+                <VIcon :icon="envIcon(env.env)" :color="envColor(env.env)" size="20" class="me-2" />
+                <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
+                <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
+              </div>
+            </td>
+          </tr>
+          <template v-if="isRowExpanded(env.env)">
+            <tr v-for="domain in getVisibleChildren(env)" :key="domain.id" class="table-row-hover">
+              <td style="padding-left: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <div class="d-flex align-center gap-x-2">
+                  <VIcon icon="bx-globe" color="primary" size="18" />
+                  <span class="font-weight-medium">{{ domain.domain }}</span>
+                </div>
+              </td>
+              <td><VChip variant="tonal" :color="typeColor(domain.type)" size="small" label>{{ domain.type }}</VChip></td>
+              <td><span class="text-body-1">{{ domain.remark || '-' }}</span></td>
+              <td><span class="text-body-1">{{ domain.cdn || '-' }}</span></td>
+              <td>
+                <div class="d-flex gap-1">
+                  <IconBtn size="small" :disabled="!canManage" @click="openEditDialog(domain)"><VIcon icon="bx-edit" size="18" /></IconBtn>
+                  <IconBtn size="small" color="error" :disabled="!canManage" @click="deletingItem = domain; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-          <tr v-for="domain in getVisibleChildren(env)" :key="domain.id" class="table-row-hover">
-            <td style="padding-left: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              <div class="d-flex align-center gap-x-2">
-                <VIcon icon="bx-globe" color="primary" size="18" />
-                <span class="font-weight-medium">{{ domain.domain }}</span>
-              </div>
-            </td>
-            <td><VChip variant="tonal" :color="typeColor(domain.type)" size="small" label>{{ domain.type }}</VChip></td>
-            <td><span class="text-body-1">{{ domain.remark || '-' }}</span></td>
-            <td><span class="text-body-1">{{ domain.cdn || '-' }}</span></td>
-            <td>
-              <div class="d-flex gap-1">
-                <IconBtn size="small" :disabled="!canManage" @click="openEditDialog(domain)"><VIcon icon="bx-edit" size="18" /></IconBtn>
-                <IconBtn size="small" color="error" :disabled="!canManage" @click="deletingItem = domain; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="!env.children.length">
-            <td colspan="5" class="text-center text-medium-emphasis pa-4">No domains</td>
-          </tr>
-          </tbody>
-        </VTable>
-      </template>
+            <tr v-if="!env.children.length">
+              <td colspan="5" class="text-center text-medium-emphasis pa-4">No domains</td>
+            </tr>
+          </template>
+        </template>
+        </tbody>
+      </VTable>
       <VCardText v-if="!loading && !domains.length" class="text-center text-medium-emphasis pa-6">
         No domains configured
       </VCardText>
