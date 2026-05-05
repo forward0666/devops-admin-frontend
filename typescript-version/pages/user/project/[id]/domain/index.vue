@@ -141,14 +141,14 @@ onMounted(() => { fetchMyRole(); fetchDomains() })
 // Add
 const isAddDialogVisible = ref(false)
 const addFormRef = ref<any>(null)
-const newDomain = ref({ domain: '', env: '', type: '', remark: '' })
+const newDomain = ref({ domain: '', env: '', type: '', remark: '', cdn: '' })
 
 async function addDomain() {
   addFormRef.value?.validate().then(async ({ valid }: any) => {
     if (!valid) return
     try {
       await userConsoleDomainService.create({ ...newDomain.value, projectId: projectId.value })
-      newDomain.value = { domain: '', env: '', type: '', remark: '' }
+      newDomain.value = { domain: '', env: '', type: '', remark: '', cdn: '' }
       isAddDialogVisible.value = false
       await fetchDomains()
       snackbar.value = { show: true, text: 'Domain added', color: 'success' }
@@ -175,6 +175,7 @@ async function saveEdit() {
       domain: editingItem.value.domain,
       type: editingItem.value.type,
       remark: editingItem.value.remark,
+      cdn: editingItem.value.cdn,
     })
     isEditDialogVisible.value = false
     await fetchDomains()
@@ -280,6 +281,7 @@ function exportDomains() {
               <th>
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'remark'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Remark <VIcon size="16" :icon="sortKey === 'remark' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
               </th>
+              <th>CDN</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -293,6 +295,7 @@ function exportDomains() {
             </td>
             <td><VChip variant="tonal" :color="typeColor(domain.type)" size="small" label>{{ domain.type }}</VChip></td>
             <td><span class="text-body-1">{{ domain.remark || '-' }}</span></td>
+            <td><span class="text-body-1">{{ domain.cdn || '-' }}</span></td>
             <td>
               <div class="d-flex gap-1">
                 <IconBtn size="small" :disabled="!canManage" @click="openEditDialog(domain)"><VIcon icon="bx-edit" size="18" /></IconBtn>
@@ -301,7 +304,7 @@ function exportDomains() {
             </td>
           </tr>
           <tr v-if="!env.children.length">
-            <td colspan="4" class="text-center text-medium-emphasis pa-4">No domains</td>
+            <td colspan="5" class="text-center text-medium-emphasis pa-4">No domains</td>
           </tr>
           </tbody>
         </VTable>
@@ -338,7 +341,7 @@ function exportDomains() {
           </div>
           <div class="mt-4 pa-3 bg-grey-lighten-4 rounded">
             <p class="text-caption text-medium-emphasis mb-1">JSON format example:</p>
-            <code class="text-caption">[{"domain": "prod.example.com", "env": "prod", "type": "web", "remark": ""}]</code>
+            <code class="text-caption">[{"domain": "prod.example.com", "env": "prod", "type": "web", "remark": "", "cdn": ""}]</code>
           </div>
         </VCardText>
         <VCardActions class="justify-end">
@@ -360,6 +363,7 @@ function exportDomains() {
             <VSelect v-model="newDomain.env" label="Environment" :items="['prod', 'uat', 'test', 'dev']" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Environment is required']" />
             <VSelect v-model="newDomain.type" label="Type" :items="['web', 'admin', 'callback', 'api']" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="newDomain.remark" label="Remark" density="comfortable" variant="outlined" />
+            <VTextField v-model="newDomain.cdn" label="CDN" density="comfortable" variant="outlined" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">
@@ -381,6 +385,7 @@ function exportDomains() {
             <VTextField v-model="editingItem.domain" label="Domain" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Domain is required']" />
             <VSelect v-model="editingItem.type" label="Type" :items="['web', 'admin', 'callback', 'api']" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="editingItem.remark" label="Remark" density="comfortable" variant="outlined" />
+            <VTextField v-model="editingItem.cdn" label="CDN" density="comfortable" variant="outlined" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">
