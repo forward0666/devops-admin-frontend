@@ -254,9 +254,9 @@ function exportMiddlewares() {
           <tr class="text-caption text-medium-emphasis">
             <th style="padding-left: 50px; width: 40px;"><VCheckbox :model-value="allSelected" hide-details density="compact" @click="toggleSelectAll" /></th>
             <th>Name</th>
-            <th style="width: 90px;">Type</th>
             <th style="width: 280px;">Address</th>
             <th style="width: 90px;">Protocol</th>
+            <th style="width: 90px;">Type</th>
             <th style="width: 140px;">Remark</th>
             <th style="width: 90px;">Action</th>
           </tr>
@@ -282,7 +282,6 @@ function exportMiddlewares() {
                   <span class="font-weight-medium">{{ mw.name }}</span>
                 </div>
               </td>
-              <td><VChip variant="tonal" :color="mw.type === 'cloud' ? 'info' : 'success'" size="small" label>{{ mw.type || '-' }}</VChip></td>
               <td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 <div class="d-flex flex-column text-body-2" style="line-height: 1.6;">
                   <span><span class="text-medium-emphasis font-weight-medium">ext:</span> {{ emptyAddr(mw.externalAddr) }}</span>
@@ -291,6 +290,7 @@ function exportMiddlewares() {
                 </div>
               </td>
               <td><VChip variant="tonal" color="primary" size="small" label>{{ mw.protocol || '-' }}</VChip></td>
+              <td><VChip variant="tonal" :color="mw.type === 'cloud' ? 'info' : 'success'" size="small" label>{{ mw.type || '-' }}</VChip></td>
               <td><span class="text-body-1">{{ mw.remark || '-' }}</span></td>
               <td>
                 <div class="d-flex gap-1">
