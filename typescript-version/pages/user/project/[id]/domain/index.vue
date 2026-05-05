@@ -269,7 +269,7 @@ function exportDomains() {
           <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
           <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
         </div>
-        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover density="compact" style="table-layout: fixed;">
+        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th style="padding-left: 50px;">
