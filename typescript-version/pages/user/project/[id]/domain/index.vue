@@ -269,25 +269,21 @@ function exportDomains() {
           <span class="font-weight-bold text-body-1">{{ env.env.toUpperCase() }}</span>
           <VChip variant="tonal" :color="envColor(env.env)" size="x-small" label class="ms-2">{{ getVisibleChildren(env).length }}</VChip>
         </div>
-        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover density="compact">
+        <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover density="compact" style="table-layout: fixed;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th style="padding-left: 50px;">
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'domain'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Domain <VIcon size="16" :icon="sortKey === 'domain' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
               </th>
-              <th>
-                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'type'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Type <VIcon size="16" :icon="sortKey === 'type' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
-              </th>
-              <th>
-                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'remark'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Remark <VIcon size="16" :icon="sortKey === 'remark' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
-              </th>
-              <th>CDN</th>
-              <th>Action</th>
+              <th style="width: 90px;">Type</th>
+              <th style="width: 120px;">Remark</th>
+              <th style="width: 150px;">CDN</th>
+              <th style="width: 80px;">Action</th>
             </tr>
           </thead>
           <tbody>
           <tr v-for="domain in getVisibleChildren(env)" :key="domain.id" class="table-row-hover">
-            <td style="padding-left: 50px;">
+            <td style="padding-left: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               <div class="d-flex align-center gap-x-2">
                 <VIcon icon="bx-globe" color="primary" size="18" />
                 <span class="font-weight-medium">{{ domain.domain }}</span>
