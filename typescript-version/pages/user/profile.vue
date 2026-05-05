@@ -56,10 +56,10 @@ async function loadProfile() {
 onMounted(() => loadProfile())
 
 const isEditDialogVisible = ref(false)
-const editForm = ref({ fullName: '', email: '', phone: '', tgUsername: '' })
+const editForm = ref({ fullName: '', email: '', phone: '' })
 
 function openEditDialog() {
-  editForm.value = { fullName: userData.fullName, email: userData.email, phone: userData.phone, tgUsername: userData.tgUsername }
+  editForm.value = { fullName: userData.fullName, email: userData.email, phone: userData.phone }
   isEditDialogVisible.value = true
 }
 
@@ -69,12 +69,10 @@ async function saveProfile() {
       fullName: editForm.value.fullName,
       email: editForm.value.email,
       phone: editForm.value.phone,
-      tgUsername: editForm.value.tgUsername,
     })
     userData.fullName = editForm.value.fullName
     userData.email = editForm.value.email
     userData.phone = editForm.value.phone
-    userData.tgUsername = editForm.value.tgUsername
     isEditDialogVisible.value = false
     snackbar.value = { show: true, text: 'Profile updated', color: 'success' }
   } catch (e: any) {
@@ -232,8 +230,7 @@ const resolveAvatarColor = (name: string) => {
         <VCardText>
           <VTextField v-model="editForm.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editForm.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editForm.phone" label="Phone" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editForm.tgUsername" label="Telegram Username" placeholder="@username" density="comfortable" class="mb-3" variant="outlined" />
+          <VTextField v-model="editForm.phone" label="Phone" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
