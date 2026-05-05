@@ -272,13 +272,13 @@ function exportDomains() {
         <VTable v-show="isRowExpanded(env.env)" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="padding-left: 50px;">
+              <th style="padding-left: 50px; width: auto; min-width: 200px;">
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'domain'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Domain <VIcon size="16" :icon="sortKey === 'domain' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
               </th>
               <th style="width: 90px;">Type</th>
-              <th style="width: 120px;">Remark</th>
-              <th style="width: 150px;">CDN</th>
-              <th style="width: 80px;">Action</th>
+              <th style="width: 140px;">Remark</th>
+              <th style="width: 160px;">CDN</th>
+              <th style="width: 90px;">Action</th>
             </tr>
           </thead>
           <tbody>
