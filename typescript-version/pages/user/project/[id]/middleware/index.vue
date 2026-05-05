@@ -276,6 +276,7 @@ function exportMiddlewares() {
           <template v-if="isRowExpanded(env.env)">
             <tr v-for="mw in env.children" :key="mw.id" class="table-row-hover">
               <td style="padding-left: 50px;"><VCheckbox :model-value="selectedMiddlewares.includes(mw.id)" hide-details density="compact" @click.stop="toggleSelect(mw.id)" /></td>
+              <td style="padding-left: 50px;">
                 <div class="d-flex align-center gap-x-2">
                   <VIcon icon="bx-cube" color="primary" size="18" />
                   <span class="font-weight-medium">{{ mw.name }}</span>
