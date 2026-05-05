@@ -422,7 +422,6 @@ function exportMiddlewares() {
       <VCard>
         <VCardItem>
           <VCardTitle>Remove Middleware</VCardTitle>
-          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
         </VCardItem>
         <VCardText>Are you sure you want to remove <strong>{{ deletingItem?.name }}</strong>?</VCardText>
         <VCardActions class="justify-end">
