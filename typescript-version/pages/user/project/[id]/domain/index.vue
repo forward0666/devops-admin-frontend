@@ -330,10 +330,18 @@ function exportDomains() {
         <thead>
           <tr class="text-caption text-medium-emphasis">
             <th style="width: 40px; padding-left: 50px;"><VCheckbox density="compact" hide-details :model-value="allExpandedDomainsSelected" :indeterminate="someExpandedDomainsSelected" @update:model-value="toggleSelectAll" /></th>
-            <th>Domain</th>
-            <th style="width: 90px;">Type</th>
-            <th style="width: 140px;">Remark</th>
-            <th style="width: 160px;">CDN</th>
+            <th>
+              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'domain'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Domain <VIcon size="16" :icon="sortKey === 'domain' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
+            </th>
+            <th style="width: 90px;">
+              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'type'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Type <VIcon size="16" :icon="sortKey === 'type' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
+            </th>
+            <th style="width: 140px;">
+              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'remark'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">Remark <VIcon size="16" :icon="sortKey === 'remark' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
+            </th>
+            <th style="width: 160px;">
+              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="sortKey = 'cdn'; sortDir = sortDir === 'asc' ? 'desc' : 'asc'">CDN <VIcon size="16" :icon="sortKey === 'cdn' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
+            </th>
             <th style="width: 90px;">Action</th>
           </tr>
         </thead>
