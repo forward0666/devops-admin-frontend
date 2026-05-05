@@ -429,7 +429,7 @@ function exportDomains() {
             <VSelect v-model="newDomain.env" label="Environment" :items="['prod', 'uat', 'test', 'dev']" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Environment is required']" />
             <VSelect v-model="newDomain.type" label="Type" :items="['web', 'admin', 'callback', 'api']" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="newDomain.remark" label="Remark" density="comfortable" variant="outlined" />
-            <VSelect v-model="newDomain.cdn" :items="['CLOUDFLARE', 'TENCENT']" label="CDN" clearable density="comfortable" variant="outlined" />
+            <VSelect v-model="newDomain.cdn" :items="['cloudflare', 'tencent']" label="CDN" clearable density="comfortable" variant="outlined" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">
@@ -451,7 +451,7 @@ function exportDomains() {
             <VTextField v-model="editingItem.domain" label="Domain" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Domain is required']" />
             <VSelect v-model="editingItem.type" label="Type" :items="['web', 'admin', 'callback', 'api']" density="comfortable" class="mb-3" variant="outlined" />
             <VTextField v-model="editingItem.remark" label="Remark" density="comfortable" variant="outlined" />
-            <VSelect v-model="editingItem.cdn" :items="['CLOUDFLARE', 'TENCENT']" label="CDN" clearable density="comfortable" variant="outlined" />
+            <VSelect v-model="editingItem.cdn" :items="['cloudflare', 'tencent']" label="CDN" clearable density="comfortable" variant="outlined" />
           </VForm>
         </VCardText>
         <VCardActions class="justify-end">
@@ -472,7 +472,7 @@ function exportDomains() {
           <div class="text-body-2 text-medium-emphasis mb-4">Leave field empty to keep unchanged.</div>
           <VSelect v-model="bulkForm.type" :items="['web', 'admin', 'callback', 'api']" label="Type" clearable density="comfortable" variant="outlined" class="mb-3" />
           <VTextField v-model="bulkForm.remark" label="Remark" density="comfortable" variant="outlined" clearable class="mb-3" />
-          <VSelect v-model="bulkForm.cdn" :items="['CLOUDFLARE', 'TENCENT']" label="CDN" clearable density="comfortable" variant="outlined" class="mb-3" />
+          <VSelect v-model="bulkForm.cdn" :items="['cloudflare', 'tencent']" label="CDN" clearable density="comfortable" variant="outlined" class="mb-3" />
         </VCardText>
         <VCardActions class="justify-end pa-4">
           <VBtn variant="tonal" @click="isBulkEditDialogVisible = false">Cancel</VBtn>
