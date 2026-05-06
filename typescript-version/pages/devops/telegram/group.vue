@@ -9,7 +9,6 @@ interface TopicItem {
   id: number
   threadId: number | null
   topicName: string
-  sortOrder: number
 }
 
 interface GroupItem {
@@ -162,21 +161,6 @@ async function addTopic() {
   }
 }
 
-async function moveTopic(group: GroupItem, topic: TopicItem, direction: number) {
-  const topics = group.topics
-  const idx = topics.findIndex(t => t.id === topic.id)
-  const swapIdx = idx + direction
-  if (swapIdx < 0 || swapIdx >= topics.length) return
-  const client = await api()
-  try {
-    await client.put(`/bot/group/topic/${topic.id}`, { sortOrder: topics[swapIdx].sortOrder }, { headers: BOT_HEADERS })
-    await client.put(`/bot/group/topic/${topics[swapIdx].id}`, { sortOrder: topic.sortOrder }, { headers: BOT_HEADERS })
-    await fetchGroups()
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Failed', color: 'error' }
-  }
-}
-
 function openEditTopic(topic: TopicItem) {
   editingTopic.value = { ...topic }
   isEditTopicDialogVisible.value = true
@@ -302,8 +286,6 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
                 <td></td><td></td><td></td>
                 <td>
                   <div class="d-flex gap-1">
-                    <IconBtn size="small" @click.stop="moveTopic(group, topic, -1)"><VIcon icon="bx-chevron-up" size="18" /></IconBtn>
-                    <IconBtn size="small" @click.stop="moveTopic(group, topic, 1)"><VIcon icon="bx-chevron-down" size="18" /></IconBtn>
                     <IconBtn size="small" @click.stop="openEditTopic(topic)"><VIcon icon="bx-edit" size="18" /></IconBtn>
                     <IconBtn size="small" color="error" @click.stop="deletingItem = { type: 'topic', item: topic }; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
                   </div>
