@@ -444,8 +444,8 @@ export const telegramBotService = {
     return apiClient.get('/bot/serviceStatus/pendingDeletions', { headers: BOT_HEADERS }).then(r => r.data)
   },
   // Menu
-  getMenus(botName: string) {
-    return request<any>({ method: 'get', url: `/bot/menu/bot/${botName}`, headers: BOT_HEADERS })
+  getMenus() {
+    return request<any>({ method: 'get', url: '/bot/menu', headers: BOT_HEADERS })
   },
   getMenu(id: number) {
     return request<any>({ method: 'get', url: `/bot/menu/${id}`, headers: BOT_HEADERS })

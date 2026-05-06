@@ -4,8 +4,13 @@ import { telegramBotService } from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
-const bots = ref<any[]>([])
-const selectedBot = ref('')
+const BOT_TYPES = [
+  { title: 'General', value: 'general' },
+  { title: 'IP White List', value: 'ip_white_list' },
+  { title: 'Customer Service', value: 'customer_service' },
+  { title: 'Tool', value: 'tool' },
+]
+
 const menus = ref<any[]>([])
 const loading = ref(false)
 const dialog = ref(false)
@@ -14,7 +19,7 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 
 // Edit form
 const form = ref({
-  botName: '',
+  botType: 'general' as string,
   menuLevel: 1,
   menuKey: '',
   title: '',
@@ -37,7 +42,6 @@ function parseButtons(buttonsStr: string) {
   try {
     const parsed = JSON.parse(buttonsStr)
     if (Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0])) return parsed
-    // 兼容旧一维格式
     if (Array.isArray(parsed)) return parsed.map(b => [b])
     return []
   } catch {
@@ -48,29 +52,15 @@ function parseButtons(buttonsStr: string) {
 function buttonsPreview(buttonsStr: string) {
   const rows = parseButtons(buttonsStr)
   return rows.map(row => {
-    if (row.length === 0) return '--- 分隔线 ---'
-    return row.map((b: any) => `${b.text || '(empty)'} → ${b.callbackData || '(empty)'}`).join('  |  ')
+    if (row.length === 0) return '--- separator ---'
+    return row.map((b: any) => `${b.text || '(empty)'} -> ${b.callbackData || '(empty)'}`).join('  |  ')
   }).join('\n')
 }
 
-async function loadBots() {
-  try {
-    const res = await telegramBotService.list()
-    bots.value = Array.isArray(res?.bots) ? res.bots : Array.isArray(res) ? res : []
-    if (bots.value.length > 0 && !selectedBot.value) {
-      selectedBot.value = bots.value[0].botName
-      await loadMenus()
-    }
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Failed to load bots', color: 'error' }
-  }
-}
-
 async function loadMenus() {
-  if (!selectedBot.value) return
   loading.value = true
   try {
-    const res = await telegramBotService.getMenus(selectedBot.value)
+    const res = await telegramBotService.getMenus()
     menus.value = Array.isArray(res?.menus) ? res.menus : []
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed to load menus', color: 'error' }
@@ -79,14 +69,14 @@ async function loadMenus() {
   }
 }
 
-function openCreateDialog(level: number, parentId?: number) {
+function openCreateDialog(level: number, parentId?: number, botType?: string) {
   editingMenu.value = null
   const sameLevel = menus.value.filter((m: any) =>
     m.menuLevel === level && (level === 1 || m.parentId === parentId)
   )
   const nextOrder = sameLevel.length > 0 ? Math.max(...sameLevel.map((m: any) => m.sortOrder ?? 0)) + 1 : 0
   form.value = {
-    botName: selectedBot.value,
+    botType: botType || 'general',
     menuLevel: level,
     menuKey: '',
     title: '',
@@ -100,7 +90,7 @@ function openCreateDialog(level: number, parentId?: number) {
 function openEditDialog(menu: any) {
   editingMenu.value = menu
   form.value = {
-    botName: menu.botName,
+    botType: menu.botType || 'general',
     menuLevel: menu.menuLevel,
     menuKey: menu.menuKey,
     title: menu.title || '',
@@ -145,7 +135,7 @@ async function deleteMenu(id: number) {
   }
 }
 
-onMounted(() => { loadBots() })
+onMounted(() => { loadMenus() })
 </script>
 
 <template>
@@ -154,78 +144,81 @@ onMounted(() => { loadBots() })
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <div class="flex-grow-1">
           <h4 class="text-h4 mb-1">Bot Menu Config</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Manage Telegram bot inline keyboard menus</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">Manage shared menus by bot type</p>
         </div>
-        <VSelect
-          v-model="selectedBot"
-          :items="bots.map((b: any) => ({ title: b.botName, value: b.botName }))"
-          label="Select Bot"
-          density="compact"
-          style="max-width: 240px"
-          @update:model-value="loadMenus"
-        />
-      </VCardText>
-    </VCard>
-
-    <!-- Main Menus -->
-    <VCard v-for="main in mainMenus" :key="main.id" class="mb-4">
-      <VCardText>
-        <div class="d-flex align-center mb-2">
-          <VChip size="small" color="primary" variant="tonal" class="me-2">Lv1</VChip>
-          <span class="text-h6">{{ main.title || main.menuKey }}</span>
-          <VSpacer />
-          <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(main)"><VIcon icon="bx-edit" /></VBtn>
-          <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(main.id)"><VIcon icon="bx-trash" /></VBtn>
-        </div>
-        <VAlert v-if="main.buttons" type="info" variant="tonal" density="compact" class="mb-2">
-          <pre class="text-caption ma-0 text-left" style="white-space: pre-wrap">{{ buttonsPreview(main.buttons) }}</pre>
-        </VAlert>
-        <div class="text-caption text-medium-emphasis">
-          menuKey: {{ main.menuKey }} · sortOrder: {{ main.sortOrder }}
-        </div>
-
-        <!-- Sub Menus -->
-        <template v-if="subMenus[main.menuKey]?.length">
-          <VDivider class="my-3" />
-          <VCard v-for="sub in subMenus[main.menuKey]" :key="sub.id" variant="outlined" class="mb-2 pa-3">
-            <div class="d-flex align-center mb-1">
-              <VChip size="small" color="secondary" variant="tonal" class="me-2">Lv2</VChip>
-              <span class="text-subtitle-1">{{ sub.title || sub.menuKey }}</span>
-              <VSpacer />
-              <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(sub)"><VIcon icon="bx-edit" /></VBtn>
-              <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(sub.id)"><VIcon icon="bx-trash" /></VBtn>
-            </div>
-            <VAlert v-if="sub.buttons" type="info" variant="tonal" density="compact">
-              <pre class="text-caption ma-0" style="white-space: pre-wrap">{{ buttonsPreview(sub.buttons) }}</pre>
-            </VAlert>
-            <div class="text-caption text-medium-emphasis mt-1">
-              menuKey: {{ sub.menuKey }} · sortOrder: {{ sub.sortOrder }}
-            </div>
-          </VCard>
-        </template>
-
-        <VBtn size="small" variant="text" class="mt-2" @click="openCreateDialog(2, main.id)">
-          <VIcon icon="bx-plus" size="small" class="me-1" /> Add Sub Menu
+        <VBtn color="primary" @click="openCreateDialog(1)">
+          <VIcon icon="bx-plus" class="me-1" /> Add Main Menu
         </VBtn>
       </VCardText>
     </VCard>
 
-    <VBtn v-if="selectedBot" color="primary" @click="openCreateDialog(1)">
-      <VIcon icon="bx-plus" class="me-1" /> Add Main Menu
-    </VBtn>
+    <!-- Group by botType -->
+    <template v-for="bt in BOT_TYPES" :key="bt.value">
+      <VCard v-if="menus.filter((m: any) => m.botType === bt.value).length > 0" class="mb-4">
+        <VCardTitle class="text-subtitle-1 py-2 px-4">
+          <VChip size="small" :color="bt.value === 'general' ? 'primary' : 'secondary'" variant="tonal" class="me-2">{{ bt.title }}</VChip>
+          <VBtn size="x-small" variant="text" class="ms-2" @click="openCreateDialog(1, undefined, bt.value)">
+            <VIcon icon="bx-plus" size="small" class="me-1" /> Add
+          </VBtn>
+        </VCardTitle>
+
+        <VCardText>
+          <VCard v-for="main in menus.filter((m: any) => m.botType === bt.value && m.menuLevel === 1)" :key="main.id" class="mb-3" variant="outlined">
+            <div class="d-flex align-center mb-2">
+              <VChip size="small" color="primary" variant="tonal" class="me-2">Lv1</VChip>
+              <span class="text-h6">{{ main.title || main.menuKey }}</span>
+              <VSpacer />
+              <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(main)"><VIcon icon="bx-edit" /></VBtn>
+              <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(main.id)"><VIcon icon="bx-trash" /></VBtn>
+            </div>
+            <VAlert v-if="main.buttons" type="info" variant="tonal" density="compact" class="mb-2">
+              <pre class="text-caption ma-0 text-left" style="white-space: pre-wrap">{{ buttonsPreview(main.buttons) }}</pre>
+            </VAlert>
+            <div class="text-caption text-medium-emphasis">
+              menuKey: {{ main.menuKey }} · sortOrder: {{ main.sortOrder }}
+            </div>
+
+            <!-- Sub Menus -->
+            <template v-if="subMenus[main.menuKey]?.length">
+              <VDivider class="my-3" />
+              <VCard v-for="sub in subMenus[main.menuKey]" :key="sub.id" variant="outlined" class="mb-2 pa-3">
+                <div class="d-flex align-center mb-1">
+                  <VChip size="small" color="secondary" variant="tonal" class="me-2">Lv2</VChip>
+                  <span class="text-subtitle-1">{{ sub.title || sub.menuKey }}</span>
+                  <VSpacer />
+                  <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(sub)"><VIcon icon="bx-edit" /></VBtn>
+                  <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(sub.id)"><VIcon icon="bx-trash" /></VBtn>
+                </div>
+                <VAlert v-if="sub.buttons" type="info" variant="tonal" density="compact">
+                  <pre class="text-caption ma-0" style="white-space: pre-wrap">{{ buttonsPreview(sub.buttons) }}</pre>
+                </VAlert>
+                <div class="text-caption text-medium-emphasis mt-1">
+                  menuKey: {{ sub.menuKey }} · sortOrder: {{ sub.sortOrder }}
+                </div>
+              </VCard>
+            </template>
+
+            <VBtn size="small" variant="text" class="mt-2" @click="openCreateDialog(2, main.id, bt.value)">
+              <VIcon icon="bx-plus" size="small" class="me-1" /> Add Sub Menu
+            </VBtn>
+          </VCard>
+        </VCardText>
+      </VCard>
+    </template>
 
     <!-- Create/Edit Dialog -->
     <VDialog v-model="dialog" max-width="600">
       <VCard>
         <VCardTitle>{{ editingMenu ? 'Edit Menu' : 'Create Menu' }}</VCardTitle>
         <VCardText>
+          <VSelect v-model="form.botType" :items="BOT_TYPES" label="Bot Type" density="compact" class="mb-3" />
           <VTextField v-model="form.title" label="Title" density="compact" class="mb-3" />
           <VTextField v-model="form.menuKey" label="Menu Key (callback_data identifier)" density="compact" class="mb-3" :rules="[(v: string) => !!v && v.trim() !== '' || 'Required']" />
           <VSelect v-model="form.menuLevel" :items="[{ title: 'Main Menu', value: 1 }, { title: 'Sub Menu', value: 2 }]" label="Level" density="compact" class="mb-3" />
           <VSelect
             v-if="form.menuLevel === 2"
             v-model="form.parentId"
-            :items="mainMenus.map((m: any) => ({ title: `${m.title || m.menuKey} (${m.id})`, value: m.id }))"
+            :items="mainMenus.filter((m: any) => m.botType === form.botType).map((m: any) => ({ title: `${m.title || m.menuKey} (${m.id})`, value: m.id }))"
             label="Parent Menu"
             density="compact"
             class="mb-3"
@@ -237,7 +230,7 @@ onMounted(() => { loadBots() })
             rows="6"
             density="compact"
             class="mb-2 font-monospace"
-            hint='Each row is an array. Example: [[{"text":"A","callbackData":"x"},{"text":"B","callbackData":"y"}],[{"text":"C","callbackData":"z"}]] [] = separator'
+            hint='Each row is an array. Example: [[{"text":"A","callbackData":"x"},{"text":"B","callbackData":"y"}],[{"text":"C","callbackData":"z"}]]'
             persistent-hint
           />
         </VCardText>
