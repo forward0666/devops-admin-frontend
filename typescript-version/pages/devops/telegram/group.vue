@@ -53,6 +53,8 @@ const editingTopic = ref<TopicItem | null>(null)
 // Delete dialog
 const isDeleteDialogVisible = ref(false)
 const deletingItem = ref<{ type: 'group' | 'topic'; item: any } | null>(null)
+const isClearTopicsDialogVisible = ref(false)
+const clearingGroup = ref<GroupItem | null>(null)
 
 const api = () => (import('~/services/api')).then(m => m.default)
 
@@ -196,6 +198,19 @@ async function confirmDelete() {
   }
 }
 
+async function clearAllTopics() {
+  if (!clearingGroup.value) return
+  try {
+    const client = await api()
+    await client.delete(`/bot/group/topics/${clearingGroup.value.id}`, { headers: BOT_HEADERS })
+    isClearTopicsDialogVisible.value = false
+    await fetchGroups()
+    snackbar.value = { show: true, text: 'All topics cleared', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed', color: 'error' }
+  }
+}
+
 const expandedGroups = ref<string[]>([])
 const toggleExpand = (chatId: number) => {
   const idx = expandedGroups.value.indexOf(String(chatId))
@@ -253,7 +268,8 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
                 <div class="d-flex gap-1">
                   <IconBtn size="small" @click.stop="editingGroup = { ...group }; isEditDialogVisible = true"><VIcon icon="bx-edit" size="18" /></IconBtn>
                   <IconBtn size="small" color="primary" @click.stop="openAddTopic(group)"><VIcon icon="bx-plus" size="18" /></IconBtn>
-                  <IconBtn size="small" color="error" @click.stop="deletingItem = { type: 'group', item: group }; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
+                  <IconBtn size="small" color="warning" @click.stop="clearingGroup = group; isClearTopicsDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
+                  <IconBtn size="small" color="error" @click.stop="deletingItem = { type: 'group', item: group }; isDeleteDialogVisible = true"><VIcon icon="bx-x" size="18" /></IconBtn>
                 </div>
               </td>
             </tr>
@@ -373,6 +389,18 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
           <VBtn color="error" @click="confirmDelete">Delete</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Clear Topics Dialog -->
+    <VDialog v-model="isClearTopicsDialogVisible" max-width="400">
+      <VCard>
+        <VCardItem><VCardTitle>Clear All Topics</VCardTitle></VCardItem>
+        <VCardText>Delete all topics for "{{ clearingGroup?.chatTitle }}"?</VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isClearTopicsDialogVisible = false">Cancel</VBtn>
+          <VBtn color="warning" @click="clearAllTopics">Clear</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
