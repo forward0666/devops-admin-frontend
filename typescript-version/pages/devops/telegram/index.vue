@@ -99,7 +99,9 @@ function confirmDelete(bot: BotItem) {
 
 function openEditDialog(bot: BotItem) {
   selectedBot.value = bot
-  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, token: '', botType: bot.botType || 'GENERAL', status: bot.status }
+  // 后端返回小写 dbValue，前端用大写枚举名
+  const typeMap: Record<string, string> = { general: 'GENERAL', ip_white_list: 'IP_WHITE_LIST', customer_service: 'CUSTOMER_SERVICE', tool: 'TOOL' }
+  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, token: '', botType: typeMap[bot.botType] || 'GENERAL', status: bot.status }
   showEditDialog.value = true
 }
 
@@ -247,7 +249,7 @@ onMounted(() => { loadBots() })
         :items-per-page="10"
       >
         <template #item.botType="{ item }">
-          <VChip variant="tonal" color="info" size="small" label>{{ item.botType }}</VChip>
+          <VChip variant="tonal" color="info" size="small" label>{{ item.botType?.toUpperCase()?.replace(/_/g, ' ') }}</VChip>
         </template>
         <template #item.status="{ item }">
           <VChip :color="item.status === 1 ? 'success' : 'error'" size="small" variant="flat">
