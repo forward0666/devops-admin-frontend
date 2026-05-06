@@ -99,7 +99,7 @@ function confirmDelete(bot: BotItem) {
 
 function openEditDialog(bot: BotItem) {
   selectedBot.value = bot
-  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, token: '', botType: bot.botType || 'GENERAL', status: bot.status }
+  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, token: '', botType: bot.botType || 'general', status: bot.status }
   showEditDialog.value = true
 }
 
