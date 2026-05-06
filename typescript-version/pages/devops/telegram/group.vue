@@ -13,9 +13,13 @@ interface TopicItem {
 
 interface GroupItem {
   id: number
+  botName: string
+  botConfigId: number
   chatId: number
   chatTitle: string
   chatType: string
+  projectId: number
+  projectName: string
   status: number
   topicCount: number
   topics: TopicItem[]
@@ -23,13 +27,14 @@ interface GroupItem {
 
 const groups = ref<GroupItem[]>([])
 const bots = ref<any[]>([])
+const projects = ref<any[]>([])
 const loading = ref(false)
 const selectedBot = ref<string>('')
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 // Add group
 const isAddDialogVisible = ref(false)
-const newGroup = ref({ chatId: '', chatTitle: '' })
+const newGroup = ref({ chatId: '', chatTitle: '', chatType: 'supergroup', projectId: null as number | null, projectName: '' })
 
 // Edit group
 const isEditDialogVisible = ref(false)
@@ -49,6 +54,8 @@ const editingTopic = ref<TopicItem | null>(null)
 const isDeleteDialogVisible = ref(false)
 const deletingItem = ref<{ type: 'group' | 'topic'; item: any } | null>(null)
 
+const api = () => (import('~/services/api')).then(m => m.default)
+
 async function fetchBots() {
   try {
     const res: any = await telegramBotService.list(BOT_HEADERS)
@@ -59,12 +66,20 @@ async function fetchBots() {
   }
 }
 
+async function fetchProjects() {
+  try {
+    const client = await api()
+    const res = await client.get('/manage/project').then((r: any) => r.data?.data || r.data || [])
+    projects.value = Array.isArray(res) ? res : []
+  } catch { projects.value = [] }
+}
+
 async function fetchGroups() {
   if (!selectedBot.value) return
   loading.value = true
   try {
-    const apiClient = (await import('~/services/api')).default
-    const res = await apiClient.get(`/bot/group/${selectedBot.value}`, { headers: BOT_HEADERS }).then((r: any) => r.data?.data || r.data)
+    const client = await api()
+    const res = await client.get(`/bot/group/${selectedBot.value}`, { headers: BOT_HEADERS }).then((r: any) => r.data?.data || r.data)
     const raw: any[] = res?.groups || []
     groups.value = Array.isArray(raw) ? raw : []
   } catch (e: any) {
@@ -75,21 +90,23 @@ async function fetchGroups() {
 }
 
 watch(selectedBot, () => fetchGroups())
-onMounted(() => { fetchBots() })
+onMounted(() => { fetchBots(); fetchProjects() })
 
 // Group CRUD
 async function addGroup() {
   if (!newGroup.value.chatId) return
   try {
-    const apiClient = (await import('~/services/api')).default
-    await apiClient.post('/bot/group', {
+    const client = await api()
+    await client.post('/bot/group', {
       botName: selectedBot.value,
       chatId: Number(newGroup.value.chatId),
       chatTitle: newGroup.value.chatTitle,
-      chatType: 'supergroup',
+      chatType: newGroup.value.chatType,
+      projectId: newGroup.value.projectId,
+      projectName: newGroup.value.projectId ? projects.value.find(p => p.id === newGroup.value.projectId)?.name || '' : '',
     }, { headers: BOT_HEADERS })
     isAddDialogVisible.value = false
-    newGroup.value = { chatId: '', chatTitle: '' }
+    newGroup.value = { chatId: '', chatTitle: '', chatType: 'supergroup', projectId: null, projectName: '' }
     await fetchGroups()
     snackbar.value = { show: true, text: 'Group added', color: 'success' }
   } catch (e: any) {
@@ -100,10 +117,12 @@ async function addGroup() {
 async function saveEditGroup() {
   if (!editingGroup.value) return
   try {
-    const apiClient = (await import('~/services/api')).default
-    await apiClient.put(`/bot/group/${editingGroup.value.id}`, {
+    const client = await api()
+    await client.put(`/bot/group/${editingGroup.value.id}`, {
       chatTitle: editingGroup.value.chatTitle,
       chatType: editingGroup.value.chatType,
+      projectId: editingGroup.value.projectId,
+      projectName: editingGroup.value.projectId ? projects.value.find(p => p.id === editingGroup.value.projectId)?.name || '' : '',
     }, { headers: BOT_HEADERS })
     isEditDialogVisible.value = false
     await fetchGroups()
@@ -125,8 +144,8 @@ async function addTopic() {
   if (!topicGroupId.value || !newTopic.value.topicName) return
   try {
     const group = groups.value.find(g => g.id === topicGroupId.value)
-    const apiClient = (await import('~/services/api')).default
-    await apiClient.post('/bot/group/topic', {
+    const client = await api()
+    await client.post('/bot/group/topic', {
       botName: selectedBot.value,
       chatId: group?.chatId,
       threadId: Number(newTopic.value.threadId) || null,
@@ -134,7 +153,7 @@ async function addTopic() {
     }, { headers: BOT_HEADERS })
     isAddTopicDialogVisible.value = false
     await fetchGroups()
-    snackbar.value = { show: true, text: 'Topic added', color: 'success' }
+    snackbar.value = { show: true, text: 'Topic created & message sent', color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed', color: 'error' }
   }
@@ -148,8 +167,8 @@ function openEditTopic(topic: TopicItem) {
 async function saveEditTopic() {
   if (!editingTopic.value) return
   try {
-    const apiClient = (await import('~/services/api')).default
-    await apiClient.put(`/bot/group/topic/${editingTopic.value.id}`, {
+    const client = await api()
+    await client.put(`/bot/group/topic/${editingTopic.value.id}`, {
       topicName: editingTopic.value.topicName,
       threadId: editingTopic.value.threadId,
     }, { headers: BOT_HEADERS })
@@ -165,13 +184,10 @@ async function saveEditTopic() {
 async function confirmDelete() {
   if (!deletingItem.value) return
   try {
-    const apiClient = (await import('~/services/api')).default
+    const client = await api()
     const { type, item } = deletingItem.value
-    if (type === 'group') {
-      await apiClient.delete(`/bot/group/${item.id}`, { headers: BOT_HEADERS })
-    } else {
-      await apiClient.delete(`/bot/group/topic/${item.id}`, { headers: BOT_HEADERS })
-    }
+    if (type === 'group') await client.delete(`/bot/group/${item.id}`, { headers: BOT_HEADERS })
+    else await client.delete(`/bot/group/topic/${item.id}`, { headers: BOT_HEADERS })
     isDeleteDialogVisible.value = false
     await fetchGroups()
     snackbar.value = { show: true, text: 'Deleted', color: 'success' }
@@ -211,9 +227,10 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
           <tr class="text-caption text-medium-emphasis">
             <th style="width: 120px;">Chat ID</th>
             <th>Group Name</th>
-            <th style="width: 90px;">Topics</th>
-            <th style="width: 80px;">Status</th>
-            <th style="width: 90px;">Action</th>
+            <th style="width: 120px;">Project</th>
+            <th style="width: 70px;">Topics</th>
+            <th style="width: 70px;">Status</th>
+            <th style="width: 100px;">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -227,11 +244,11 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
                 </div>
               </td>
               <td>
-                <VChip variant="tonal" color="info" size="small" label>{{ group.topicCount }}</VChip>
+                <VChip v-if="group.projectName" variant="tonal" color="success" size="small" label>{{ group.projectName }}</VChip>
+                <span v-else class="text-medium-emphasis">-</span>
               </td>
-              <td>
-                <VChip variant="tonal" :color="group.status === 1 ? 'success' : 'error'" size="small" label>{{ group.status === 1 ? 'Active' : 'Disabled' }}</VChip>
-              </td>
+              <td><VChip variant="tonal" color="info" size="small" label>{{ group.topicCount }}</VChip></td>
+              <td><VChip variant="tonal" :color="group.status === 1 ? 'success' : 'error'" size="small" label>{{ group.status === 1 ? 'Active' : 'Disabled' }}</VChip></td>
               <td>
                 <div class="d-flex gap-1">
                   <IconBtn size="small" @click.stop="editingGroup = { ...group }; isEditDialogVisible = true"><VIcon icon="bx-edit" size="18" /></IconBtn>
@@ -250,8 +267,7 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
                     <span class="text-caption text-medium-emphasis">(thread: {{ topic.threadId || '-' }})</span>
                   </div>
                 </td>
-                <td></td>
-                <td></td>
+                <td></td><td></td><td></td>
                 <td>
                   <div class="d-flex gap-1">
                     <IconBtn size="small" @click.stop="openEditTopic(topic)"><VIcon icon="bx-edit" size="18" /></IconBtn>
@@ -259,15 +275,8 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
                   </div>
                 </td>
               </tr>
-              <tr>
-                <td colspan="5" class="text-center pa-2">
-                  <VBtn size="x-small" variant="text" color="primary" @click.stop="openAddTopic(group)">
-                    <VIcon icon="bx-plus" size="14" class="me-1" />Add Topic
-                  </VBtn>
-                </td>
-              </tr>
               <tr v-if="!group.topics.length">
-                <td colspan="5" class="text-center text-medium-emphasis text-caption pa-2">No topics</td>
+                <td colspan="6" class="text-center text-medium-emphasis text-caption pa-2">No topics</td>
               </tr>
             </template>
           </template>
@@ -284,7 +293,16 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
         <VCardItem><VCardTitle>Add Group</VCardTitle></VCardItem>
         <VCardText>
           <VTextField v-model="newGroup.chatId" label="Chat ID" placeholder="-1001234567890" density="comfortable" class="mb-3" variant="outlined" type="number" />
-          <VTextField v-model="newGroup.chatTitle" label="Group Name" density="comfortable" variant="outlined" />
+          <VTextField v-model="newGroup.chatTitle" label="Group Name" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newGroup.chatType" label="Type" :items="['supergroup', 'group', 'forum']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect
+            v-model="newGroup.projectId"
+            label="Bind Project (optional)"
+            :items="projects.map((p: any) => ({ title: p.name, value: p.id }))"
+            density="comfortable"
+            variant="outlined"
+            clearable
+          />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isAddDialogVisible = false">Cancel</VBtn>
@@ -299,7 +317,15 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
         <VCardItem><VCardTitle>Edit Group</VCardTitle></VCardItem>
         <VCardText>
           <VTextField v-model="editingGroup!.chatTitle" label="Group Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingGroup!.chatType" label="Type" :items="['supergroup', 'group', 'forum']" density="comfortable" variant="outlined" />
+          <VSelect v-model="editingGroup!.chatType" label="Type" :items="['supergroup', 'group', 'forum']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect
+            v-model="editingGroup!.projectId"
+            label="Bind Project (optional)"
+            :items="projects.map((p: any) => ({ title: p.name, value: p.id }))"
+            density="comfortable"
+            variant="outlined"
+            clearable
+          />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
@@ -315,11 +341,11 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
         <VCardText>
           <p class="text-caption text-medium-emphasis mb-3">Group: {{ topicGroupTitle }}</p>
           <VTextField v-model="newTopic.topicName" label="Topic Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="newTopic.threadId" label="Thread ID (optional, auto-create if empty)" density="comfortable" variant="outlined" type="number" />
+          <VTextField v-model="newTopic.threadId" label="Thread ID (auto-create if empty)" density="comfortable" variant="outlined" type="number" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isAddTopicDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!newTopic.topicName" @click="addTopic">Add</VBtn>
+          <VBtn color="primary" :disabled="!newTopic.topicName" @click="addTopic">Create</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
