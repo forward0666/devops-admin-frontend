@@ -42,15 +42,15 @@ const newBot = ref({
   botName: '',
   botUsername: '',
   token: '',
-  botType: 'ip_white_list',
+  botType: 'IP_WHITE_LIST',
   secretToken: '',
 })
 
 const botTypes = [
-  { title: 'General', value: 'general' },
-  { title: 'IP White List', value: 'ip_white_list' },
-  { title: 'Customer Service', value: 'customer_service' },
-  { title: 'Tool', value: 'tool' },
+  { title: 'General', value: 'GENERAL' },
+  { title: 'IP White List', value: 'IP_WHITE_LIST' },
+  { title: 'Customer Service', value: 'CUSTOMER_SERVICE' },
+  { title: 'Tool', value: 'TOOL' },
 ]
 
 const headers = [
@@ -99,7 +99,7 @@ function confirmDelete(bot: BotItem) {
 
 function openEditDialog(bot: BotItem) {
   selectedBot.value = bot
-  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, token: '', botType: bot.botType || 'general', status: bot.status }
+  editBot.value = { botName: bot.botName, botUsername: bot.botUsername, token: '', botType: bot.botType || 'GENERAL', status: bot.status }
   showEditDialog.value = true
 }
 
