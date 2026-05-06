@@ -50,7 +50,7 @@ async function fetchGroups() {
   loading.value = true
   try {
     const res: any = await telegramBotService.getAuthorizedChats(selectedBot.value)
-    const allChats: any[] = Array.isArray(res) ? res : res?.chats || res?.data || []
+    const allChats: any[] = res?.authorizedChats || res?.data?.authorizedChats || Array.isArray(res) ? res : res?.data || []
     // Only show groups/supergroups
     groups.value = allChats.filter((c: any) => c.type === 'group' || c.type === 'supergroup')
   } catch (e: any) {
