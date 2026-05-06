@@ -314,7 +314,7 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
         <VCardText>
           <p class="text-caption text-medium-emphasis mb-3">Group: {{ topicGroupTitle }}</p>
           <VTextField v-model="newTopic.topicName" label="Topic Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="newTopic.threadId" label="Thread ID" density="comfortable" variant="outlined" type="number" />
+          <VTextField v-model="newTopic.threadId" label="Thread ID (optional, auto-create if empty)" density="comfortable" variant="outlined" type="number" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isAddTopicDialogVisible = false">Cancel</VBtn>
