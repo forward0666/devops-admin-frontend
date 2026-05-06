@@ -49,7 +49,7 @@ async function fetchGroups() {
   if (!selectedBot.value) return
   loading.value = true
   try {
-    const res: any = await telegramBotService.getChats(selectedBot.value, BOT_HEADERS)
+    const res: any = await telegramBotService.getAuthorizedChats(selectedBot.value)
     const allChats: any[] = Array.isArray(res) ? res : res?.chats || res?.data || []
     // Only show groups/supergroups
     groups.value = allChats.filter((c: any) => c.type === 'group' || c.type === 'supergroup')
@@ -69,13 +69,7 @@ async function addGroup() {
   if (!newGroup.value.botName || !newGroup.value.chatId) return
   try {
     const botConfig = bots.value.find((b: any) => b.botName === newGroup.value.botName)
-    await telegramBotService.addChat({
-      botName: newGroup.value.botName,
-      botConfigId: botConfig?.id || 0,
-      chatId: Number(newGroup.value.chatId),
-      chatName: newGroup.value.chatName,
-      type: 'supergroup',
-    })
+    await telegramBotService.addAuthorizedChat(newGroup.value.botName, botConfig?.id || 0, Number(newGroup.value.chatId), newGroup.value.chatName, 'supergroup')
     isAddDialogVisible.value = false
     newGroup.value = { botName: '', chatId: '', chatName: '' }
     selectedBot.value = newGroup.value.botName || selectedBot.value
@@ -102,7 +96,7 @@ async function bindProject() {
   if (!bindingItem.value || !selectedProject.value) return
   const proj = projects.value.find((p: any) => p.id === selectedProject.value)
   try {
-    await telegramBotService.bindGroupProject({
+    await telegramBotService.createGroupProject({
       botName: selectedBot.value,
       chatId: bindingItem.value.chatId,
       chatTitle: bindingItem.value.chatName,
@@ -121,7 +115,10 @@ async function bindProject() {
 async function confirmDelete() {
   if (!deletingItem.value) return
   try {
-    await telegramBotService.deleteChat(deletingItem.value.chatId, BOT_HEADERS)
+    // Find the authorization record id
+    const allChats: any[] = groups.value.map(g => ({ ...g }))
+    const chat = allChats.find((c: any) => c.chatId === deletingItem.value?.chatId)
+    if (chat?.id) await telegramBotService.deleteAuthorization(chat.id)
     isDeleteDialogVisible.value = false
     await fetchGroups()
     snackbar.value = { show: true, text: 'Group removed', color: 'success' }
