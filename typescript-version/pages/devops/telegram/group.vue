@@ -50,8 +50,8 @@ async function fetchGroups() {
   loading.value = true
   try {
     const res: any = await telegramBotService.getAuthorizedChats(selectedBot.value)
-    const allChats: any[] = res?.authorizedChats || res?.data?.authorizedChats || Array.isArray(res) ? res : res?.data || []
-    // Only show groups/supergroups
+    const raw = res?.authorizedChats || res?.data?.authorizedChats || res?.data || []
+    const allChats: any[] = Array.isArray(raw) ? raw : []
     groups.value = allChats.filter((c: any) => c.type === 'group' || c.type === 'supergroup')
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed to load groups', color: 'error' }
