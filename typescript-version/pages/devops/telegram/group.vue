@@ -52,7 +52,18 @@ async function fetchGroups() {
     const res: any = await telegramBotService.getAuthorizedChats(selectedBot.value)
     const raw = res?.authorizedChats || res?.data?.authorizedChats || res?.data || []
     const allChats: any[] = Array.isArray(raw) ? raw : []
-    groups.value = allChats.filter((c: any) => c.type === 'group' || c.type === 'supergroup')
+    // Fetch group-project bindings
+    let projectMap: Record<string, { id: number; name: string }> = {}
+    try {
+      const gpRes: any = await telegramBotService.getGroupProjects(selectedBot.value)
+      const gpList = gpRes?.groupProjects || gpRes?.data?.groupProjects || []
+      for (const gp of gpList) { projectMap[String(gp.chatId)] = { id: gp.projectId, name: gp.projectName } }
+    } catch { /* ignore */ }
+    groups.value = allChats.filter((c: any) => c.type === 'group' || c.type === 'supergroup').map((c: any) => ({
+      ...c,
+      project: projectMap[String(c.chatId)] || null,
+      botName: selectedBot.value,
+    }))
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed to load groups', color: 'error' }
   } finally {
