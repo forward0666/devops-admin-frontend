@@ -61,11 +61,20 @@ const handleLogin = async () => {
       navigateTo(authStore.homeRoute)
     }
     else {
-      errorMsg.value = '登录失败，请检查用户名和密码'
+      errorMsg.value = 'Invalid username or password'
     }
   }
   catch (e: any) {
-    errorMsg.value = e.message || '登录失败，请稍后重试'
+    const msg = e.message || ''
+    if (msg.includes('locked') || msg.includes('Locked')) {
+      errorMsg.value = '账号已被锁定，请稍后再试'
+    } else if (msg.includes('verification') || msg.includes('Verification')) {
+      errorMsg.value = '验证码错误'
+    } else if (msg.includes('Invalid username') || msg.includes('password') || msg.includes('密码') || msg.includes('账号')) {
+      errorMsg.value = '账号或密码错误'
+    } else {
+      errorMsg.value = msg || '登录失败，请稍后重试'
+    }
   }
   finally {
     loading.value = false
@@ -220,6 +229,7 @@ const handleLogin = async () => {
                   block
                   type="submit"
                   :loading="loading"
+                  :disabled="!form.verificationCode"
                 >
                   Login
                 </VBtn>
