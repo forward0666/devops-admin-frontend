@@ -156,10 +156,7 @@ onMounted(() => { loadMenus() })
     <template v-for="bt in BOT_TYPES" :key="bt.value">
       <VCard v-if="menus.filter((m: any) => m.botType === bt.value).length > 0" class="mb-4">
         <VCardTitle class="text-subtitle-1 py-2 px-4">
-          <VChip size="small" :color="bt.value === 'general' ? 'primary' : 'secondary'" variant="tonal" class="me-2">{{ bt.title }}</VChip>
-          <VBtn size="x-small" variant="text" class="ms-2" @click="openCreateDialog(1, undefined, bt.value)">
-            <VIcon icon="bx-plus" size="small" class="me-1" /> Add
-          </VBtn>
+          <VChip size="small" :color="bt.value === 'general' ? 'primary' : 'secondary'" variant="tonal">{{ bt.title }}</VChip>
         </VCardTitle>
 
         <VCardText>
