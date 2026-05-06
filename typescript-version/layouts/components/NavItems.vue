@@ -181,7 +181,7 @@ const isProjectActive = (projectId: number) => {
         />
         <VerticalNavLink
           :item="{
-            title: 'Group',
+            title: 'Group Binding',
             to: '/devops/telegram/group',
           }"
         />
