@@ -254,7 +254,7 @@ function exportMiddlewares() {
           <tr class="text-caption text-medium-emphasis">
             <th style="padding-left: 50px; width: 40px;"><VCheckbox :model-value="allSelected" hide-details density="compact" @click="toggleSelectAll" /></th>
             <th>Name</th>
-            <th style="width: 280px;">Address</th>
+            <th style="width: 500px;">Address</th>
             <th style="width: 90px;">Protocol</th>
             <th style="width: 90px;">Type</th>
             <th style="width: 140px;">Remark</th>

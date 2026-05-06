@@ -14,8 +14,8 @@ const unlocking = ref(false)
 async function unlockUser() {
   unlocking.value = true
   try {
-    const { request } = await import('~/services/api')
-    await request({ method: 'post', url: `/manage/user/unlock/${userId.value}` })
+    const apiClient = (await import('~/services/api')).default
+    await apiClient.post(`/manage/user/unlock/${userId.value}`).then(r => r.data)
     await userStore.fetchUsers()
     dbUser.value = userStore.users.find((u: any) => u.id === userId.value) || null
     snackbar.value = { show: true, text: 'Account unlocked', color: 'success' }
@@ -47,6 +47,7 @@ onMounted(async () => {
   loading.value = true
   try {
     dbUser.value = await userStore.fetchUserById(userId.value)
+    if (dbUser.value?.data) dbUser.value = dbUser.value.data
   } catch (e: any) {
     snackbar.value = { show: true, text: e.message || 'Failed to load user', color: 'error' }
   } finally {
@@ -70,6 +71,7 @@ const userData = computed(() => {
     active: u.active !== false,
     emailVerified: u.emailVerified || false,
     phoneVerified: u.phoneVerified || false,
+    locked: u.locked || false,
     createdAt: u.createdAt || '-',
   }
 })
@@ -119,6 +121,7 @@ const userData = computed(() => {
               <VListItem><VListItemTitle><h6 class="text-h6">Telegram: <span class="text-body-1 d-inline-block">{{ userData.tgUsername ? '@' + userData.tgUsername : '-' }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Department: <span class="text-body-1 d-inline-block">{{ userData.department }}</span></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Position: <span class="text-body-1 d-inline-block">{{ userData.position }}</span></h6></VListItemTitle></VListItem>
+              <VListItem><VListItemTitle><h6 class="text-h6">Status: <VChip variant="tonal" :color="userData.locked ? 'error' : 'success'" size="small" label class="ml-2">{{ userData.locked ? 'Locked' : 'Active' }}</VChip></h6></VListItemTitle></VListItem>
               <VListItem><VListItemTitle><h6 class="text-h6">Created: <span class="text-body-1 d-inline-block">{{ userData.createdAt }}</span></h6></VListItemTitle></VListItem>
             </VList>
           </VCardText>
