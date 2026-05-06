@@ -246,6 +246,9 @@ onMounted(() => { loadBots() })
         density="comfortable"
         :items-per-page="10"
       >
+        <template #item.botType="{ item }">
+          <VChip variant="tonal" color="info" size="small" label>{{ item.botType }}</VChip>
+        </template>
         <template #item.status="{ item }">
           <VChip :color="item.status === 1 ? 'success' : 'error'" size="small" variant="flat">
             {{ item.status === 1 ? 'Enabled' : 'Disabled' }}
