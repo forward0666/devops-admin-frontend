@@ -42,15 +42,15 @@ const newBot = ref({
   botName: '',
   botUsername: '',
   token: '',
-  botType: 'IP_WHITE_LIST',
+  botType: 'ip_white_list',
   secretToken: '',
 })
 
 const botTypes = [
-  { title: 'General', value: 'GENERAL' },
-  { title: 'IP White List', value: 'IP_WHITE_LIST' },
-  { title: 'Customer Service', value: 'CUSTOMER_SERVICE' },
-  { title: 'Tool', value: 'TOOL' },
+  { title: 'General', value: 'general' },
+  { title: 'IP White List', value: 'ip_white_list' },
+  { title: 'Customer Service', value: 'customer_service' },
+  { title: 'Tool', value: 'tool' },
 ]
 
 const headers = [
