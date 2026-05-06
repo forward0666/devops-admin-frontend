@@ -235,6 +235,7 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
               <td>
                 <div class="d-flex gap-1">
                   <IconBtn size="small" @click.stop="editingGroup = { ...group }; isEditDialogVisible = true"><VIcon icon="bx-edit" size="18" /></IconBtn>
+                  <IconBtn size="small" color="primary" @click.stop="openAddTopic(group)"><VIcon icon="bx-plus" size="18" /></IconBtn>
                   <IconBtn size="small" color="error" @click.stop="deletingItem = { type: 'group', item: group }; isDeleteDialogVisible = true"><VIcon icon="bx-trash" size="18" /></IconBtn>
                 </div>
               </td>
