@@ -55,7 +55,7 @@ async function save() {
     const body: any = {
       name: form.value.name,
       description: form.value.description,
-      tags: form.value.tags.join(','),
+      tags: form.value.tags,
     }
     if (form.value.apiKey.trim()) body.apiKey = form.value.apiKey.trim()
 
