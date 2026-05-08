@@ -6,7 +6,7 @@ import apiClient from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
-const { accounts, loading, fetchAccounts, maskKey, CF_HEADERS, CF_GATEWAY } = useCfAccount()
+const { accounts, loading, fetchAccounts, maskKey, CF_GATEWAY } = useCfAccount()
 
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
@@ -60,10 +60,10 @@ async function save() {
     if (form.value.apiKey.trim()) body.apiKey = form.value.apiKey.trim()
 
     if (editingId.value) {
-      await apiClient.put(`${CF_GATEWAY}/accounts/${editingId.value}`, body, { headers: CF_HEADERS })
+      await apiClient.put(`${CF_GATEWAY}/accounts/${editingId.value}`, body)
       snackbar.value = { show: true, text: 'Account updated', color: 'success' }
     } else {
-      await apiClient.post(`${CF_GATEWAY}/accounts`, body, { headers: CF_HEADERS })
+      await apiClient.post(`${CF_GATEWAY}/accounts`, body)
       snackbar.value = { show: true, text: 'Account created', color: 'success' }
     }
     dialog.value = false
@@ -78,7 +78,7 @@ async function save() {
 async function handleDelete(id: string) {
   if (!confirm('Delete this account?')) return
   try {
-    await apiClient.delete(`${CF_GATEWAY}/accounts/${id}`, { headers: CF_HEADERS })
+    await apiClient.delete(`${CF_GATEWAY}/accounts/${id}`)
     snackbar.value = { show: true, text: 'Account deleted', color: 'success' }
     await fetchAccounts()
   } catch (e: any) {
