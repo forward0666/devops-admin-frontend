@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useCfAccounts, TAG_COLORS, TAG_LABELS } from '~/composables/useCf'
+import { ref, computed, onMounted } from 'vue'
+import { TAG_COLORS, TAG_LABELS } from '~/composables/useCf'
+import { useCfAccount } from '~/composables/useCfAccount'
+import apiClient from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
-const { accounts, add, update, remove, maskKey } = useCfAccounts()
+const { accounts, loading, fetchAccounts, maskKey, CF_HEADERS, CF_GATEWAY } = useCfAccount()
 
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
 const showKeys = ref<Record<string, boolean>>({})
 const snackbar = ref({ show: false, text: '', color: 'success' })
+const saving = ref(false)
 
 const form = ref({
   name: '',
@@ -19,6 +22,8 @@ const form = ref({
 })
 
 const allTags = ['dns', 'zone', 'firewall', 'ssl', 'cache']
+
+onMounted(() => fetchAccounts())
 
 function toggleKey(id: string) {
   showKeys.value[id] = !showKeys.value[id]
@@ -32,34 +37,58 @@ function openCreate() {
 
 function openEdit(account: any) {
   editingId.value = account.id
-  form.value = { name: account.name, apiKey: account.apiKey, description: account.description, tags: [...account.tags] }
+  form.value = { name: account.name, apiKey: '', description: account.description || '', tags: [...(account.tags || [])] }
   dialog.value = true
 }
 
-function save() {
-  if (!form.value.name.trim() || !form.value.apiKey.trim()) {
-    snackbar.value = { show: true, text: 'Name and API Key are required', color: 'error' }
+async function save() {
+  if (!form.value.name.trim()) {
+    snackbar.value = { show: true, text: 'Name is required', color: 'error' }
     return
   }
-  if (editingId.value) {
-    update(editingId.value, form.value)
-    snackbar.value = { show: true, text: 'Account updated', color: 'success' }
-  } else {
-    add(form.value)
-    snackbar.value = { show: true, text: 'Account created', color: 'success' }
+  if (!editingId.value && !form.value.apiKey.trim()) {
+    snackbar.value = { show: true, text: 'API Key is required', color: 'error' }
+    return
   }
-  dialog.value = false
+  saving.value = true
+  try {
+    const body: any = {
+      name: form.value.name,
+      description: form.value.description,
+      tags: form.value.tags.join(','),
+    }
+    if (form.value.apiKey.trim()) body.apiKey = form.value.apiKey.trim()
+
+    if (editingId.value) {
+      await apiClient.put(`${CF_GATEWAY}/accounts/${editingId.value}`, body, { headers: CF_HEADERS })
+      snackbar.value = { show: true, text: 'Account updated', color: 'success' }
+    } else {
+      await apiClient.post(`${CF_GATEWAY}/accounts`, body, { headers: CF_HEADERS })
+      snackbar.value = { show: true, text: 'Account created', color: 'success' }
+    }
+    dialog.value = false
+    await fetchAccounts()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to save', color: 'error' }
+  } finally {
+    saving.value = false
+  }
 }
 
-function handleDelete(id: string) {
+async function handleDelete(id: string) {
   if (!confirm('Delete this account?')) return
-  remove(id)
-  snackbar.value = { show: true, text: 'Account deleted', color: 'success' }
+  try {
+    await apiClient.delete(`${CF_GATEWAY}/accounts/${id}`, { headers: CF_HEADERS })
+    snackbar.value = { show: true, text: 'Account deleted', color: 'success' }
+    await fetchAccounts()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to delete', color: 'error' }
+  }
 }
 
 const tagCount = computed(() => {
   const c: Record<string, number> = {}
-  allTags.forEach(t => c[t] = accounts.value.filter(a => a.tags.includes(t)).length)
+  allTags.forEach(t => c[t] = accounts.value.filter(a => (a.tags || []).includes(t)).length)
   return c
 })
 </script>
@@ -87,6 +116,7 @@ const tagCount = computed(() => {
 
     <!-- Account Table -->
     <VCard>
+      <VProgressLinear v-if="loading" indeterminate color="primary" />
       <VTable v-if="accounts.length > 0">
         <thead>
           <tr>
@@ -103,7 +133,7 @@ const tagCount = computed(() => {
             <td class="font-weight-medium">{{ account.name }}</td>
             <td>
               <code class="text-caption" style="font-size: 11px">
-                {{ showKeys[account.id] ? account.apiKey : maskKey(account.apiKey) }}
+                {{ showKeys[account.id] ? account.api_key : maskKey(account.api_key) }}
               </code>
               <VBtn icon size="x-small" variant="text" class="ms-1" @click="toggleKey(account.id)">
                 <VIcon :icon="showKeys[account.id] ? 'bx-hide' : 'bx-show'" size="16" />
@@ -115,7 +145,7 @@ const tagCount = computed(() => {
                 {{ TAG_LABELS[tag] }}
               </VChip>
             </td>
-            <td class="text-caption text-medium-emphasis">{{ new Date(account.createdAt).toLocaleDateString() }}</td>
+            <td class="text-caption text-medium-emphasis">{{ new Date(account.created_at).toLocaleDateString() }}</td>
             <td>
               <VBtn icon size="x-small" variant="text" color="primary" @click="openEdit(account)">
                 <VIcon icon="bx-edit" size="16" />
@@ -127,7 +157,7 @@ const tagCount = computed(() => {
           </tr>
         </tbody>
       </VTable>
-      <VCardText v-else class="text-center py-8 text-medium-emphasis">
+      <VCardText v-else-if="!loading" class="text-center py-8 text-medium-emphasis">
         <VIcon icon="bx-cloud" size="48" class="mb-2" />
         <p>No accounts yet. Add your first Cloudflare API key to get started.</p>
       </VCardText>
@@ -139,7 +169,7 @@ const tagCount = computed(() => {
         <VCardTitle>{{ editingId ? 'Edit Account' : 'Add Account' }}</VCardTitle>
         <VCardText>
           <VTextField v-model="form.name" label="Account Name" density="compact" class="mb-3" hint="e.g. Production, Staging, Personal" persistent-hint />
-          <VTextField v-model="form.apiKey" label="API Token" density="compact" class="mb-3" :type="showKeys['_form'] ? 'text' : 'password'">
+          <VTextField v-model="form.apiKey" label="API Token" density="compact" class="mb-3" :type="showKeys['_form'] ? 'text' : 'password'" :placeholder="editingId ? 'Leave empty to keep current' : ''" :persistent-hint="!!editingId" :hint="editingId ? 'Leave empty to keep existing key' : ''">
             <template #append>
               <VBtn icon size="x-small" variant="text" @click="showKeys['_form'] = !showKeys['_form']">
                 <VIcon :icon="showKeys['_form'] ? 'bx-hide' : 'bx-show'" size="16" />
@@ -165,7 +195,7 @@ const tagCount = computed(() => {
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!form.name.trim() || !form.apiKey.trim()" @click="save">Save</VBtn>
+          <VBtn color="primary" :loading="saving" :disabled="!form.name.trim() || (!editingId && !form.apiKey.trim())" @click="save">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

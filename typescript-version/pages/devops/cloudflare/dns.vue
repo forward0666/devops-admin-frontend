@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useCfAccounts, useCfData, DNS_TYPES, TAG_LABELS, TAG_COLORS } from '~/composables/useCf'
+import { ref, computed, watch, onMounted } from 'vue'
+import { DNS_TYPES, TAG_LABELS, TAG_COLORS } from '~/composables/useCf'
+import { useCfAccount } from '~/composables/useCfAccount'
+import { cfApi } from '~/services/cfApi'
 
 definePageMeta({ layout: 'default' })
 
-const { accounts, getByTag } = useCfAccounts()
-const { dnsRecords, zones } = useCfData()
+const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
 const selectedAccountId = ref('')
 const selectedZoneId = ref('')
@@ -13,28 +14,62 @@ const search = ref('')
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
 const snackbar = ref({ show: false, text: '', color: 'success' })
+const saving = ref(false)
 
-const dnsAccounts = computed(() => getByTag('dns'))
-const filteredZones = computed(() => zones.value.filter(z => z.accountId === selectedAccountId.value))
+const zones = ref<any[]>([])
+const dnsRecords = ref<any[]>([])
+const loadingZones = ref(false)
+const loadingRecords = ref(false)
 
-const form = ref({
-  type: 'A',
-  name: '',
-  content: '',
-  proxied: true,
-  ttl: 1,
+const dnsAccounts = computed(() => accounts.value.filter(a => (a.tags || []).includes('dns')))
+
+watch(selectedAccountId, async (val) => {
+  selectedZoneId.value = ''
+  zones.value = []
+  dnsRecords.value = []
+  if (!val) return
+  loadingZones.value = true
+  try {
+    const token = await getToken(val)
+    const res = await cfApi.listZones(token)
+    zones.value = (res.result || []).map((z: any) => ({
+      id: z.id,
+      name: z.name,
+      status: z.status,
+      plan: z.plan?.name || 'free',
+      nameServers: z.name_servers || [],
+    }))
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load zones', color: 'error' }
+  } finally {
+    loadingZones.value = false
+  }
 })
 
-watch(selectedAccountId, () => { selectedZoneId.value = '' })
+watch(selectedZoneId, async (val) => {
+  dnsRecords.value = []
+  if (!val || !selectedAccountId.value) return
+  loadingRecords.value = true
+  try {
+    const token = await getToken(selectedAccountId.value)
+    const res = await cfApi.listDns(token, val)
+    dnsRecords.value = res.result || []
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load DNS records', color: 'error' }
+  } finally {
+    loadingRecords.value = false
+  }
+})
 
 const filteredRecords = computed(() => {
-  let list = dnsRecords.value.filter(r => r.zoneId === selectedZoneId.value)
-  if (search.value) {
-    const s = search.value.toLowerCase()
-    list = list.filter(r => r.name.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.type.toLowerCase().includes(s))
-  }
-  return list
+  if (!search.value) return dnsRecords.value
+  const s = search.value.toLowerCase()
+  return dnsRecords.value.filter(r => r.name.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.type.toLowerCase().includes(s))
 })
+
+const form = ref({ type: 'A', name: '', content: '', proxied: true, ttl: 1 })
+
+onMounted(() => fetchAccounts())
 
 function openCreate() {
   editingId.value = null
@@ -48,24 +83,44 @@ function openEdit(record: any) {
   dialog.value = true
 }
 
-function save() {
+async function save() {
   if (!form.value.name.trim() || !form.value.content.trim() || !selectedZoneId.value) {
     snackbar.value = { show: true, text: 'Zone, name and content are required', color: 'error' }
     return
   }
-  const id = editingId.value || Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
-  const existing = dnsRecords.value.findIndex(r => r.id === id)
-  const record = { ...form.value, id, zoneId: selectedZoneId.value }
-  if (existing !== -1) dnsRecords.value[existing] = record
-  else dnsRecords.value.push(record)
-  snackbar.value = { show: true, text: editingId.value ? 'Record updated' : 'Record created', color: 'success' }
-  dialog.value = false
+  saving.value = true
+  try {
+    const token = await getToken(selectedAccountId.value)
+    const body: any = { type: form.value.type, name: form.value.name, content: form.value.content, proxied: form.value.proxied, ttl: form.value.ttl }
+    if (editingId.value) {
+      await cfApi.updateDns(token, selectedZoneId.value, editingId.value, body)
+      snackbar.value = { show: true, text: 'Record updated', color: 'success' }
+    } else {
+      await cfApi.createDns(token, selectedZoneId.value, body)
+      snackbar.value = { show: true, text: 'Record created', color: 'success' }
+    }
+    dialog.value = false
+    // Refresh records
+    const res = await cfApi.listDns(token, selectedZoneId.value)
+    dnsRecords.value = res.result || []
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.errors?.[0]?.message || e?.response?.data?.message || 'Failed to save', color: 'error' }
+  } finally {
+    saving.value = false
+  }
 }
 
-function handleDelete(id: string) {
+async function handleDelete(id: string) {
   if (!confirm('Delete this record?')) return
-  dnsRecords.value = dnsRecords.value.filter(r => r.id !== id)
-  snackbar.value = { show: true, text: 'Record deleted', color: 'success' }
+  try {
+    const token = await getToken(selectedAccountId.value)
+    await cfApi.deleteDns(token, selectedZoneId.value, id)
+    snackbar.value = { show: true, text: 'Record deleted', color: 'success' }
+    const res = await cfApi.listDns(token, selectedZoneId.value)
+    dnsRecords.value = res.result || []
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.errors?.[0]?.message || 'Failed to delete', color: 'error' }
+  }
 }
 </script>
 
@@ -77,8 +132,8 @@ function handleDelete(id: string) {
           <h4 class="text-h4 mb-1">DNS Management</h4>
           <p class="text-body-2 text-medium-emphasis mb-0">Manage DNS records</p>
         </div>
-        <VSelect v-model="selectedAccountId" :items="dnsAccounts.map((a: any) => ({ title: a.name, value: a.id }))" label="Account" density="compact" style="max-width: 180px" hide-details />
-        <VSelect v-model="selectedZoneId" :items="filteredZones.map((z: any) => ({ title: z.name, value: z.id }))" label="Zone" density="compact" style="max-width: 220px" hide-details :disabled="!selectedAccountId" />
+        <VSelect v-model="selectedAccountId" :items="dnsAccounts.map((a: any) => ({ title: a.name, value: a.id }))" label="Account" density="compact" style="max-width: 180px" hide-details :loading="loading" />
+        <VSelect v-model="selectedZoneId" :items="zones.map((z: any) => ({ title: z.name, value: z.id }))" label="Zone" density="compact" style="max-width: 220px" hide-details :disabled="!selectedAccountId" :loading="loadingZones" />
         <VBtn color="primary" :disabled="!selectedZoneId" @click="openCreate">
           <VIcon icon="bx-plus" class="me-1" /> Add Record
         </VBtn>
@@ -86,6 +141,7 @@ function handleDelete(id: string) {
     </VCard>
 
     <VCard v-if="selectedZoneId">
+      <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
       <VCardText class="pb-0">
         <VTextField v-model="search" prepend-inner-icon="bx-search" placeholder="Search records..." density="compact" hide-details clearable class="mb-3" />
       </VCardText>
@@ -116,7 +172,7 @@ function handleDelete(id: string) {
           </tr>
         </tbody>
       </VTable>
-      <VCardText v-else class="text-center py-6 text-medium-emphasis">
+      <VCardText v-else-if="!loadingRecords" class="text-center py-6 text-medium-emphasis">
         {{ search ? 'No matching records' : 'No DNS records in this zone' }}
       </VCardText>
     </VCard>
@@ -143,7 +199,7 @@ function handleDelete(id: string) {
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!form.name.trim() || !form.content.trim()" @click="save">Save</VBtn>
+          <VBtn color="primary" :loading="saving" :disabled="!form.name.trim() || !form.content.trim()" @click="save">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

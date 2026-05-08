@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useCfAccounts, useCfData, FIREWALL_ACTIONS } from '~/composables/useCf'
+import { ref, computed, watch, onMounted } from 'vue'
+import { FIREWALL_ACTIONS, TAG_LABELS, TAG_COLORS } from '~/composables/useCf'
+import { useCfAccount } from '~/composables/useCfAccount'
+import { cfApi } from '~/services/cfApi'
 
 definePageMeta({ layout: 'default' })
 
-const { accounts, getByTag } = useCfAccounts()
-const { zones, firewallRules } = useCfData()
+const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
 const selectedAccountId = ref('')
 const selectedZoneId = ref('')
@@ -13,12 +14,64 @@ const search = ref('')
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
 const snackbar = ref({ show: false, text: '', color: 'success' })
+const saving = ref(false)
 
-const fwAccounts = computed(() => getByTag('firewall'))
-const filteredZones = computed(() => zones.value.filter(z => z.accountId === selectedAccountId.value))
+const zones = ref<any[]>([])
+const rules = ref<any[]>([])
+const loadingZones = ref(false)
+const loadingRules = ref(false)
+
+const fwAccounts = computed(() => accounts.value.filter(a => (a.tags || []).includes('firewall')))
+
+async function loadRules() {
+  rules.value = []
+  if (!selectedZoneId.value || !selectedAccountId.value) return
+  loadingRules.value = true
+  try {
+    const token = await getToken(selectedAccountId.value)
+    const res = await cfApi.listFirewallRules(token, selectedZoneId.value)
+    rules.value = (res.result || []).map((r: any) => ({
+      id: r.id,
+      name: r.description || r.id,
+      expression: r.expression || '',
+      action: r.action || 'block',
+      priority: r.priority || 0,
+      status: r.paused ? 'paused' : 'active',
+    }))
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load rules', color: 'error' }
+  } finally {
+    loadingRules.value = false
+  }
+}
+
+watch(selectedAccountId, async (val) => {
+  selectedZoneId.value = ''
+  zones.value = []
+  rules.value = []
+  if (!val) return
+  loadingZones.value = true
+  try {
+    const token = await getToken(val)
+    const res = await cfApi.listZones(token)
+    zones.value = (res.result || []).map((z: any) => ({
+      id: z.id,
+      name: z.name,
+      status: z.status,
+      plan: z.plan?.name || 'free',
+      nameServers: z.name_servers || [],
+    }))
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load zones', color: 'error' }
+  } finally {
+    loadingZones.value = false
+  }
+})
+
+watch(selectedZoneId, () => loadRules())
 
 const filteredRules = computed(() => {
-  let list = firewallRules.value.filter(r => r.zoneId === selectedZoneId.value)
+  let list = rules.value
   if (search.value) {
     const s = search.value.toLowerCase()
     list = list.filter(r => r.name.toLowerCase().includes(s) || r.expression.toLowerCase().includes(s))
@@ -26,13 +79,9 @@ const filteredRules = computed(() => {
   return list.sort((a, b) => a.priority - b.priority)
 })
 
-const form = ref({
-  name: '',
-  expression: '',
-  action: 'block',
-  priority: 0,
-  status: 'active',
-})
+const form = ref({ name: '', expression: '', action: 'block', priority: 0, status: 'active' })
+
+onMounted(() => fetchAccounts())
 
 function openCreate() {
   editingId.value = null
@@ -46,30 +95,58 @@ function openEdit(rule: any) {
   dialog.value = true
 }
 
-function save() {
+async function save() {
   if (!form.value.name.trim() || !form.value.expression.trim() || !selectedZoneId.value) {
     snackbar.value = { show: true, text: 'Name, expression and zone are required', color: 'error' }
     return
   }
-  const id = editingId.value || Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
-  const existing = firewallRules.value.findIndex(r => r.id === id)
-  const rule = { ...form.value, id, zoneId: selectedZoneId.value }
-  if (existing !== -1) firewallRules.value[existing] = rule
-  else firewallRules.value.push(rule)
-  snackbar.value = { show: true, text: editingId.value ? 'Rule updated' : 'Rule created', color: 'success' }
-  dialog.value = false
+  saving.value = true
+  try {
+    const token = await getToken(selectedAccountId.value)
+    const body = {
+      description: form.value.name,
+      expression: form.value.expression,
+      action: form.value.action,
+      priority: form.value.priority,
+      paused: form.value.status === 'paused',
+    }
+    if (editingId.value) {
+      await cfApi.updateFirewallRule(token, selectedZoneId.value, editingId.value, body)
+      snackbar.value = { show: true, text: 'Rule updated', color: 'success' }
+    } else {
+      await cfApi.createFirewallRule(token, selectedZoneId.value, body)
+      snackbar.value = { show: true, text: 'Rule created', color: 'success' }
+    }
+    dialog.value = false
+    await loadRules()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.errors?.[0]?.message || e?.response?.data?.message || 'Failed to save', color: 'error' }
+  } finally {
+    saving.value = false
+  }
 }
 
-function handleDelete(id: string) {
+async function handleDelete(id: string) {
   if (!confirm('Delete this rule?')) return
-  firewallRules.value = firewallRules.value.filter(r => r.id !== id)
-  snackbar.value = { show: true, text: 'Rule deleted', color: 'success' }
+  try {
+    const token = await getToken(selectedAccountId.value)
+    await cfApi.deleteFirewallRule(token, selectedZoneId.value, id)
+    snackbar.value = { show: true, text: 'Rule deleted', color: 'success' }
+    await loadRules()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.errors?.[0]?.message || 'Failed to delete', color: 'error' }
+  }
 }
 
-function toggleStatus(rule: any) {
-  const idx = firewallRules.value.findIndex(r => r.id === rule.id)
-  if (idx !== -1) {
-    firewallRules.value[idx].status = rule.status === 'active' ? 'paused' : 'active'
+async function toggleStatus(rule: any) {
+  try {
+    const token = await getToken(selectedAccountId.value)
+    const newPaused = rule.status === 'active'
+    await cfApi.updateFirewallRule(token, selectedZoneId.value, rule.id, { paused: newPaused })
+    snackbar.value = { show: true, text: newPaused ? 'Rule paused' : 'Rule enabled', color: 'success' }
+    await loadRules()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to update', color: 'error' }
   }
 }
 
@@ -84,8 +161,8 @@ const actionColors: Record<string, string> = { block: 'error', allow: 'success',
           <h4 class="text-h4 mb-1">Firewall Rules</h4>
           <p class="text-body-2 text-medium-emphasis mb-0">Manage WAF firewall rules</p>
         </div>
-        <VSelect v-model="selectedAccountId" :items="fwAccounts.map((a: any) => ({ title: a.name, value: a.id }))" label="Account" density="compact" style="max-width: 180px" hide-details />
-        <VSelect v-model="selectedZoneId" :items="filteredZones.map((z: any) => ({ title: z.name, value: z.id }))" label="Zone" density="compact" style="max-width: 220px" hide-details :disabled="!selectedAccountId" />
+        <VSelect v-model="selectedAccountId" :items="fwAccounts.map((a: any) => ({ title: a.name, value: a.id }))" label="Account" density="compact" style="max-width: 180px" hide-details :loading="loading" />
+        <VSelect v-model="selectedZoneId" :items="zones.map((z: any) => ({ title: z.name, value: z.id }))" label="Zone" density="compact" style="max-width: 220px" hide-details :disabled="!selectedAccountId" :loading="loadingZones" />
         <VBtn color="primary" :disabled="!selectedZoneId" @click="openCreate">
           <VIcon icon="bx-plus" class="me-1" /> Add Rule
         </VBtn>
@@ -93,6 +170,7 @@ const actionColors: Record<string, string> = { block: 'error', allow: 'success',
     </VCard>
 
     <VCard v-if="selectedZoneId">
+      <VProgressLinear v-if="loadingRules" indeterminate color="primary" />
       <VCardText class="pb-0">
         <VTextField v-model="search" prepend-inner-icon="bx-search" placeholder="Search rules..." density="compact" hide-details clearable class="mb-3" />
       </VCardText>
@@ -125,7 +203,7 @@ const actionColors: Record<string, string> = { block: 'error', allow: 'success',
           </tr>
         </tbody>
       </VTable>
-      <VCardText v-else class="text-center py-6 text-medium-emphasis">
+      <VCardText v-else-if="!loadingRules" class="text-center py-6 text-medium-emphasis">
         {{ search ? 'No matching rules' : 'No firewall rules in this zone' }}
       </VCardText>
     </VCard>
@@ -149,7 +227,7 @@ const actionColors: Record<string, string> = { block: 'error', allow: 'success',
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!form.name.trim() || !form.expression.trim()" @click="save">Save</VBtn>
+          <VBtn color="primary" :loading="saving" :disabled="!form.name.trim() || !form.expression.trim()" @click="save">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

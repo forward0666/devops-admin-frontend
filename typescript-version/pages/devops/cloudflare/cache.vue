@@ -1,46 +1,91 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useCfAccounts, useCfData } from '~/composables/useCf'
+import { ref, computed, watch, onMounted } from 'vue'
+import { TAG_LABELS, TAG_COLORS } from '~/composables/useCf'
+import { useCfAccount } from '~/composables/useCfAccount'
+import { cfApi } from '~/services/cfApi'
 
 definePageMeta({ layout: 'default' })
 
-const { accounts, getByTag } = useCfAccounts()
-const { zones, cacheLogs } = useCfData()
+const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
 const selectedAccountId = ref('')
 const selectedZoneId = ref('')
-const snackbar = ref({ show: false, text: '', color: 'success' }
-)
+const snackbar = ref({ show: false, text: '', color: 'success' })
 const purgeDialog = ref(false)
 const purgeMode = ref<'all' | 'url' | 'tag' | 'host'>('all')
 const purgeInput = ref('')
+const purging = ref(false)
 
-const cacheAccounts = computed(() => getByTag('cache'))
-const filteredZones = computed(() => zones.value.filter(z => z.accountId === selectedAccountId.value))
+const zones = ref<any[]>([])
+const cacheLogs = ref<any[]>([])
+const loadingZones = ref(false)
+
+const cacheAccounts = computed(() => accounts.value.filter(a => (a.tags || []).includes('cache')))
+
+watch(selectedAccountId, async (val) => {
+  selectedZoneId.value = ''
+  zones.value = []
+  if (!val) return
+  loadingZones.value = true
+  try {
+    const token = await getToken(val)
+    const res = await cfApi.listZones(token)
+    zones.value = (res.result || []).map((z: any) => ({
+      id: z.id,
+      name: z.name,
+      status: z.status,
+      plan: z.plan?.name || 'free',
+      nameServers: z.name_servers || [],
+    }))
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load zones', color: 'error' }
+  } finally {
+    loadingZones.value = false
+  }
+})
+
+onMounted(() => fetchAccounts())
 
 function openPurge(mode: typeof purgeMode.value) {
   purgeMode.value = mode
-  purgeInput.value = mode === 'all' ? '' : ''
+  purgeInput.value = ''
   purgeDialog.value = true
 }
 
-function executePurge() {
+async function executePurge() {
   if (!selectedZoneId.value) return
   const zone = zones.value.find(z => z.id === selectedZoneId.value)
   const zoneName = zone?.name || 'unknown'
 
-  if (purgeMode.value === 'all') {
-    addLog('Purge All', zoneName)
-  } else if (purgeInput.value.trim()) {
-    const target = purgeInput.value.trim()
-    addLog(`Purge ${purgeMode.value === 'url' ? 'URL' : purgeMode.value === 'tag' ? 'Tag' : 'Host'}`, target)
-  } else {
+  if (purgeMode.value !== 'all' && !purgeInput.value.trim()) {
     snackbar.value = { show: true, text: 'Please enter a value', color: 'error' }
     return
   }
 
-  snackbar.value = { show: true, text: 'Cache purge initiated', color: 'success' }
-  purgeDialog.value = false
+  purging.value = true
+  try {
+    const token = await getToken(selectedAccountId.value)
+    let res: any
+    if (purgeMode.value === 'all') {
+      res = await cfApi.purgeAll(token, selectedZoneId.value)
+      addLog('Purge All', zoneName)
+    } else if (purgeMode.value === 'url') {
+      res = await cfApi.purgeUrls(token, selectedZoneId.value, [purgeInput.value.trim()])
+      addLog('Purge URL', purgeInput.value.trim())
+    } else if (purgeMode.value === 'tag') {
+      res = await cfApi.purgeTags(token, selectedZoneId.value, [purgeInput.value.trim()])
+      addLog('Purge Tag', purgeInput.value.trim())
+    } else if (purgeMode.value === 'host') {
+      res = await cfApi.purgeHosts(token, selectedZoneId.value, [purgeInput.value.trim()])
+      addLog('Purge Host', purgeInput.value.trim())
+    }
+    snackbar.value = { show: true, text: res?.success ? 'Cache purged successfully' : 'Cache purge initiated', color: 'success' }
+    purgeDialog.value = false
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.errors?.[0]?.message || e?.response?.data?.message || 'Purge failed', color: 'error' }
+  } finally {
+    purging.value = false
+  }
 }
 
 function addLog(type: string, target: string) {
@@ -72,8 +117,8 @@ const purgeModes = [
           <h4 class="text-h4 mb-1">Cache Purge</h4>
           <p class="text-body-2 text-medium-emphasis mb-0">Purge Cloudflare cache</p>
         </div>
-        <VSelect v-model="selectedAccountId" :items="cacheAccounts.map((a: any) => ({ title: a.name, value: a.id }))" label="Account" density="compact" style="max-width: 180px" hide-details />
-        <VSelect v-model="selectedZoneId" :items="filteredZones.map((z: any) => ({ title: z.name, value: z.id }))" label="Zone" density="compact" style="max-width: 220px" hide-details :disabled="!selectedAccountId" />
+        <VSelect v-model="selectedAccountId" :items="cacheAccounts.map((a: any) => ({ title: a.name, value: a.id }))" label="Account" density="compact" style="max-width: 180px" hide-details :loading="loading" />
+        <VSelect v-model="selectedZoneId" :items="zones.map((z: any) => ({ title: z.name, value: z.id }))" label="Zone" density="compact" style="max-width: 220px" hide-details :disabled="!selectedAccountId" :loading="loadingZones" />
       </VCardText>
     </VCard>
 
@@ -134,7 +179,7 @@ const purgeModes = [
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="purgeDialog = false">Cancel</VBtn>
-          <VBtn color="error" :loading="false" @click="executePurge">Purge</VBtn>
+          <VBtn color="error" :loading="purging" @click="executePurge">Purge</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
