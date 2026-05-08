@@ -37,7 +37,7 @@ async function syncFromCF() {
   if (!selectedAccountId.value) return
   syncing.value = true
   try {
-    const token = await useCfAccountSync().getToken(selectedAccountId.value)
+    const token = await getToken(selectedAccountId.value)
     const { data } = await apiClient.post(
       `${CF_GATEWAY}/zones/sync`,
       null,
