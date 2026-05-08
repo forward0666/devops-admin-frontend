@@ -13,7 +13,7 @@ export function useCfAccount() {
       const { data } = await apiClient.get(`${CF_GATEWAY}/accounts`)
       accounts.value = (data.data || []).map((a: any) => ({
         ...a,
-        tags: typeof a.tags === 'string' ? a.tags.split(',').filter(Boolean) : a.tags || [],
+        tags: typeof a.tags === 'string' ? a.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : Array.isArray(a.tags) ? a.tags : [],
       }))
     } catch (e) {
       console.error('Failed to fetch accounts', e)
