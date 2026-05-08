@@ -6,7 +6,7 @@ import { useCfAccount, useCfAccountSync } from '~/composables/useCfAccount'
 definePageMeta({ layout: 'default' })
 
 const CF_GATEWAY = '/cloudflare'
-const { accounts, loading, fetchAccounts } = useCfAccount()
+const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
 const selectedAccountId = ref<number | null>(null)
 const zones = ref<any[]>([])
