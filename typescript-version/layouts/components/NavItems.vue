@@ -198,6 +198,20 @@ const isProjectActive = (projectId: number) => {
           }"
         />
       </VerticalNavGroup>
+
+      <VerticalNavGroup
+        :item="{
+          title: 'Cloudflare',
+          icon: 'bx-cloud',
+        }"
+      >
+        <VerticalNavLink :item="{ title: 'Account', to: '/devops/cloudflare' }" />
+        <VerticalNavLink :item="{ title: 'DNS', to: '/devops/cloudflare/dns' }" />
+        <VerticalNavLink :item="{ title: 'Zone', to: '/devops/cloudflare/zone' }" />
+        <VerticalNavLink :item="{ title: 'Firewall', to: '/devops/cloudflare/firewall' }" />
+        <VerticalNavLink :item="{ title: 'SSL', to: '/devops/cloudflare/ssl' }" />
+        <VerticalNavLink :item="{ title: 'Cache', to: '/devops/cloudflare/cache' }" />
+      </VerticalNavGroup>
     </template>
 
     <template v-else>
