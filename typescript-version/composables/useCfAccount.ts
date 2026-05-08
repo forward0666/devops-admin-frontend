@@ -1,9 +1,6 @@
 import apiClient from '~/services/api'
 
 const CF_GATEWAY = '/cloudflare'
-const CF_HEADERS = {
-  'X-Encrypted-Data': 'u8m3xB7aVm92NdLtGjPQwf6eKzLY1tbW',
-}
 
 export function useCfAccount() {
   const accounts = ref<any[]>([])
@@ -13,7 +10,7 @@ export function useCfAccount() {
   async function fetchAccounts() {
     loading.value = true
     try {
-      const { data } = await apiClient.get(`${CF_GATEWAY}/accounts`, { headers: CF_HEADERS })
+      const { data } = await apiClient.get(`${CF_GATEWAY}/accounts`)
       accounts.value = (data.data || []).map((a: any) => ({
         ...a,
         tags: typeof a.tags === 'string' ? a.tags.split(',').filter(Boolean) : a.tags || [],
@@ -27,7 +24,7 @@ export function useCfAccount() {
 
   async function getToken(accountId: string): Promise<string> {
     if (tokenCache.value[accountId]) return tokenCache.value[accountId]
-    const { data } = await apiClient.get(`${CF_GATEWAY}/accounts/${accountId}/token`, { headers: CF_HEADERS })
+    const { data } = await apiClient.get(`${CF_GATEWAY}/accounts/${accountId}/token`)
     const token = data.data?.token
     if (token) tokenCache.value[accountId] = token
     return token
@@ -38,5 +35,5 @@ export function useCfAccount() {
     return key.slice(0, 4) + '••••••••' + key.slice(-4)
   }
 
-  return { accounts, loading, fetchAccounts, getToken, maskKey, CF_HEADERS, CF_GATEWAY }
+  return { accounts, loading, fetchAccounts, getToken, maskKey, CF_GATEWAY }
 }

@@ -33,10 +33,7 @@ apiClient.interceptors.request.use(
       if (url.startsWith('/bot/')) {
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_BOT_SECRET || ''
       } else if (url.startsWith('/cloudflare/')) {
-        // Cloudflare uses its own auth, handled by caller
-        if (!config.headers['X-Encrypted-Data']) {
-          config.headers['X-Encrypted-Data'] = ''
-        }
+        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_CF_SECRET || ''
       } else if (url.startsWith('/login/') || url.startsWith('/auth/')) {
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_LOGIN_SECRET || ''
       } else {

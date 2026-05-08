@@ -1,13 +1,9 @@
 import apiClient from '~/services/api'
 
 const CF_GATEWAY = '/cloudflare'
-const CF_SECRET = 'u8m3xB7aVm92NdLtGjPQwf6eKzLY1tbW'
 
 function cfHeaders(apiToken: string) {
-  return {
-    'X-Encrypted-Data': CF_SECRET,
-    'X-Cf-Token': apiToken,
-  }
+  return { 'X-Cf-Token': apiToken }
 }
 
 export const cfApi = {
