@@ -123,7 +123,7 @@ const statusColors: Record<string, string> = { active: 'success', pending: 'warn
           <VSelect v-model="form.status" :items="['active', 'pending', 'moved', 'deactivated']" label="Status" density="compact" class="mb-3" />
           <VSelect v-model="form.plan" :items="['free', 'pro', 'business', 'enterprise']" label="Plan" density="compact" class="mb-3" />
           <VSelect v-model="form.sslMode" :items="SSL_MODES" label="SSL Mode" density="compact" class="mb-3" />
-          <VTextarea v-model="form.nameServers.join('\n')" label="Name Servers (one per line)" density="compact" rows="2" class="mb-3" @update:model-value="(v: any) => form.nameServers = v.split('\n').filter((s: string) => s.trim())" />
+          <VTextarea :model-value="form.nameServers.join('\n')" label="Name Servers (one per line)" density="compact" rows="2" class="mb-3" @update:model-value="(v: any) => form.nameServers = v.split('\n').filter((s: string) => s.trim())" />
         </VCardText>
         <VCardActions>
           <VSpacer />
