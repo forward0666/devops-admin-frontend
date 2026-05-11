@@ -291,10 +291,9 @@ function exportCSV() {
           <tbody>
             <template v-for="z in pagedZones" :key="z.zone_id">
               <!-- Zone group header -->
-              <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
+              <tr style="background: rgb(var(--v-theme-on-surface), 0.04);">
                 <td style="width: 310px !important; max-width: 310px !important; padding: 0 !important;">
                   <div class="d-flex align-center" style="width: 310px; max-width: 310px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
-                    <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-shield-quarter" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ z.name }}</span>
                     <VChip v-if="getZoneRuleCount(z.zone_id) > 0" size="x-small" variant="tonal" color="primary" class="ms-2">{{ getZoneRuleCount(z.zone_id) }}</VChip>
@@ -318,28 +317,23 @@ function exportCSV() {
                 <td></td>
               </tr>
               <!-- Rules rows -->
-              <template v-if="expandedZones[z.zone_id]">
-                <tr v-if="loadingRules && !rulesMap[z.zone_id]">
-                  <td colspan="6" class="text-center py-2"><VProgressLinear indeterminate color="primary" size="2" /></td>
-                </tr>
-                <template v-else-if="(rulesMap[z.zone_id] || []).length > 0">
-                  <tr v-for="r in rulesMap[z.zone_id]" :key="r.rule_id">
-                    <td style="width: 310px; max-width: 310px;">
-                      <div style="max-width: 310px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
-                    </td>
-                    <td style="width: 90px !important; max-width: 90px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
-                    <td style="width: 450px; max-width: 450px; text-align: left;"><code style="display: block; max-width: 450px; white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
-                    <td style="width: 100px; max-width: 100px;" class="text-caption">{{ r.priority }}</td>
-                    <td style="width: 80px; max-width: 80px;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
-                    <td class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
-                  </tr>
-                </template>
-                <tr v-else>
-                  <td colspan="6" class="text-center py-4 text-medium-emphasis">
-                    <p class="mb-0">No synced rules. Click Sync to fetch from Cloudflare.</p>
+              <template v-if="(rulesMap[z.zone_id] || []).length > 0">
+                <tr v-for="r in rulesMap[z.zone_id]" :key="r.rule_id">
+                  <td style="width: 310px; max-width: 310px;">
+                    <div style="max-width: 310px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                   </td>
+                  <td style="width: 90px !important; max-width: 90px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
+                  <td style="width: 450px; max-width: 450px; text-align: left;"><code style="display: block; max-width: 450px; white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
+                  <td style="width: 100px; max-width: 100px;" class="text-caption">{{ r.priority }}</td>
+                  <td style="width: 80px; max-width: 80px;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
+                  <td class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
                 </tr>
               </template>
+              <tr v-else>
+                <td colspan="6" class="text-center py-4 text-medium-emphasis">
+                  <p class="mb-0">No synced rules. Click Sync to fetch from Cloudflare.</p>
+                </td>
+              </tr>
             </template>
           </tbody>
         </VTable>
