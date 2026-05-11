@@ -268,8 +268,8 @@ function exportCSV() {
 
     <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; max-height: calc(100vh - 140px);">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <div v-if="zones.length > 0" style="flex: 1; overflow-y: auto">
-        <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
+      <div v-if="zones.length > 0" style="flex: 1; overflow: hidden;">
+        <VTable class="text-no-wrap sticky-table" hover density="compact" style="table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 310px" />
             <col style="width: 90px" />
@@ -353,7 +353,6 @@ function exportCSV() {
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
-
 <style scoped>
 .sortable {
   cursor: pointer;
@@ -362,5 +361,9 @@ function exportCSV() {
 }
 .sortable:hover {
   color: rgb(var(--v-theme-primary));
+}
+.sticky-table :deep(.v-table__wrapper) {
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
 }
 </style>
