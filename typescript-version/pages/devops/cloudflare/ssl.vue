@@ -239,10 +239,9 @@ const sslModeInfo: Record<string, string> = {
           </thead>
           <tbody>
             <template v-for="z in pagedZones" :key="z.zone_id">
-              <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
+              <tr style="background: rgb(var(--v-theme-on-surface), 0.04);">
                 <td style="width: 360px !important; max-width: 360px !important; padding: 0 !important;">
                   <div class="d-flex align-center" style="width: 360px; max-width: 360px; overflow: hidden; padding: 10px 16px;">
-                    <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-lock" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ z.name }}</span>
                     <VBtn size="x-small" variant="tonal" color="primary" :loading="syncingZone === z.zone_id" @click.stop="syncZone(z.zone_id)" prepend-icon="bx-refresh" class="ms-2">Sync</VBtn>
@@ -254,8 +253,6 @@ const sslModeInfo: Record<string, string> = {
                 <td style="width: 180px; max-width: 180px;" class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.modified_on ? new Date(sslMap[z.zone_id].modified_on).toLocaleString() : '-' }}</td>
                 <td class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.synced_at ? new Date(sslMap[z.zone_id].synced_at).toLocaleString() : '-' }}</td>
               </tr>
-              <template v-if="expandedZones[z.zone_id] && sslMap[z.zone_id]">
-              </template>
             </template>
           </tbody>
         </VTable>
