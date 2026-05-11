@@ -11,7 +11,7 @@ const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 const route = useRoute()
 const router = useRouter()
 const selectedAccountId = ref<number | null>(Number(route.query.account) || null)
-const domainFilter = ref('')
+const domainFilter = ref(route.query.search as string || '')
 const dnsRecords = ref<any[]>([])
 const loadingRecords = ref(false)
 const syncing = ref(false)
@@ -136,8 +136,12 @@ const sortedDomainKeys = computed(() => {
 })
 
 // Pagination
-const page = ref(1)
-const pageSize = ref(20)
+const page = ref(Number(route.query.page) || 1)
+const pageSize = ref(Number(route.query.size) || 20)
+
+watch([page, pageSize, domainFilter], () => {
+  router.replace({ query: { ...route.query, page: String(page.value), size: String(pageSize.value), search: domainFilter.value || undefined } })
+})
 const domainKeys = computed(() => sortedDomainKeys.value)
 const totalPages = computed(() => Math.max(1, Math.ceil(domainKeys.value.length / pageSize.value)))
 const pagedDomainKeys = computed(() => {

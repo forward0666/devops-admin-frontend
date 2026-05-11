@@ -97,8 +97,12 @@ const sortedZones = computed(() => {
   return sorted
 })
 
-const page = ref(1)
-const pageSize = ref(50)
+const page = ref(Number(route.query.page) || 1)
+const pageSize = ref(Number(route.query.size) || 50)
+
+watch([page, pageSize], () => {
+  router.replace({ query: { ...route.query, page: String(page.value), size: String(pageSize.value) } })
+})
 
 const totalPages = computed(() => Math.ceil(sortedZones.value.length / pageSize.value))
 const pagedZones = computed(() => {
