@@ -29,10 +29,6 @@ const rulesMap = ref<Record<string, any[]>>({})
 
 const actionColors: Record<string, string> = { block: 'error', allow: 'success', challenge: 'warning', skip: 'info' }
 
-watch([page, pageSize, search], () => {
-  router.replace({ query: { ...route.query, page: String(page.value), size: String(pageSize.value), search: search.value || undefined } })
-})
-
 watch(selectedAccountId, (val) => {
   router.replace({ query: val ? { account: String(val) } : {} })
   rulesMap.value = {}
@@ -187,6 +183,11 @@ const filteredZones = computed(() => {
 // Pagination
 const page = ref(Number(route.query.page) || 1)
 const pageSize = ref(Number(route.query.size) || 20)
+
+watch([page, pageSize, search], () => {
+  router.replace({ query: { ...route.query, page: String(page.value), size: String(pageSize.value), search: search.value || undefined } })
+})
+
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredZones.value.length / pageSize.value)))
 const pagedZones = computed(() => {
   const start = (page.value - 1) * pageSize.value
