@@ -255,10 +255,6 @@ const sslModeInfo: Record<string, string> = {
                 <td class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.synced_at ? new Date(sslMap[z.zone_id].synced_at).toLocaleString() : '-' }}</td>
               </tr>
               <template v-if="expandedZones[z.zone_id] && sslMap[z.zone_id]">
-                <tr>
-                  <td style="width: 360px !important; max-width: 360px !important;"></td>
-                  <td colspan="3" class="text-caption text-medium-emphasis pa-3">{{ sslModeInfo[sslMap[z.zone_id]?.ssl_mode] || '' }}</td>
-                </tr>
               </template>
             </template>
           </tbody>
