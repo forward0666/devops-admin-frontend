@@ -1,126 +1,197 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { DNS_TYPES, TAG_LABELS, TAG_COLORS } from '~/composables/useCf'
+import { ref, computed, onMounted, watch } from 'vue'
+import apiClient from '~/services/api'
 import { useCfAccount } from '~/composables/useCfAccount'
-import { cfApi } from '~/services/cfApi'
 
 definePageMeta({ layout: 'default' })
 
+const CF_GATEWAY = '/cloudflare'
 const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
-const selectedAccountId = ref('')
-const selectedZoneId = ref('')
-const search = ref('')
-const dialog = ref(false)
-const editingId = ref<string | null>(null)
-const snackbar = ref({ show: false, text: '', color: 'success' })
-const saving = ref(false)
-
-const zones = ref<any[]>([])
+const route = useRoute()
+const router = useRouter()
+const selectedAccountId = ref<number | null>(Number(route.query.account) || null)
+const domainFilter = ref('')
 const dnsRecords = ref<any[]>([])
-const loadingZones = ref(false)
 const loadingRecords = ref(false)
+const syncing = ref(false)
+const snackbar = ref({ show: false, text: '', color: 'success' })
 
-const dnsAccounts = computed(() => accounts.value.filter(a => (a.tags || []).includes('dns')))
+const accountOptions = computed(() => accounts.value.map((a: any) => ({ title: a.name, value: a.id })))
 
-watch(selectedAccountId, async (val) => {
-  selectedZoneId.value = ''
-  zones.value = []
-  dnsRecords.value = []
-  if (!val) return
-  loadingZones.value = true
-  try {
-    const token = await getToken(val)
-    const res = await cfApi.listZones(token)
-    zones.value = (res.result || []).map((z: any) => ({
-      id: z.id,
-      name: z.name,
-      status: z.status,
-      plan: z.plan?.name || 'free',
-      nameServers: z.name_servers || [],
-    }))
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load zones', color: 'error' }
-  } finally {
-    loadingZones.value = false
-  }
+const typeCounts = computed(() => {
+  const map: Record<string, number> = {}
+  dnsRecords.value.forEach(r => {
+    const t = r.type || 'unknown'
+    map[t] = (map[t] || 0) + 1
+  })
+  return map
 })
 
-watch(selectedZoneId, async (val) => {
-  dnsRecords.value = []
-  if (!val || !selectedAccountId.value) return
+const typeColors: Record<string, string> = {
+  A: 'success', AAAA: 'info', CNAME: 'primary', MX: 'warning',
+  TXT: 'secondary', NS: 'grey', SRV: 'error', CAA: 'orange', PTR: 'purple',
+}
+
+const filteredRecords = computed(() => {
+  if (!domainFilter.value) return dnsRecords.value
+  const s = domainFilter.value.toLowerCase()
+  return dnsRecords.value.filter(r => r.name?.toLowerCase().includes(s))
+})
+
+watch(selectedAccountId, (val) => {
+  router.replace({ query: val ? { account: String(val) } : {} })
+  if (val) fetchDnsRecords()
+})
+
+async function fetchDnsRecords() {
+  if (!selectedAccountId.value) return
   loadingRecords.value = true
   try {
-    const token = await getToken(selectedAccountId.value)
-    const res = await cfApi.listDns(token, val)
-    dnsRecords.value = res.result || []
+    const { data } = await apiClient.get(`${CF_GATEWAY}/dns`, { params: { account_id: selectedAccountId.value } })
+    dnsRecords.value = data.data || []
   } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load DNS records', color: 'error' }
+    console.error('Failed to fetch DNS records', e)
   } finally {
     loadingRecords.value = false
   }
-})
-
-const filteredRecords = computed(() => {
-  if (!search.value) return dnsRecords.value
-  const s = search.value.toLowerCase()
-  return dnsRecords.value.filter(r => r.name.toLowerCase().includes(s) || r.content.toLowerCase().includes(s) || r.type.toLowerCase().includes(s))
-})
-
-const form = ref({ type: 'A', name: '', content: '', proxied: true, ttl: 1 })
-
-onMounted(() => fetchAccounts())
-
-function openCreate() {
-  editingId.value = null
-  form.value = { type: 'A', name: '', content: '', proxied: true, ttl: 1 }
-  dialog.value = true
 }
 
-function openEdit(record: any) {
-  editingId.value = record.id
-  form.value = { type: record.type, name: record.name, content: record.content, proxied: record.proxied, ttl: record.ttl }
-  dialog.value = true
-}
-
-async function save() {
-  if (!form.value.name.trim() || !form.value.content.trim() || !selectedZoneId.value) {
-    snackbar.value = { show: true, text: 'Zone, name and content are required', color: 'error' }
-    return
-  }
-  saving.value = true
+async function syncFromCF() {
+  if (!selectedAccountId.value) return
+  syncing.value = true
   try {
     const token = await getToken(selectedAccountId.value)
-    const body: any = { type: form.value.type, name: form.value.name, content: form.value.content, proxied: form.value.proxied, ttl: form.value.ttl }
-    if (editingId.value) {
-      await cfApi.updateDns(token, selectedZoneId.value, editingId.value, body)
-      snackbar.value = { show: true, text: 'Record updated', color: 'success' }
-    } else {
-      await cfApi.createDns(token, selectedZoneId.value, body)
-      snackbar.value = { show: true, text: 'Record created', color: 'success' }
+    const { data } = await apiClient.post(
+      `${CF_GATEWAY}/dns/sync`,
+      null,
+      {
+        params: { account_id: selectedAccountId.value },
+        headers: { 'X-Cf-Token': token },
+        timeout: 60000,
+      },
+    )
+    snackbar.value = { show: true, text: `Synced ${data.data?.synced || 0} DNS records`, color: 'success' }
+    await fetchDnsRecords()
+  } catch (e: any) {
+    let detail: string = e?.response?.data?.detail || 'Sync failed'
+    if (detail.includes('Sync zones first')) {
+      detail += ' - please sync Zones first'
     }
-    dialog.value = false
-    // Refresh records
-    const res = await cfApi.listDns(token, selectedZoneId.value)
-    dnsRecords.value = res.result || []
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.errors?.[0]?.message || e?.response?.data?.message || 'Failed to save', color: 'error' }
+    snackbar.value = { show: true, text: detail, color: 'error' }
   } finally {
-    saving.value = false
+    syncing.value = false
   }
 }
 
-async function handleDelete(id: string) {
-  if (!confirm('Delete this record?')) return
-  try {
-    const token = await getToken(selectedAccountId.value)
-    await cfApi.deleteDns(token, selectedZoneId.value, id)
-    snackbar.value = { show: true, text: 'Record deleted', color: 'success' }
-    const res = await cfApi.listDns(token, selectedZoneId.value)
-    dnsRecords.value = res.result || []
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.errors?.[0]?.message || 'Failed to delete', color: 'error' }
+onMounted(async () => {
+  await fetchAccounts()
+  if (!selectedAccountId.value && accounts.value.length > 0) {
+    selectedAccountId.value = accounts.value[0].id
   }
+  if (selectedAccountId.value) fetchDnsRecords()
+})
+
+const sortKey = ref<string>('name')
+const sortOrder = ref<'asc' | 'desc'>('asc')
+
+const domainSortKey = ref<'domain' | string>('domain')
+const domainSortOrder = ref<'asc' | 'desc'>('asc')
+
+const groupedRecords = computed(() => {
+  const groups: Record<string, any[]> = {}
+  for (const r of filteredRecords.value) {
+    const domain = r.zone_name || 'unknown'
+    if (!groups[domain]) groups[domain] = []
+    groups[domain].push(r)
+  }
+  // Sort within each group by sortKey (except domain)
+  const key = sortKey.value
+  const order = sortOrder.value === 'asc' ? 1 : -1
+  const result: Record<string, any[]> = {}
+  for (const domain of Object.keys(groups)) {
+    result[domain] = [...groups[domain]].sort((a, b) => {
+      const va = a[key]; const vb = b[key]
+      if (va == null) return 1; if (vb == null) return -1
+      if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * order
+      return String(va).localeCompare(String(vb)) * order
+    })
+  }
+  return result
+})
+
+const sortedRecords = computed(() => {
+  const all: any[] = []
+  for (const domain of Object.keys(groupedRecords.value)) {
+    all.push(...groupedRecords.value[domain])
+  }
+  return all
+})
+
+const sortedDomainKeys = computed(() => {
+  const keys = Object.keys(groupedRecords.value)
+  const order = domainSortOrder.value === 'asc' ? 1 : -1
+  keys.sort((a, b) => a.localeCompare(b) * order)
+  return keys
+})
+
+// Pagination
+const page = ref(1)
+const pageSize = ref(20)
+const domainKeys = computed(() => sortedDomainKeys.value)
+const totalPages = computed(() => Math.max(1, Math.ceil(domainKeys.value.length / pageSize.value)))
+const pagedDomainKeys = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return domainKeys.value.slice(start, start + pageSize.value)
+})
+
+// Expanded state persistence
+const expandedDomains = ref<Record<string, boolean>>({})
+try {
+  expandedDomains.value = JSON.parse(localStorage.getItem('cf_dns_expanded') || '{}')
+} catch { /* ignore */ }
+
+function toggleDomain(domain: string) {
+  const next = { ...expandedDomains.value, [domain]: !expandedDomains.value[domain] }
+  expandedDomains.value = next
+  localStorage.setItem('cf_dns_expanded', JSON.stringify(next))
+}
+
+function toggleSort(key: string) {
+  if (key === 'domain') {
+    if (domainSortKey.value === 'domain') {
+      domainSortOrder.value = domainSortOrder.value === 'asc' ? 'desc' : 'asc'
+    } else {
+      domainSortKey.value = 'domain'
+      domainSortOrder.value = 'asc'
+    }
+  } else {
+    if (sortKey.value === key) {
+      sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+    } else {
+      sortKey.value = key
+      sortOrder.value = 'asc'
+    }
+  }
+}
+
+
+function exportCSV() {
+  if (!sortedRecords.value.length) return
+  const headers = Object.keys(sortedRecords.value[0]).filter(k => k !== '_id')
+  const rows = sortedRecords.value.map(r => headers.map(h => {
+    let v = r[h]
+    if (typeof v === 'string' && (v.includes(',') || v.includes('"'))) v = '"' + v.replace(/"/g, '""') + '"'
+    return v
+  }).join(','))
+  const csv = [headers.join(','), ...rows].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'dns_records_' + new Date().toISOString().slice(0, 10) + '.csv'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 </script>
 
@@ -128,82 +199,131 @@ async function handleDelete(id: string) {
   <div>
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
-        <div class="flex-grow-1">
-          <h4 class="text-h4 mb-1">DNS Management</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Manage DNS records</p>
+        <VSelect
+          v-model="selectedAccountId"
+          :items="accountOptions"
+          label="Account"
+          density="compact"
+          style="max-width: 180px"
+          hide-details
+          :loading="loading"
+        />
+        <VTextField
+          v-model="domainFilter"
+          prepend-inner-icon="bx-search"
+          placeholder="Filter by domain..."
+          density="compact"
+          hide-details
+          clearable
+          style="max-width: 240px"
+        />
+        <div class="d-flex align-center flex-wrap gap-4">
+          <VChip size="small" color="primary" variant="tonal">Total: {{ dnsRecords.length }}</VChip>
+          <VChip v-for="(count, type) in typeCounts" :key="type" size="small" :color="typeColors[type] || 'grey'" variant="tonal">{{ type }}: {{ count }}</VChip>
         </div>
-        <VSelect v-model="selectedAccountId" :items="dnsAccounts.map((a: any) => ({ title: a.name, value: a.id }))" label="Account" density="compact" style="max-width: 180px" hide-details :loading="loading" />
-        <VSelect v-model="selectedZoneId" :items="zones.map((z: any) => ({ title: z.name, value: z.id }))" label="Zone" density="compact" style="max-width: 220px" hide-details :disabled="!selectedAccountId" :loading="loadingZones" />
-        <VBtn color="primary" :disabled="!selectedZoneId" @click="openCreate">
-          <VIcon icon="bx-plus" class="me-1" /> Add Record
+        <VSpacer />
+        <VBtn
+          color="primary"
+          variant="tonal"
+          :loading="syncing"
+          :disabled="!selectedAccountId"
+          prepend-icon="bx-refresh"
+          @click="syncFromCF"
+        >
+          Sync
         </VBtn>
+        <VBtn icon="bx-download" size="small" variant="text" :disabled="!selectedAccountId" title="Export CSV" @click="exportCSV" class="ms-1" />
+        <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
+        <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
+        <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
+        <VSelect v-model="pageSize" :items="[10, 20, 50, 100, 500]" density="compact" style="max-width: 90px" hide-details @update:model-value="page = 1" />
       </VCardText>
     </VCard>
 
-    <VCard v-if="selectedZoneId">
+    <VCard v-if="selectedAccountId">
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
-      <VCardText class="pb-0">
-        <VTextField v-model="search" prepend-inner-icon="bx-search" placeholder="Search records..." density="compact" hide-details clearable class="mb-3" />
-      </VCardText>
-      <VTable v-if="filteredRecords.length > 0">
-        <thead>
-          <tr>
-            <th style="width: 90px">Type</th>
-            <th>Name</th>
-            <th>Content</th>
-            <th style="width: 80px">Proxied</th>
-            <th style="width: 70px">TTL</th>
-            <th style="width: 100px">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="r in filteredRecords" :key="r.id">
-            <td><VChip size="x-small" color="info" variant="tonal">{{ r.type }}</VChip></td>
-            <td><code class="text-caption">{{ r.name }}</code></td>
-            <td><code class="text-caption">{{ r.content }}</code></td>
-            <td>
-              <VChip size="x-small" :color="r.proxied ? 'success' : 'grey'" variant="tonal">{{ r.proxied ? 'ON' : 'OFF' }}</VChip>
-            </td>
-            <td class="text-caption">{{ r.ttl === 1 ? 'Auto' : r.ttl + 's' }}</td>
-            <td>
-              <VBtn icon size="x-small" variant="text" color="primary" @click="openEdit(r)"><VIcon icon="bx-edit" size="16" /></VBtn>
-              <VBtn icon size="x-small" variant="text" color="error" @click="handleDelete(r.id)"><VIcon icon="bx-trash" size="16" /></VBtn>
-            </td>
-          </tr>
-        </tbody>
-      </VTable>
-      <VCardText v-else-if="!loadingRecords" class="text-center py-6 text-medium-emphasis">
-        {{ search ? 'No matching records' : 'No DNS records in this zone' }}
+      <div v-if="sortedRecords.length" style="max-height: calc(100vh - 220px); overflow-y: auto;">
+        <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
+          <colgroup>
+            <col style="width: 250px" />
+            <col style="width: 100px" />
+            <col style="width: 450px" />
+            <col />
+          </colgroup>
+          <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
+            <tr class="text-caption text-medium-emphasis">
+              <th style="width: 250px !important; max-width: 250px !important; overflow: hidden;">
+                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('domain')">
+                  Domain <VIcon size="16" :icon="domainSortKey === 'domain' ? (domainSortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
+                </span>
+              </th>
+              <th style="width: 100px; max-width: 100px; overflow: hidden;">
+                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('type')">
+                  Type <VIcon size="16" :icon="sortKey === 'type' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
+                </span>
+              </th>
+              <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;">
+                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('name')">
+                  Name <VIcon size="16" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
+                </span>
+              </th>
+              <th>
+                <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('content')">
+                  Content <VIcon size="16" :icon="sortKey === 'content' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="domain in pagedDomainKeys" :key="domain">
+              <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
+                <td style="width: 250px !important; max-width: 250px !important; padding: 0 !important;">
+                  <div class="d-flex align-center" style="width: 250px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                    <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
+                    <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
+                    <span class="font-weight-bold text-body-1">{{ domain }}</span>
+                    <VChip size="x-small" variant="tonal" color="primary" class="ms-2">{{ groupedRecords[domain]?.length || 0 }}</VChip>
+                  </div>
+                </td>
+                <td style="width: 100px; max-width: 100px;"></td>
+                <td style="width: 450px !important; max-width: 450px !important;"></td>
+                <td></td>
+              </tr>
+              <template v-if="expandedDomains[domain]">
+                <tr v-for="r in (groupedRecords[domain] || [])" :key="r.record_id">
+                  <td style="width: 250px !important; max-width: 250px !important;"></td>
+                <td style="width: 100px !important; max-width: 100px !important;"><div style="width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip></div></td>
+                  <td style="width: 450px !important; max-width: 450px !important; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><code style="display: block; width: 450px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" class="text-caption">{{ r.name }}</code></td>
+                  <td style="word-break: break-all;"><code class="text-caption">{{ r.content }}</code></td>
+                </tr>
+              </template>
+            </template>
+          </tbody>
+        </VTable>
+      </div>
+      <VCardText v-else-if="!loadingRecords" class="text-center py-8 text-medium-emphasis">
+        <VIcon icon="bx-dns" size="48" class="mb-2" />
+        <p>{{ domainFilter ? 'No matching records' : 'No synced DNS records. Click Sync to fetch from Cloudflare.' }}</p>
       </VCardText>
     </VCard>
     <VCard v-else>
       <VCardText class="text-center py-8 text-medium-emphasis">
-        <VIcon icon="bx-dns" size="48" class="mb-2" />
-        <p>Select an account and zone to manage DNS records</p>
+        <VIcon icon="bx-globe" size="48" class="mb-2" />
+        <p>Select an account to manage DNS records</p>
       </VCardText>
     </VCard>
-
-    <!-- Dialog -->
-    <VDialog v-model="dialog" max-width="500">
-      <VCard>
-        <VCardTitle>{{ editingId ? 'Edit Record' : 'Add Record' }}</VCardTitle>
-        <VCardText>
-          <VSelect v-model="form.type" :items="DNS_TYPES" label="Type" density="compact" class="mb-3" />
-          <VTextField v-model="form.name" label="Name" density="compact" class="mb-3" placeholder="e.g. @, www, api" />
-          <VTextField v-model="form.content" label="Content" density="compact" class="mb-3" placeholder="e.g. 1.2.3.4, example.com" />
-          <div class="d-flex gap-3">
-            <VSwitch v-model="form.proxied" label="Proxied" color="primary" density="compact" hide-details />
-            <VTextField v-model.number="form.ttl" label="TTL (seconds)" type="number" density="compact" class="flex-grow-1" hint="1 = Auto" persistent-hint />
-          </div>
-        </VCardText>
-        <VCardActions>
-          <VSpacer />
-          <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
-          <VBtn color="primary" :loading="saving" :disabled="!form.name.trim() || !form.content.trim()" @click="save">Save</VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
 
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
+
+<style scoped>
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.sortable:hover {
+  color: rgb(var(--v-theme-primary));
+}
+</style>

@@ -314,19 +314,31 @@ function exportDomains() {
 
 <template>
   <div>
-    <VCard>
-      <VCardText class="d-flex justify-end align-center flex-wrap gap-3">
-        <div class="d-flex align-center gap-3">
-          <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
-          <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
-          <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
-          <VBtn prepend-icon="bx-edit" variant="tonal" color="warning" size="small" :disabled="!canManage || !selectedDomains.length" @click="isBulkEditDialogVisible = true">Edit ({{ selectedDomains.length }})</VBtn>
-        </div>
+    <VCard class="mb-4">
+      <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
+        <VTextField
+          v-model="searchQuery"
+          prepend-inner-icon="bx-search"
+          placeholder="Search domains..."
+          density="compact"
+          hide-details
+          clearable
+          style="max-width: 240px"
+        />
+        <VChip size="small" color="primary" variant="tonal">Total: {{ domains.length }}</VChip>
+        <VSpacer />
+        <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
+        <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
+        <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
+        <VBtn prepend-icon="bx-edit" variant="tonal" color="warning" size="small" :disabled="!canManage || !selectedDomains.length" @click="isBulkEditDialogVisible = true">Edit ({{ selectedDomains.length }})</VBtn>
       </VCardText>
-      <VDivider />
+    </VCard>
+
+    <VCard>
       <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <VTable v-if="domains.length" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
-        <thead>
+      <div v-if="domains.length" style="max-height: calc(100vh - 220px); overflow-y: auto;">
+      <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
+        <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
           <tr class="text-caption text-medium-emphasis">
             <th style="width: 40px; padding-left: 50px;"><VCheckbox density="compact" hide-details :model-value="allExpandedDomainsSelected" :indeterminate="someExpandedDomainsSelected" @update:model-value="toggleSelectAll" /></th>
             <th>
@@ -382,7 +394,8 @@ function exportDomains() {
         </template>
         </tbody>
       </VTable>
-      <VCardText v-if="!loading && !domains.length" class="text-center text-medium-emphasis pa-6">
+      </div>
+      <VCardText v-else-if="!loading && !domains.length" class="text-center text-medium-emphasis pa-6">
         No domains configured
       </VCardText>
     </VCard>

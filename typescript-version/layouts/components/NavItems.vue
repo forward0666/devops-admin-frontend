@@ -208,9 +208,18 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'Account', to: '/devops/cloudflare' }" />
         <VerticalNavLink :item="{ title: 'DNS', to: '/devops/cloudflare/dns' }" />
         <VerticalNavLink :item="{ title: 'Zone', to: '/devops/cloudflare/zone' }" />
-        <VerticalNavLink :item="{ title: 'Firewall', to: '/devops/cloudflare/firewall' }" />
+        <VerticalNavLink :item="{ title: 'Security', to: '/devops/cloudflare/security' }" />
         <VerticalNavLink :item="{ title: 'SSL', to: '/devops/cloudflare/ssl' }" />
         <VerticalNavLink :item="{ title: 'Cache', to: '/devops/cloudflare/cache' }" />
+      </VerticalNavGroup>
+
+      <VerticalNavGroup
+        :item="{
+          title: 'Tencent',
+          icon: 'bx-cloud',
+        }"
+      >
+        <VerticalNavLink :item="{ title: 'Dashboard', to: '/devops/tencent' }" />
       </VerticalNavGroup>
     </template>
 

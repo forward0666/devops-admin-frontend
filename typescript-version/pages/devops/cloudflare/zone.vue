@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import apiClient from '~/services/api'
-import { useCfAccount, useCfAccountSync } from '~/composables/useCfAccount'
+import { useCfAccount } from '~/composables/useCfAccount'
 
 definePageMeta({ layout: 'default' })
 
 const CF_GATEWAY = '/cloudflare'
 const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
-const selectedAccountId = ref<number | null>(null)
+const route = useRoute()
+const router = useRouter()
+const selectedAccountId = ref<number | null>(Number(route.query.account) || null)
 const zones = ref<any[]>([])
 const loadingZones = ref(false)
 const syncing = ref(false)
@@ -17,6 +19,7 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 const accountOptions = computed(() => accounts.value.map((a: any) => ({ title: a.name, value: a.id })))
 
 watch(selectedAccountId, (val) => {
+  router.replace({ query: val ? { account: String(val) } : {} })
   if (val) fetchZones()
 })
 
@@ -55,21 +58,87 @@ async function syncFromCF() {
   }
 }
 
-onMounted(() => {
-  fetchAccounts()
+onMounted(async () => {
+  await fetchAccounts()
+  if (!selectedAccountId.value && accounts.value.length > 0) {
+    selectedAccountId.value = accounts.value[0].id
+  }
+  if (selectedAccountId.value) fetchZones()
 })
 
 const statusColors: Record<string, string> = { active: 'success', pending: 'warning', moved: 'info', deactivated: 'error' }
+
+const planCounts = computed(() => {
+  const map: Record<string, number> = {}
+  zones.value.forEach(z => {
+    const p = z.plan || 'unknown'
+    map[p] = (map[p] || 0) + 1
+  })
+  return map
+})
+
+const planColors: Record<string, string> = { free: 'info', pro: 'primary', business: 'secondary', enterprise: 'warning' }
+
+const sortKey = ref<string>('name')
+const sortOrder = ref<'asc' | 'desc'>('asc')
+
+const sortedZones = computed(() => {
+  const sorted = [...zones.value]
+  const key = sortKey.value
+  const order = sortOrder.value === 'asc' ? 1 : -1
+  sorted.sort((a, b) => {
+    const va = a[key]
+    const vb = b[key]
+    if (va == null) return 1
+    if (vb == null) return -1
+    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * order
+    return String(va).localeCompare(String(vb)) * order
+  })
+  return sorted
+})
+
+const page = ref(1)
+const pageSize = ref(50)
+
+const totalPages = computed(() => Math.ceil(sortedZones.value.length / pageSize.value))
+const pagedZones = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return sortedZones.value.slice(start, start + pageSize.value)
+})
+
+function toggleSort(key: string) {
+  if (sortKey.value === key) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortOrder.value = 'asc'
+  }
+}
+
+
+function exportCSV() {
+  if (!sortedZones.value.length) return
+  const headers = Object.keys(sortedZones.value[0]).filter(k => k !== '_id')
+  const rows = sortedZones.value.map(r => headers.map(h => {
+    let v = r[h]
+    if (typeof v === 'string' && (v.includes(',') || v.includes('"'))) v = '"' + v.replace(/"/g, '""') + '"'
+    return v
+  }).join(','))
+  const csv = [headers.join(','), ...rows].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'zones_' + new Date().toISOString().slice(0, 10) + '.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
 </script>
 
 <template>
   <div>
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
-        <div class="flex-grow-1">
-          <h4 class="text-h4 mb-1">Zone Config</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Manage Cloudflare zones</p>
-        </div>
         <VSelect
           v-model="selectedAccountId"
           :items="accountOptions"
@@ -79,6 +148,12 @@ const statusColors: Record<string, string> = { active: 'success', pending: 'warn
           hide-details
           :loading="loading"
         />
+        <div class="d-flex align-center flex-wrap gap-4">
+          <VChip size="small" color="primary" variant="tonal">Total: {{ zones.length }}</VChip>
+          <VChip size="small" color="success" variant="tonal">Active: {{ zones.filter(z => z.status === 'active').length }}</VChip>
+          <VChip v-for="(count, plan) in planCounts" :key="plan" size="small" :color="planColors[plan] || 'grey'" variant="tonal">{{ plan }}: {{ count }}</VChip>
+        </div>
+        <VSpacer />
         <VBtn
           color="primary"
           variant="tonal"
@@ -89,6 +164,11 @@ const statusColors: Record<string, string> = { active: 'success', pending: 'warn
         >
           Sync
         </VBtn>
+        <VBtn icon="bx-download" size="small" variant="text" :disabled="!selectedAccountId" title="Export CSV" @click="exportCSV" class="ms-1" />
+        <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
+        <span  class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
+        <VBtn  icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
+        <VSelect  v-model="pageSize" :items="[20, 50, 100, 200, 500]" density="compact" style="max-width: 90px" hide-details @update:model-value="page = 1" />
       </VCardText>
     </VCard>
 
@@ -97,17 +177,26 @@ const statusColors: Record<string, string> = { active: 'success', pending: 'warn
       <VTable v-if="zones.length > 0">
         <thead>
           <tr>
-            <th>Domain</th>
-            <th style="width: 100px">Status</th>
-            <th style="width: 90px">Plan</th>
+            <th class="sortable" @click="toggleSort('name')">
+              Domain <VIcon size="16">{{ sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
+            </th>
+            <th style="width: 140px">Zone ID</th>
+            <th class="sortable" style="width: 100px" @click="toggleSort('status')">
+              Status <VIcon size="16">{{ sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
+            </th>
+            <th class="sortable" style="width: 190px" @click="toggleSort('plan')">
+              Plan <VIcon size="16">{{ sortKey === 'plan' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
+            </th>
             <th style="width: 140px">Name Server</th>
-            <th style="width: 150px">Account</th>
-            <th style="width: 150px">Synced</th>
+            <th class="sortable" style="width: 250px" @click="toggleSort('synced_at')">
+              Synced <VIcon size="16">{{ sortKey === 'synced_at' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="z in zones" :key="z.zone_id">
+          <tr v-for="z in pagedZones" :key="z.zone_id">
             <td class="font-weight-medium">{{ z.name }}</td>
+            <td><code class="text-caption text-medium-emphasis">{{ z.zone_id }}</code></td>
             <td>
               <VChip size="x-small" :color="statusColors[z.status] || 'grey'" variant="tonal">{{ z.status }}</VChip>
               <VChip v-if="z.paused" size="x-small" color="grey" variant="tonal" class="ms-1">Paused</VChip>
@@ -118,7 +207,6 @@ const statusColors: Record<string, string> = { active: 'success', pending: 'warn
                 {{ ns }}
               </div>
             </td>
-            <td class="text-caption">{{ z.account_name }}</td>
             <td class="text-caption text-medium-emphasis">{{ z.synced_at ? new Date(z.synced_at).toLocaleString() : '-' }}</td>
           </tr>
         </tbody>
@@ -134,7 +222,17 @@ const statusColors: Record<string, string> = { active: 'success', pending: 'warn
         <p>Select an account to manage zones</p>
       </VCardText>
     </VCard>
-
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
+
+<style scoped>
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.sortable:hover {
+  color: rgb(var(--v-theme-primary));
+}
+</style>
