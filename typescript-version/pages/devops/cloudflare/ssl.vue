@@ -217,7 +217,7 @@ const sslModeInfo: Record<string, string> = {
 
     <VCard v-if="selectedAccountId">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <div v-if="zones.length > 0" style="max-height: calc(100vh - 220px); overflow-y: auto;">
+      <div v-if="zones.length > 0" style="">
         <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 360px" />

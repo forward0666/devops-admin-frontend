@@ -246,7 +246,7 @@ function exportCSV() {
 
     <VCard v-if="selectedAccountId">
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
-      <div v-if="sortedRecords.length" style="max-height: calc(100vh - 220px); overflow-y: auto;">
+      <div v-if="sortedRecords.length" style="">
         <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 250px" />
