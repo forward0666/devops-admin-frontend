@@ -1,185 +1,254 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { SSL_MODES, TAG_LABELS, TAG_COLORS } from '~/composables/useCf'
+import { ref, computed, onMounted, watch } from 'vue'
+import apiClient from '~/services/api'
 import { useCfAccount } from '~/composables/useCfAccount'
-import { cfApi } from '~/services/cfApi'
 
 definePageMeta({ layout: 'default' })
 
+const CF_GATEWAY = '/cloudflare'
 const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
-const selectedAccountId = ref('')
-const selectedZoneId = ref('')
-const snackbar = ref({ show: false, text: '', color: 'success' })
+const route = useRoute()
+const router = useRouter()
+const selectedAccountId = ref<number | null>(Number(route.query.account) || null)
+const syncing = ref(false)
+const syncingZone = ref<string | null>(null)
 const saving = ref(false)
-const loadingSsl = ref(false)
+const snackbar = ref({ show: false, text: '', color: 'success' })
+
+const accountOptions = computed(() => accounts.value.map((a: any) => ({ title: a.name, value: a.id })))
 
 const zones = ref<any[]>([])
-const sslMode = ref('off')
 const loadingZones = ref(false)
+const sslMap = ref<Record<string, any>>({})
+const expandedZones = ref<Record<string, boolean>>({})
+const search = ref('')
 
-const sslAccounts = computed(() => accounts.value.filter(a => (a.tags || []).includes('ssl')))
+const sslModeColors: Record<string, string> = { off: 'error', flexible: 'warning', full: 'info', full_strict: 'success' }
+const sslModeLabels: Record<string, string> = { off: 'Off', flexible: 'Flexible', full: 'Full', full_strict: 'Full (Strict)' }
 
-watch(selectedAccountId, async (val) => {
-  selectedZoneId.value = ''
-  zones.value = []
-  sslMode.value = 'off'
-  if (!val) return
+watch(selectedAccountId, (val) => {
+  router.replace({ query: val ? { account: String(val) } : {} })
+  sslMap.value = {}
+  expandedZones.value = {}
+  if (val) fetchZones()
+})
+
+async function fetchZones() {
+  if (!selectedAccountId.value) return
   loadingZones.value = true
   try {
-    const token = await getToken(val)
-    const res = await cfApi.listZones(token)
-    zones.value = (res.result || []).map((z: any) => ({
-      id: z.id,
-      name: z.name,
-      status: z.status,
-      plan: z.plan?.name || 'free',
-      nameServers: z.name_servers || [],
-    }))
+    const { data } = await apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: selectedAccountId.value } })
+    zones.value = data.data || []
+    await fetchAllSsl()
   } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load zones', color: 'error' }
+    console.error('Failed to fetch zones', e)
   } finally {
     loadingZones.value = false
   }
-})
+}
 
-watch(selectedZoneId, async (val) => {
-  sslMode.value = 'off'
-  if (!val || !selectedAccountId.value) return
-  loadingSsl.value = true
+async function fetchAllSsl() {
+  if (!selectedAccountId.value) return
+  try {
+    const { data } = await apiClient.get(`${CF_GATEWAY}/ssl`, { params: { account_id: selectedAccountId.value } })
+    const map: Record<string, any> = {}
+    ;(data.data || []).forEach((r: any) => { map[r.zone_id] = r })
+    sslMap.value = map
+  } catch (e: any) {
+    console.error('Failed to fetch SSL settings', e)
+  }
+}
+
+async function syncZone(zoneId: string) {
+  if (!selectedAccountId.value) return
+  syncingZone.value = zoneId
   try {
     const token = await getToken(selectedAccountId.value)
-    const res = await cfApi.getSsl(token, val)
-    sslMode.value = res.result?.value || 'off'
+    await apiClient.post(`${CF_GATEWAY}/zones/${zoneId}/ssl/sync`, null, {
+      params: { account_id: selectedAccountId.value, zone_id: zoneId },
+      headers: { 'X-Cf-Token': token },
+    })
+    snackbar.value = { show: true, text: 'SSL synced', color: 'success' }
+    // Re-fetch single zone
+    const { data } = await apiClient.get(`${CF_GATEWAY}/zones/${zoneId}/ssl`, {
+      params: { account_id: selectedAccountId.value, zone_id: zoneId },
+    })
+    sslMap.value = { ...sslMap.value, [zoneId]: (data.data || [])[0] }
   } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to load SSL settings', color: 'error' }
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Sync failed', color: 'error' }
   } finally {
-    loadingSsl.value = false
+    syncingZone.value = null
   }
-})
+}
 
-async function saveSslMode(mode: string) {
-  if (!selectedZoneId.value || !selectedAccountId.value) return
+async function syncAll() {
+  if (!selectedAccountId.value || zones.value.length === 0) return
+  syncing.value = true
+  try {
+    const token = await getToken(selectedAccountId.value)
+    for (const z of zones.value) {
+      try {
+        await apiClient.post(`${CF_GATEWAY}/zones/${z.zone_id}/ssl/sync`, null, {
+          params: { account_id: selectedAccountId.value, zone_id: z.zone_id },
+          headers: { 'X-Cf-Token': token },
+        })
+      } catch (e) { /* skip failed zone */ }
+    }
+    snackbar.value = { show: true, text: `Synced ${zones.value.length} zones`, color: 'success' }
+    await fetchAllSsl()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: 'Sync failed', color: 'error' }
+  } finally {
+    syncing.value = false
+  }
+}
+
+async function updateSsl(zoneId: string, mode: string) {
+  if (!selectedAccountId.value) return
   saving.value = true
   try {
     const token = await getToken(selectedAccountId.value)
-    await cfApi.updateSsl(token, selectedZoneId.value, mode)
-    sslMode.value = mode
+    await apiClient.patch(`${CF_GATEWAY}/zones/${zoneId}/ssl`, { value: mode }, {
+      params: { account_id: selectedAccountId.value, zone_id: zoneId },
+      headers: { 'X-Cf-Token': token },
+    })
+    sslMap.value = { ...sslMap.value, [zoneId]: { ...sslMap.value[zoneId], ssl_mode: mode } }
     snackbar.value = { show: true, text: 'SSL mode updated', color: 'success' }
   } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.errors?.[0]?.message || 'Failed to update SSL', color: 'error' }
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to update', color: 'error' }
   } finally {
     saving.value = false
   }
 }
 
-onMounted(() => fetchAccounts())
-
-const sslModeInfo: Record<string, { title: string; desc: string; color: string; icon: string }> = {
-  off: { title: 'Off', desc: 'No encryption between visitor and Cloudflare, or Cloudflare and origin server.', color: 'error', icon: 'bx-x-circle' },
-  flexible: { title: 'Flexible', desc: 'Encrypts traffic between visitor and Cloudflare, but not between Cloudflare and origin server.', color: 'warning', icon: 'bx-lock-open' },
-  full: { title: 'Full', desc: 'Encrypts end-to-end, but allows self-signed certificates on origin server.', color: 'info', icon: 'bx-lock' },
-  full_strict: { title: 'Full (Strict)', desc: 'Encrypts end-to-end with a valid SSL certificate on origin server.', color: 'success', icon: 'bx-shield-check' },
+function toggleZone(zoneId: string) {
+  expandedZones.value = { ...expandedZones.value, [zoneId]: !expandedZones.value[zoneId] }
 }
 
-const edgeCerts = [
-  { label: 'HTTPS', desc: 'Always redirect to HTTPS', enabled: true },
-  { label: 'Automatic HTTPS Rewrites', desc: 'Automatically rewrite HTTP to HTTPS for known sites', enabled: true },
-  { label: 'HSTS', desc: 'Enable HTTP Strict Transport Security', enabled: false },
-  { label: 'Minimum TLS Version', desc: 'TLS 1.2 or higher', enabled: true },
-  { label: 'TLS 1.3', desc: 'Enable TLS 1.3 support', enabled: true },
-  { label: 'Opportunistic Encryption', desc: 'Serve resources over HTTPS when possible', enabled: true },
-]
+const filteredZones = computed(() => {
+  if (!search.value) return zones.value
+  const s = search.value.toLowerCase()
+  return zones.value.filter(z => z.name?.toLowerCase().includes(s))
+})
+
+const modeCounts = computed(() => {
+  const map: Record<string, number> = {}
+  Object.values(sslMap.value).forEach((r: any) => {
+    const m = r?.ssl_mode || 'unknown'
+    map[m] = (map[m] || 0) + 1
+  })
+  return map
+})
+
+const page = ref(Number(route.query.page) || 1)
+const pageSize = ref(Number(route.query.size) || 20)
+
+watch([page, pageSize, search], () => {
+  router.replace({ query: { ...route.query, page: String(page.value), size: String(pageSize.value), search: search.value || undefined } })
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredZones.value.length / pageSize.value)))
+const pagedZones = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return filteredZones.value.slice(start, start + pageSize.value)
+})
+
+onMounted(async () => {
+  await fetchAccounts()
+  if (!selectedAccountId.value && accounts.value.length > 0) selectedAccountId.value = accounts.value[0].id
+  if (selectedAccountId.value) fetchZones()
+})
+
+const SSL_MODES = ['off', 'flexible', 'full', 'full_strict']
+const sslModeInfo: Record<string, string> = {
+  off: 'No encryption',
+  flexible: 'Visitor↔CF encrypted, CF↔Origin not',
+  full: 'End-to-end, self-signed OK',
+  full_strict: 'End-to-end, valid cert required',
+}
 </script>
 
 <template>
   <div>
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
-        <div class="flex-grow-1">
-          <h4 class="text-h4 mb-1">SSL/TLS Settings</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Configure SSL encryption mode</p>
+        <VSelect v-model="selectedAccountId" :items="accountOptions" label="Account" density="compact" style="max-width: 180px" hide-details :loading="loading" />
+        <VTextField v-model="search" prepend-inner-icon="bx-search" placeholder="Filter by domain..." density="compact" hide-details clearable style="max-width: 240px" />
+        <div class="d-flex align-center flex-wrap gap-4">
+          <VChip size="small" color="primary" variant="tonal">Zones: {{ zones.length }}</VChip>
+          <VChip v-for="(count, mode) in modeCounts" :key="mode" size="small" :color="sslModeColors[mode] || 'grey'" variant="tonal">{{ sslModeLabels[mode] || mode }}: {{ count }}</VChip>
         </div>
-        <VSelect v-model="selectedAccountId" :items="sslAccounts.map((a: any) => ({ title: a.name, value: a.id }))" label="Account" density="compact" style="max-width: 180px" hide-details :loading="loading" />
-        <VSelect v-model="selectedZoneId" :items="zones.map((z: any) => ({ title: z.name, value: z.id }))" label="Zone" density="compact" style="max-width: 220px" hide-details :disabled="!selectedAccountId" :loading="loadingZones" />
+        <VSpacer />
+        <VBtn color="primary" variant="tonal" :loading="syncing" :disabled="!selectedAccountId" prepend-icon="bx-refresh" @click="syncAll">Sync</VBtn>
+        <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
+        <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
+        <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
+        <VSelect v-model="pageSize" :items="[10, 20, 50, 100]" density="compact" style="max-width: 90px" hide-details @update:model-value="page = 1" />
       </VCardText>
     </VCard>
 
-    <template v-if="selectedZoneId">
-      <VProgressLinear v-if="loadingSsl" indeterminate color="primary" />
-
-      <!-- SSL Mode Selection -->
-      <VCard class="mb-4">
-        <VCardTitle class="text-subtitle-1">Encryption Mode</VCardTitle>
-        <VCardText>
-          <div class="d-flex flex-column gap-3">
-            <VCard
-              v-for="mode in SSL_MODES" :key="mode"
-              variant="outlined"
-              :color="sslMode === mode ? 'primary' : undefined"
-              class="cursor-pointer pa-3"
-              @click="saveSslMode(mode)"
-            >
-              <div class="d-flex align-center gap-3">
-                <VRadio :model-value="sslMode" :value="mode" hide-details density="compact" />
-                <VIcon :icon="sslModeInfo[mode].icon" :color="sslModeInfo[mode].color" size="24" />
-                <div class="flex-grow-1">
-                  <div class="font-weight-medium text-body-1">{{ sslModeInfo[mode].title }}</div>
-                  <div class="text-caption text-medium-emphasis">{{ sslModeInfo[mode].desc }}</div>
-                </div>
-                <VChip v-if="sslMode === mode" size="small" color="primary" variant="flat">Active</VChip>
-                <VProgressCircular v-if="saving && sslMode === mode" size="20" indeterminate color="primary" />
-              </div>
-            </VCard>
-          </div>
-        </VCardText>
-      </VCard>
-
-      <!-- Edge Certificates -->
-      <VCard class="mb-4">
-        <VCardTitle class="text-subtitle-1">Edge Certificates</VCardTitle>
-        <VTable>
-          <thead>
-            <tr>
-              <th>Setting</th>
-              <th>Description</th>
-              <th style="width: 100px">Status</th>
+    <VCard v-if="selectedAccountId">
+      <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
+      <div v-if="zones.length > 0" style="max-height: calc(100vh - 220px); overflow-y: auto;">
+        <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
+          <colgroup>
+            <col style="width: 360px" />
+            <col style="width: 140px" />
+            <col style="width: 180px" />
+            <col />
+          </colgroup>
+          <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
+            <tr class="text-caption text-medium-emphasis">
+              <th style="width: 360px !important; max-width: 360px !important;">Zone</th>
+              <th style="width: 140px; max-width: 140px;">SSL Mode</th>
+              <th style="width: 180px; max-width: 180px;">Modified</th>
+              <th>Synced</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="cert in edgeCerts" :key="cert.label">
-              <td class="font-weight-medium">{{ cert.label }}</td>
-              <td class="text-caption text-medium-emphasis">{{ cert.desc }}</td>
-              <td><VChip size="x-small" :color="cert.enabled ? 'success' : 'grey'" variant="tonal">{{ cert.enabled ? 'ON' : 'OFF' }}</VChip></td>
-            </tr>
+            <template v-for="z in pagedZones" :key="z.zone_id">
+              <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
+                <td style="width: 360px !important; max-width: 360px !important; padding: 0 !important;">
+                  <div class="d-flex align-center" style="width: 360px; max-width: 360px; overflow: hidden; padding: 10px 16px;">
+                    <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
+                    <VIcon icon="bx-lock" size="18" class="me-2 text-medium-emphasis" />
+                    <span class="font-weight-bold text-body-1">{{ z.name }}</span>
+                    <VBtn size="x-small" variant="tonal" color="primary" :loading="syncingZone === z.zone_id" @click.stop="syncZone(z.zone_id)" prepend-icon="bx-refresh" class="ms-2">Sync</VBtn>
+                  </div>
+                </td>
+                <td style="width: 140px; max-width: 140px;">
+                  <VChip v-if="sslMap[z.zone_id]" size="x-small" :color="sslModeColors[sslMap[z.zone_id].ssl_mode] || 'grey'" variant="tonal">{{ sslModeLabels[sslMap[z.zone_id].ssl_mode] || sslMap[z.zone_id].ssl_mode }}</VChip>
+                </td>
+                <td style="width: 180px; max-width: 180px;" class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.modified_on ? new Date(sslMap[z.zone_id].modified_on).toLocaleString() : '-' }}</td>
+                <td class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.synced_at ? new Date(sslMap[z.zone_id].synced_at).toLocaleString() : '-' }}</td>
+              </tr>
+              <template v-if="expandedZones[z.zone_id] && sslMap[z.zone_id]">
+                <tr v-for="mode in SSL_MODES" :key="mode">
+                  <td style="width: 360px !important; max-width: 360px !important;"></td>
+                  <td style="width: 140px; max-width: 140px;" colspan="2">
+                    <div class="d-flex align-center gap-2 cursor-pointer" @click="updateSsl(z.zone_id, mode)">
+                      <VRadio :model-value="sslMap[z.zone_id]?.ssl_mode" :value="mode" density="compact" hide-details />
+                      <VChip size="x-small" :color="sslModeColors[mode]" variant="tonal">{{ sslModeLabels[mode] }}</VChip>
+                      <span class="text-caption text-medium-emphasis">{{ sslModeInfo[mode] }}</span>
+                    </div>
+                  </td>
+                  <td></td>
+                </tr>
+              </template>
+            </template>
           </tbody>
         </VTable>
-      </VCard>
-
-      <!-- Recommendations -->
-      <VCard>
-        <VCardTitle class="text-subtitle-1">SSL Recommendations</VCardTitle>
-        <VCardText>
-          <VAlert v-if="sslMode === 'off'" type="error" variant="tonal" density="compact" class="mb-2">
-            SSL is disabled. Enable encryption to protect your visitors.
-          </VAlert>
-          <VAlert v-if="sslMode === 'flexible'" type="warning" variant="tonal" density="compact" class="mb-2">
-            Flexible mode may cause mixed content issues. Consider upgrading to Full.
-          </VAlert>
-          <VAlert v-if="sslMode === 'full'" type="info" variant="tonal" density="compact" class="mb-2">
-            For maximum security, use Full (Strict) mode with a valid origin certificate.
-          </VAlert>
-          <VAlert v-if="sslMode === 'full_strict'" type="success" variant="tonal" density="compact">
-            Your zone is using the most secure SSL mode.
-          </VAlert>
-        </VCardText>
-      </VCard>
-    </template>
-
+      </div>
+      <VCardText v-else-if="!loadingZones" class="text-center py-8 text-medium-emphasis">
+        <VIcon icon="bx-lock" size="48" class="mb-2" />
+        <p>{{ search ? 'No matching zones' : 'No synced zones. Click Sync on Zones page first.' }}</p>
+      </VCardText>
+    </VCard>
     <VCard v-else>
       <VCardText class="text-center py-8 text-medium-emphasis">
         <VIcon icon="bx-lock" size="48" class="mb-2" />
-        <p>Select an account and zone to configure SSL/TLS</p>
+        <p>Select an account to manage SSL/TLS</p>
       </VCardText>
     </VCard>
 
