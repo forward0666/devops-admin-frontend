@@ -41,10 +41,31 @@ async function fetchZones() {
   try {
     const { data } = await apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: selectedAccountId.value } })
     zones.value = data.data || []
+    // Load all rules at once
+    await fetchAllRules()
   } catch (e: any) {
     console.error('Failed to fetch zones', e)
   } finally {
     loadingZones.value = false
+  }
+}
+
+async function fetchAllRules() {
+  if (!selectedAccountId.value) return
+  try {
+    const { data } = await apiClient.get(`${CF_GATEWAY}/security`, {
+      params: { account_id: selectedAccountId.value },
+    })
+    const allRules = data.data || []
+    const map: Record<string, any[]> = {}
+    allRules.forEach((r: any) => {
+      const zid = r.zone_id
+      if (!map[zid]) map[zid] = []
+      map[zid].push(r)
+    })
+    rulesMap.value = map
+  } catch (e: any) {
+    console.error('Failed to fetch all rules', e)
   }
 }
 
