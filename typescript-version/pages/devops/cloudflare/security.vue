@@ -11,7 +11,7 @@ const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 const route = useRoute()
 const router = useRouter()
 const selectedAccountId = ref<number | null>(Number(route.query.account) || null)
-const search = ref('')
+const search = ref(route.query.search as string || '')
 const syncing = ref(false)
 const syncingZone = ref<string | null>(null)
 const syncingAll = ref(false)
@@ -29,9 +29,14 @@ const rulesMap = ref<Record<string, any[]>>({})
 
 const actionColors: Record<string, string> = { block: 'error', allow: 'success', challenge: 'warning', skip: 'info' }
 
+watch([page, pageSize, search], () => {
+  router.replace({ query: { ...route.query, page: String(page.value), size: String(pageSize.value), search: search.value || undefined } })
+})
+
 watch(selectedAccountId, (val) => {
   router.replace({ query: val ? { account: String(val) } : {} })
   rulesMap.value = {}
+  page.value = 1
   if (val) fetchZones()
 })
 
@@ -180,8 +185,8 @@ const filteredZones = computed(() => {
 })
 
 // Pagination
-const page = ref(1)
-const pageSize = ref(20)
+const page = ref(Number(route.query.page) || 1)
+const pageSize = ref(Number(route.query.size) || 20)
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredZones.value.length / pageSize.value)))
 const pagedZones = computed(() => {
   const start = (page.value - 1) * pageSize.value
