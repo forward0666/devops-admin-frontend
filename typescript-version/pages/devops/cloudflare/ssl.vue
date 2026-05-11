@@ -126,10 +126,37 @@ function toggleZone(zoneId: string) {
   expandedZones.value = { ...expandedZones.value, [zoneId]: !expandedZones.value[zoneId] }
 }
 
+const sortKey = ref<string>('name')
+const sortOrder = ref<'asc' | 'desc'>('asc')
+
+function toggleSort(key: string) {
+  if (sortKey.value === key) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortOrder.value = 'asc'
+  }
+}
+
 const filteredZones = computed(() => {
-  if (!search.value) return zones.value
-  const s = search.value.toLowerCase()
-  return zones.value.filter(z => z.name?.toLowerCase().includes(s))
+  let list = zones.value
+  if (search.value) {
+    const s = search.value.toLowerCase()
+    list = list.filter(z => z.name?.toLowerCase().includes(s))
+  }
+  const order = sortOrder.value === 'asc' ? 1 : -1
+  return [...list].sort((a, b) => {
+    let va: any, vb: any
+    if (sortKey.value === 'name') {
+      va = a.name; vb = b.name
+    } else if (sortKey.value === 'ssl_mode') {
+      va = sslMap.value[a.zone_id]?.ssl_mode || ''; vb = sslMap.value[b.zone_id]?.ssl_mode || ''
+    } else {
+      va = a.name; vb = b.name
+    }
+    if (va == null) return 1; if (vb == null) return -1
+    return String(va).localeCompare(String(vb)) * order
+  })
 })
 
 const modeCounts = computed(() => {
@@ -200,8 +227,12 @@ const sslModeInfo: Record<string, string> = {
           </colgroup>
           <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 360px !important; max-width: 360px !important;">Zone</th>
-              <th style="width: 140px; max-width: 140px;">SSL Mode</th>
+              <th style="width: 360px !important; max-width: 360px !important;" class="sortable" @click="toggleSort('name')">
+                Zone <VIcon size="14">{{ sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2' }}</VIcon>
+              </th>
+              <th style="width: 140px; max-width: 140px;" class="sortable" @click="toggleSort('ssl_mode')">
+                SSL Mode <VIcon size="14">{{ sortKey === 'ssl_mode' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2' }}</VIcon>
+              </th>
               <th style="width: 180px; max-width: 180px;">Modified</th>
               <th>Synced</th>
             </tr>
@@ -248,3 +279,14 @@ const sslModeInfo: Record<string, string> = {
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
+
+<style scoped>
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.sortable:hover {
+  color: rgb(var(--v-theme-primary));
+}
+</style>
