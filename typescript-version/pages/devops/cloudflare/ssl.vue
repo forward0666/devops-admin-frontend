@@ -224,16 +224,9 @@ const sslModeInfo: Record<string, string> = {
                 <td class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.synced_at ? new Date(sslMap[z.zone_id].synced_at).toLocaleString() : '-' }}</td>
               </tr>
               <template v-if="expandedZones[z.zone_id] && sslMap[z.zone_id]">
-                <tr v-for="mode in SSL_MODES" :key="mode">
+                <tr>
                   <td style="width: 360px !important; max-width: 360px !important;"></td>
-                  <td style="width: 140px; max-width: 140px;" colspan="2">
-                    <div class="d-flex align-center gap-2 cursor-pointer" @click="updateSsl(z.zone_id, mode)">
-                      <VRadio :model-value="sslMap[z.zone_id]?.ssl_mode" :value="mode" density="compact" hide-details />
-                      <VChip size="x-small" :color="sslModeColors[mode]" variant="tonal">{{ sslModeLabels[mode] }}</VChip>
-                      <span class="text-caption text-medium-emphasis">{{ sslModeInfo[mode] }}</span>
-                    </div>
-                  </td>
-                  <td></td>
+                  <td colspan="3" class="text-caption text-medium-emphasis pa-3">{{ sslModeInfo[sslMap[z.zone_id]?.ssl_mode] || '' }}</td>
                 </tr>
               </template>
             </template>
