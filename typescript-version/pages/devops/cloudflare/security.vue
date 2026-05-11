@@ -266,9 +266,9 @@ function exportCSV() {
       </VCardText>
     </VCard>
 
-    <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; max-height: calc(100vh - 140px);">
+    <VCard v-if="selectedAccountId">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <div v-if="zones.length > 0" style="flex: 1; overflow-y: auto">
+      <div v-if="zones.length > 0">
         <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 310px" />
