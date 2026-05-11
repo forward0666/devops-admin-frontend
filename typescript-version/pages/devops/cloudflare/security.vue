@@ -273,7 +273,18 @@ function exportCSV() {
                     <VChip v-if="getZoneRuleCount(z.zone_id) > 0" size="x-small" variant="tonal" color="primary" class="ms-2">{{ getZoneRuleCount(z.zone_id) }}</VChip>
                   </div>
                 </td>
-                <td style="width: 90px; max-width: 90px;"></td>
+                <td style="width: 90px; max-width: 90px;">
+                  <VBtn
+                    size="x-small"
+                    variant="tonal"
+                    color="primary"
+                    :loading="syncingZone === z.zone_id"
+                    @click.stop="syncZone(z.zone_id)"
+                    prepend-icon="bx-refresh"
+                  >
+                    Sync
+                  </VBtn>
+                </td>
                 <td style="width: 450px !important; max-width: 450px !important;"></td>
                 <td style="width: 100px; max-width: 100px;"></td>
                 <td style="width: 80px; max-width: 80px;"></td>
