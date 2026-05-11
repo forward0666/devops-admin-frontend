@@ -245,19 +245,19 @@ function exportCSV() {
         <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 280px" />
+            <col style="width: 90px" />
             <col style="width: 450px" />
             <col style="width: 100px" />
             <col style="width: 80px" />
-            <col style="width: 90px" />
             <col />
           </colgroup>
           <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
             <tr class="text-caption text-medium-emphasis">
               <th style="width: 280px !important; max-width: 280px !important; overflow: hidden;">Zone</th>
+              <th style="width: 90px; max-width: 90px; overflow: hidden;">Action</th>
               <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;">Expression</th>
               <th style="width: 100px; max-width: 100px; overflow: hidden;">Priority</th>
               <th style="width: 80px; max-width: 80px; overflow: hidden;">Status</th>
-              <th style="width: 90px; max-width: 90px; overflow: hidden;">Action</th>
               <th>Synced</th>
             </tr>
           </thead>
@@ -273,10 +273,10 @@ function exportCSV() {
                     <VChip v-if="getZoneRuleCount(z.zone_id) > 0" size="x-small" variant="tonal" color="primary" class="ms-2">{{ getZoneRuleCount(z.zone_id) }}</VChip>
                   </div>
                 </td>
+                <td style="width: 90px; max-width: 90px;"></td>
                 <td style="width: 450px !important; max-width: 450px !important;"></td>
                 <td style="width: 100px; max-width: 100px;"></td>
                 <td style="width: 80px; max-width: 80px;"></td>
-                <td style="width: 90px; max-width: 90px;"></td>
                 <td></td>
               </tr>
               <!-- Rules rows -->
@@ -289,10 +289,10 @@ function exportCSV() {
                     <td style="width: 280px !important; max-width: 280px !important;">
                       <div style="width: 280px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                     </td>
+                    <td style="width: 90px !important; max-width: 90px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
                     <td style="width: 450px !important; max-width: 450px !important; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><code style="display: block; width: 450px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" class="text-caption">{{ r.expression }}</code></td>
                     <td style="width: 100px; max-width: 100px;" class="text-caption">{{ r.priority }}</td>
                     <td style="width: 80px; max-width: 80px;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
-                    <td style="width: 90px !important; max-width: 90px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
                     <td class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
                   </tr>
                 </template>
