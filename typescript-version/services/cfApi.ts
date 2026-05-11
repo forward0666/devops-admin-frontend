@@ -34,26 +34,7 @@ export const cfApi = {
     return data
   },
 
-  // Firewall
-  async listFirewallRules(apiToken: string, zoneId: string) {
-    const { data } = await apiClient.get(`${CF_GATEWAY}/zones/${zoneId}/security/rules`, { headers: cfHeaders(apiToken) })
-    return data
-  },
 
-  async createFirewallRule(apiToken: string, zoneId: string, body: Record<string, any>) {
-    const { data } = await apiClient.post(`${CF_GATEWAY}/zones/${zoneId}/security/rules`, body, { headers: cfHeaders(apiToken) })
-    return data
-  },
-
-  async updateFirewallRule(apiToken: string, zoneId: string, ruleId: string, body: Record<string, any>) {
-    const { data } = await apiClient.put(`${CF_GATEWAY}/zones/${zoneId}/security/rules/${ruleId}`, body, { headers: cfHeaders(apiToken) })
-    return data
-  },
-
-  async deleteFirewallRule(apiToken: string, zoneId: string, ruleId: string) {
-    const { data } = await apiClient.delete(`${CF_GATEWAY}/zones/${zoneId}/security/rules/${ruleId}`, { headers: cfHeaders(apiToken) })
-    return data
-  },
 
   // SSL
   async getSsl(apiToken: string, zoneId: string) {
