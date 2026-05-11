@@ -328,7 +328,7 @@ function exportCSV() {
                       <div style="width: 360px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                     </td>
                     <td style="width: 90px !important; max-width: 90px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
-                    <td style="width: 450px !important; max-width: 450px !important; text-align: left;"><code style="display: block; width: 450px; max-width: 450px; white-space: pre-wrap; word-break: break-all;" class="text-caption">{{ r.expression }}</code></td>
+                    <td style="width: 450px; max-width: 450px; text-align: left;"><code style="display: block; max-width: 450px; white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
                     <td style="width: 100px; max-width: 100px;" class="text-caption">{{ r.priority }}</td>
                     <td style="width: 80px; max-width: 80px;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
                     <td class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
