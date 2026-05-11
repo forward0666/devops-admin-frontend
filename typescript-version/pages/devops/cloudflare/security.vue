@@ -271,7 +271,7 @@ function exportCSV() {
       <div v-if="zones.length > 0" style="max-height: calc(100vh - 220px); overflow-y: auto;">
         <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
           <colgroup>
-            <col style="width: 360px" />
+            <col style="width: 310px" />
             <col style="width: 90px" />
             <col style="width: 450px" />
             <col style="width: 100px" />
@@ -280,7 +280,7 @@ function exportCSV() {
           </colgroup>
           <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 360px !important; max-width: 360px !important; overflow: hidden;">Zone</th>
+              <th style="width: 310px !important; max-width: 310px !important; overflow: hidden;">Zone</th>
               <th style="width: 90px; max-width: 90px; overflow: hidden;">Action</th>
               <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;">Expression</th>
               <th style="width: 100px; max-width: 100px; overflow: hidden;">Priority</th>
@@ -292,8 +292,8 @@ function exportCSV() {
             <template v-for="z in pagedZones" :key="z.zone_id">
               <!-- Zone group header -->
               <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-                <td style="width: 360px !important; max-width: 360px !important; padding: 0 !important;">
-                  <div class="d-flex align-center" style="width: 360px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                <td style="width: 310px !important; max-width: 310px !important; padding: 0 !important;">
+                  <div class="d-flex align-center" style="width: 310px; max-width: 310px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
                     <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-shield-quarter" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ z.name }}</span>
@@ -324,8 +324,8 @@ function exportCSV() {
                 </tr>
                 <template v-else-if="(rulesMap[z.zone_id] || []).length > 0">
                   <tr v-for="r in rulesMap[z.zone_id]" :key="r.rule_id">
-                    <td style="width: 280px !important; max-width: 280px !important;">
-                      <div style="width: 360px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
+                    <td style="width: 310px; max-width: 310px;">
+                      <div style="max-width: 310px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                     </td>
                     <td style="width: 90px !important; max-width: 90px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
                     <td style="width: 450px; max-width: 450px; text-align: left;"><code style="display: block; max-width: 450px; white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
