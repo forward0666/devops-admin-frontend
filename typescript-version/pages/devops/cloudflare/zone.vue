@@ -176,10 +176,10 @@ function exportCSV() {
       </VCardText>
     </VCard>
 
-    <VCard v-if="selectedAccountId">
+    <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; max-height: calc(100vh - 140px);">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <VTable v-if="zones.length > 0">
-        <thead>
+      <VTable v-if="zones.length > 0" class="sticky-table">
+        <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
           <tr>
             <th class="sortable" @click="toggleSort('name')">
               Domain <VIcon size="16">{{ sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
@@ -238,5 +238,9 @@ function exportCSV() {
 }
 .sortable:hover {
   color: rgb(var(--v-theme-primary));
+}
+.sticky-table :deep(.v-table__wrapper) {
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
 }
 </style>
