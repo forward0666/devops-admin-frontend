@@ -77,24 +77,23 @@ const stats = computed(() => {
   return { total: filteredDomains.value.length, envs, types, projects: projectStats }
 })
 
-// --- Burn-up stacked bar chart: X = project, stacked by env ---
+// --- Burn-up time-series stacked area chart ---
+// Mock time-series data; will be replaced with real API
+const mockMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']
 const burnUpSeries = computed(() => {
-  const projectNames = [...new Set(filteredDomains.value.map(d => d.projectName))]
-  const envs = envOrder.filter(e => filteredDomains.value.some(d => d.env === e))
-  // Add any envs not in envOrder
-  const allEnvs = [...envs, ...[...new Set(filteredDomains.value.map(d => d.env))].filter(e => !envs.includes(e))]
-
-  return allEnvs.map(env => ({
+  const base = [3, 5, 8, 12, 15, 18, filteredDomains.value.length || 20]
+  return envOrder.map((env, i) => ({
     name: env.toUpperCase(),
-    data: projectNames.map(name => filteredDomains.value.filter(d => d.projectName === name && d.env === env).length),
+    data: base.map(v => Math.round(v * (0.3 + i * 0.15) + Math.random() * 2)),
   }))
 })
 
 const burnUpOptions = computed(() => ({
-  chart: { type: 'bar', stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
-  plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+  chart: { type: 'area', stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
+  stroke: { curve: 'smooth', width: 2 },
+  fill: { type: 'gradient', gradient: { opacityFrom: 0.6, opacityTo: 0.1 } },
   xaxis: {
-    categories: [...new Set(filteredDomains.value.map(d => d.projectName))],
+    categories: mockMonths,
     labels: { style: { fontSize: '12px' } },
   },
   yaxis: { title: { text: 'Domain Count' }, labels: { style: { fontSize: '12px' } } },
@@ -102,6 +101,7 @@ const burnUpOptions = computed(() => ({
   legend: { position: 'top' as const },
   tooltip: { shared: true, intersect: false },
   grid: { borderColor: '#f1f1f1' },
+  dataLabels: { enabled: false },
 }))
 
 // --- Donut: env distribution ---
@@ -151,7 +151,7 @@ watch(selectedProject, fetchDomains)
     <!-- Burn-up stacked bar chart -->
     <VCard class="mb-4">
       <VCardTitle class="pt-4 px-6">Domain Count by Project and Environment</VCardTitle>
-      <VCardSubtitle class="px-6">Stacked bar view of domain distribution</VCardSubtitle>
+      <VCardSubtitle class="px-6">Time-series area view of domain growth</VCardSubtitle>
       <VCardText>
         <VueApexCharts type="bar" height="300" :options="burnUpOptions" :series="burnUpSeries" />
       </VCardText>
