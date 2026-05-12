@@ -22,6 +22,19 @@ const selectedProject = ref<number | null>(null)
 const selectedEnv = ref<string | null>(null)
 const loading = ref(false)
 
+// Restore filters from URL query
+const route = useRoute()
+if (route.query.project) selectedProject.value = Number(route.query.project)
+if (route.query.env) selectedEnv.value = route.query.env as string
+
+// Sync filters to URL query
+watch([selectedProject, selectedEnv], ([p, e]) => {
+  const query: Record<string, string> = {}
+  if (p !== null) query.project = String(p)
+  if (e !== null) query.env = e
+  navigateTo({ query }, { replace: true })
+})
+
 async function fetchDomains() {
   loading.value = true
   try {
