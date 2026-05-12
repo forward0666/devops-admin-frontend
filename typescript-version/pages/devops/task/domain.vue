@@ -77,27 +77,29 @@ const stats = computed(() => {
   return { total: filteredDomains.value.length, envs, types, projects: projectStats }
 })
 
-// --- Burn-up time-series stacked area chart ---
+// --- Domain availability time-series line chart ---
 // Mock time-series data; will be replaced with real API
-const mockMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']
+const mockDays = Array.from({ length: 30 }, (_, i) => `${i + 1}`)
 const burnUpSeries = computed(() => {
-  const base = [3, 5, 8, 12, 15, 18, filteredDomains.value.length || 20]
-  return envOrder.map((env, i) => ({
-    name: env.toUpperCase(),
-    data: base.map(v => Math.round(v * (0.3 + i * 0.15) + Math.random() * 2)),
-  }))
+  const total = filteredDomains.value.length || 20
+  return [
+    { name: 'Total', data: mockDays.map(() => total + Math.round(Math.random() * 3)) },
+    { name: 'Available', data: mockDays.map(() => Math.round(total * (0.85 + Math.random() * 0.15))) },
+    { name: 'Down', data: mockDays.map(() => Math.round(total * Math.random() * 0.1)) },
+  ]
 })
 
 const burnUpOptions = computed(() => ({
-  chart: { type: 'area', stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
-  stroke: { curve: 'smooth', width: 2 },
-  fill: { type: 'gradient', gradient: { opacityFrom: 0.6, opacityTo: 0.1 } },
+  chart: { type: 'line', toolbar: { show: false }, fontFamily: 'inherit' },
+  stroke: { width: 2, curve: 'smooth' },
+  markers: { size: 0 },
   xaxis: {
-    categories: mockMonths,
-    labels: { style: { fontSize: '12px' } },
+    categories: mockDays,
+    title: { text: 'Day' },
+    labels: { style: { fontSize: '11px' } },
   },
   yaxis: { title: { text: 'Domain Count' }, labels: { style: { fontSize: '12px' } } },
-  colors: envOrder.map(e => envColors[e] || '#6b7280'),
+  colors: ['#3b82f6', '#22c55e', '#ef4444'],
   legend: { position: 'top' as const },
   tooltip: { shared: true, intersect: false },
   grid: { borderColor: '#f1f1f1' },
@@ -151,7 +153,7 @@ watch(selectedProject, fetchDomains)
     <!-- Burn-up stacked bar chart -->
     <VCard class="mb-4">
       <VCardTitle class="pt-4 px-6">Domain Count by Project and Environment</VCardTitle>
-      <VCardSubtitle class="px-6">Time-series area view of domain growth</VCardSubtitle>
+      <VCardSubtitle class="px-6">30-day domain availability trend</VCardSubtitle>
       <VCardText>
         <VueApexCharts type="bar" height="300" :options="burnUpOptions" :series="burnUpSeries" />
       </VCardText>
