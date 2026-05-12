@@ -313,7 +313,7 @@ function exportDomains() {
 </script>
 
 <template>
-  <div>
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <VTextField
@@ -336,7 +336,7 @@ function exportDomains() {
 
     <VCard>
       <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <div v-if="domains.length" style="max-height: calc(100vh - 220px); overflow-y: auto;">
+      <div v-if="domains.length" style="flex: 1; min-height: 0; overflow-y: auto;">
       <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
         <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
           <tr class="text-caption text-medium-emphasis">

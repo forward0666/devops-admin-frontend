@@ -215,6 +215,19 @@ const isProjectActive = (projectId: number) => {
 
       <VerticalNavGroup
         :item="{
+          title: 'Task',
+          icon: 'bx-task',
+        }"
+      >
+        <VerticalNavLink :item="{ title: 'Domain', to: '/devops/task/domain' }" />
+        <VerticalNavLink :item="{ title: 'Zone', to: '/devops/task/zone' }" />
+        <VerticalNavLink :item="{ title: 'Security', to: '/devops/task/security' }" />
+        <VerticalNavLink :item="{ title: 'SSL', to: '/devops/task/ssl' }" />
+        <VerticalNavLink :item="{ title: 'Cache', to: '/devops/task/cache' }" />
+      </VerticalNavGroup>
+
+      <VerticalNavGroup
+        :item="{
           title: 'Tencent',
           icon: 'bx-cloud',
         }"

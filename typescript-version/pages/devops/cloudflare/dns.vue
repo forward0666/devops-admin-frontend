@@ -246,7 +246,7 @@ function exportCSV() {
 
     <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
-      <div v-if="sortedRecords.length" style="flex: 1; overflow: hidden;">
+      <div v-if="sortedRecords.length" style="flex: 1; min-height: 0; overflow-y: auto;">
         <VTable class="text-no-wrap sticky-table" hover density="compact" style="table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 250px" />
@@ -329,8 +329,9 @@ function exportCSV() {
 .sortable:hover {
   color: rgb(var(--v-theme-primary));
 }
-.sticky-table :deep(.v-table__wrapper) {
-  overflow-y: auto;
-  max-height: calc(100vh - 200px);
+.sticky-table {
+  :deep(.v-table__wrapper) {
+    overflow-y: visible;
+  }
 }
 </style>

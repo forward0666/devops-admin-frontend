@@ -114,6 +114,7 @@ export default defineComponent({
     flex-direction: column;
     flex-grow: 1;
     block-size: 100dvh;
+    overflow: hidden;
     transition: padding-inline-start 0.2s ease-in-out;
     will-change: padding-inline-start;
 
