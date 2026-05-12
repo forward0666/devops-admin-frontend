@@ -113,7 +113,7 @@ export default defineComponent({
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    min-block-size: 100dvh;
+    block-size: 100dvh;
     transition: padding-inline-start 0.2s ease-in-out;
     will-change: padding-inline-start;
 

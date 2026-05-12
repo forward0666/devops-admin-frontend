@@ -6,21 +6,46 @@
 
 html,
 body {
-  min-block-size: 100%;
+  block-size: 100%;
+  margin: 0;
+}
+
+html,
+body,
+#__nuxt {
+  block-size: 100%;
 }
 
 .layout-page-content {
   @include mixins.boxed-content(true);
 
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 
   // TODO: Use grid gutter variable here
   padding-block: 1.5rem;
+
+  .page-content-container {
+    flex: 1;
+    min-block-size: 0;
+    display: flex;
+    flex-direction: column;
+
+    // Fallback: fill viewport minus navbar
+    & > :first-child {
+      flex: 1;
+      min-block-size: 0;
+    }
+  }
 }
 
 .layout-footer {
+  block-size: 0;
+  overflow: hidden;
+
   .footer-content-container {
-    block-size: variables.$layout-vertical-nav-footer-height;
+    block-size: auto;
   }
 
   .layout-footer-sticky & {

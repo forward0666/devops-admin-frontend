@@ -215,7 +215,7 @@ const sslModeInfo: Record<string, string> = {
       </VCardText>
     </VCard>
 
-    <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; max-height: calc(100vh - 140px);">
+    <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column;">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
       <div v-if="zones.length > 0" style="flex: 1; overflow: hidden;">
         <VTable class="text-no-wrap sticky-table" hover density="compact" style="table-layout: fixed; width: 100%;">

@@ -200,8 +200,8 @@ function exportCSV() {
 </script>
 
 <template>
-  <div>
-    <VCard class="mb-4">
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <VCard class="mb-4" style="flex-shrink: 0;">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <VSelect
           v-model="selectedAccountId"
@@ -244,7 +244,7 @@ function exportCSV() {
       </VCardText>
     </VCard>
 
-    <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; max-height: calc(100vh - 140px);">
+    <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
       <div v-if="sortedRecords.length" style="flex: 1; overflow: hidden;">
         <VTable class="text-no-wrap sticky-table" hover density="compact" style="table-layout: fixed; width: 100%;">
