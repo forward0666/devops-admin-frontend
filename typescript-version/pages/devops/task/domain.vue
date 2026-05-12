@@ -77,33 +77,46 @@ const stats = computed(() => {
   return { total: filteredDomains.value.length, envs, types, projects: projectStats }
 })
 
-// --- Domain availability time-series line chart ---
-// Mock time-series data; will be replaced with real API
-const mockDays = Array.from({ length: 30 }, (_, i) => `${i + 1}`)
+// --- Domain availability time-series area chart (planner burn-up style) ---
+const mockDays = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const burnUpSeries = computed(() => {
   const total = filteredDomains.value.length || 20
   return [
-    { name: 'Total', data: mockDays.map(() => total + Math.round(Math.random() * 3)) },
-    { name: 'Available', data: mockDays.map(() => Math.round(total * (0.85 + Math.random() * 0.15))) },
-    { name: 'Down', data: mockDays.map(() => Math.round(total * Math.random() * 0.1)) },
+    { name: 'Down', data: mockDays.map(() => Math.round(total * Math.random() * 0.08 + 1)) },
+    { name: 'Degraded', data: mockDays.map(() => Math.round(total * (0.05 + Math.random() * 0.1))) },
+    { name: 'Available', data: mockDays.map((_, i) => Math.round(total * (0.8 + i * 0.02 + Math.random() * 0.05))) },
   ]
 })
 
 const burnUpOptions = computed(() => ({
-  chart: { type: 'line', toolbar: { show: false }, fontFamily: 'inherit' },
+  chart: {
+    type: 'area',
+    stacked: false,
+    toolbar: { show: false },
+    fontFamily: 'inherit',
+    background: '#1a1a2e',
+    foreColor: '#94a3b8',
+  },
   stroke: { width: 2, curve: 'smooth' },
-  markers: { size: 0 },
+  fill: {
+    type: 'gradient',
+    gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.05, stops: [0, 100] },
+  },
   xaxis: {
     categories: mockDays,
-    title: { text: 'Day' },
-    labels: { style: { fontSize: '11px' } },
+    labels: { style: { fontSize: '11px', colors: '#94a3b8' } },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
   },
-  yaxis: { title: { text: 'Domain Count' }, labels: { style: { fontSize: '12px' } } },
-  colors: ['#3b82f6', '#22c55e', '#ef4444'],
-  legend: { position: 'top' as const },
-  tooltip: { shared: true, intersect: false },
-  grid: { borderColor: '#f1f1f1' },
+  yaxis: {
+    labels: { style: { fontSize: '12px', colors: '#94a3b8' } },
+  },
+  colors: ['#ef4444', '#f59e0b', '#22c55e'],
+  legend: { position: 'bottom' as const, labels: { colors: '#94a3b8' } },
+  tooltip: { shared: true, intersect: false, theme: 'dark' },
+  grid: { borderColor: '#2d2d44', strokeDashArray: 4 },
   dataLabels: { enabled: false },
+  markers: { size: 0 },
 }))
 
 // --- Donut: env distribution ---
