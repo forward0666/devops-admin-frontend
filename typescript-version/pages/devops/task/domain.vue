@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import apiClient from '~/services/api'
+import VueApexCharts from 'vue3-apexcharts'
 
 definePageMeta({ layout: 'default' })
 
@@ -19,10 +20,10 @@ const projects = ref<any[]>([])
 const domains = ref<Domain[]>([])
 const selectedProject = ref<number | null>(null)
 const selectedEnv = ref<string | null>(null)
-const loading = ref(false) // Moved loading here for clarity and to ensure availability
+const loading = ref(false)
 
 async function fetchDomains() {
-  loading.value = true // Now loading is declared before being used
+  loading.value = true
   try {
     const { data: projectRes } = await apiClient.get('/user/project')
     projects.value = projectRes.data || []
@@ -30,7 +31,7 @@ async function fetchDomains() {
     for (const p of projects.value) {
       try {
         const res = await apiClient.get('/user/domain/list', {
-          params: selectedProject.value !== null ? { projectId: selectedProject.value } : undefined
+          params: selectedProject.value !== null ? { projectId: selectedProject.value } : undefined,
         })
         ;(res.data.data || []).forEach((d: any) => all.push({ ...d, projectId: p.id, projectName: p.name }))
       } catch { /* skip */ }
@@ -47,7 +48,7 @@ const envColors: Record<string, string> = { prod: '#ef4444', staging: '#f59e0b',
 const envOrder = ['prod', 'staging', 'dev', 'test']
 
 const projectOptions = computed(() =>
-  projects.value.map(p => ({ title: p.name, value: p.id }))
+  projects.value.map(p => ({ title: p.name, value: p.id })),
 )
 
 const envOptions = computed(() => {
@@ -76,29 +77,58 @@ const stats = computed(() => {
   return { total: filteredDomains.value.length, envs, types, projects: projectStats }
 })
 
-function toggleProject(id: number) {
-  expandedProjects.value = { ...expandedProjects.value, [id]: !expandedProjects.value[id] }
-}
+// --- Burn-up stacked bar chart: X = project, stacked by env ---
+const burnUpSeries = computed(() => {
+  const projectNames = [...new Set(filteredDomains.value.map(d => d.projectName))]
+  const envs = envOrder.filter(e => filteredDomains.value.some(d => d.env === e))
+  // Add any envs not in envOrder
+  const allEnvs = [...envs, ...[...new Set(filteredDomains.value.map(d => d.env))].filter(e => !envs.includes(e))]
 
-const page = ref(1)
-const pageSize = ref(20)
-
-const totalPages = computed(() => Math.max(1, Math.ceil(Object.keys(filteredGroups.value).length / pageSize.value)))
-const pagedGroupKeys = computed(() => {
-  const keys = Object.keys(filteredGroups.value).map(Number)
-  const start = (page.value - 1) * pageSize.value
-  return keys.slice(start, start + pageSize.value)
+  return allEnvs.map(env => ({
+    name: env.toUpperCase(),
+    data: projectNames.map(name => filteredDomains.value.filter(d => d.projectName === name && d.env === env).length),
+  }))
 })
 
-const filteredGroups = computed(() => {
-  const s = search.value?.toLowerCase() || ''
-  const result: Record<number, { name: string; domains: Domain[] }> = {}
-  for (const d of filteredDomains.value) {
-    if (!result[d.projectId]) result[d.projectId] = { name: d.projectName, domains: [] }
-    result[d.projectId].domains.push(d)
-  }
-  return result
+const burnUpOptions = computed(() => ({
+  chart: { type: 'bar', stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
+  plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+  xaxis: {
+    categories: [...new Set(filteredDomains.value.map(d => d.projectName))],
+    labels: { style: { fontSize: '12px' } },
+  },
+  yaxis: { title: { text: 'Domain Count' }, labels: { style: { fontSize: '12px' } } },
+  colors: envOrder.map(e => envColors[e] || '#6b7280'),
+  legend: { position: 'top' as const },
+  tooltip: { shared: true, intersect: false },
+  grid: { borderColor: '#f1f1f1' },
+}))
+
+// --- Donut: env distribution ---
+const statusSeries = computed(() => envOrder.map(e => stats.value.envs[e] || 0))
+const statusOptions = computed(() => ({
+  chart: { type: 'donut', fontFamily: 'inherit' },
+  labels: envOrder.map(e => e.toUpperCase()),
+  colors: envOrder.map(e => envColors[e] || '#6b7280'),
+  legend: { position: 'bottom' as const },
+  dataLabels: { enabled: true },
+  plotOptions: { pie: { donut: { size: '60%' } } },
+}))
+
+// --- Bar: type distribution ---
+const typeSeries = computed(() => {
+  const types = stats.value.types
+  return [{ name: 'Count', data: Object.entries(types).map(([name, count]) => ({ x: name, y: count })) }]
 })
+const typeOptions = computed(() => ({
+  chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit' },
+  plotOptions: { bar: { borderRadius: 3, horizontal: true, barHeight: '70%' } },
+  xaxis: { labels: { style: { fontSize: '12px' } } },
+  yaxis: { labels: { style: { fontSize: '12px' } } },
+  colors: ['#6366f1'],
+  dataLabels: { enabled: true },
+  grid: { borderColor: '#f1f1f1' },
+}))
 
 onMounted(fetchDomains)
 watch(selectedProject, fetchDomains)
@@ -112,22 +142,18 @@ watch(selectedProject, fetchDomains)
         <VSelect v-model="selectedProject" :items="projectOptions" label="Project" density="compact" style="max-width: 200px" hide-details clearable />
         <VSelect v-model="selectedEnv" :items="envOptions" label="Environment" density="compact" style="max-width: 160px" hide-details clearable />
         <div class="d-flex align-center flex-wrap gap-4">
-          <VChip size="small" color="primary" variant="tonal">Projects: {{ stats.projects }}</VChip>
+          <VChip size="small" color="primary" variant="tonal">Projects: {{ Object.keys(stats.projects).length }}</VChip>
           <VChip size="small" color="info" variant="tonal">Domains: {{ stats.total }}</VChip>
         </div>
-        <VSpacer />
-
       </VCardText>
     </VCard>
 
-    <!-- Burn-up Chart -->
+    <!-- Burn-up stacked bar chart -->
     <VCard class="mb-4">
       <VCardTitle class="pt-4 px-6">Domain Count by Project and Environment</VCardTitle>
-      <VCardSubtitle class="px-6">Stacked area view of domain distribution</VCardSubtitle>
+      <VCardSubtitle class="px-6">Stacked bar view of domain distribution</VCardSubtitle>
       <VCardText>
-        <!-- Placeholder for Burn-up Chart if needed, but removed as per user's request on previous turn -->
-        <!-- <VueApexCharts type="area" height="300" :options="burnUpOptions" :series="burnUpSeries" /> -->
-        <div class="text-center text-medium-emphasis py-8">Burn-up chart removed as per instructions.</div>
+        <VueApexCharts type="bar" height="300" :options="burnUpOptions" :series="burnUpSeries" />
       </VCardText>
     </VCard>
 
@@ -135,7 +161,7 @@ watch(selectedProject, fetchDomains)
     <VRow>
       <VCol cols="12" md="6">
         <VCard>
-          <VCardTitle class="pt-4 px-6">Status Distribution</VCardTitle>
+          <VCardTitle class="pt-4 px-6">Environment Distribution</VCardTitle>
           <VCardSubtitle class="px-6">Domain count by environment</VCardSubtitle>
           <VCardText class="d-flex justify-center">
             <VueApexCharts type="donut" height="280" :options="statusOptions" :series="statusSeries" />
@@ -154,11 +180,3 @@ watch(selectedProject, fetchDomains)
     </VRow>
   </div>
 </template>
-
-<style scoped>
-.sticky-table {
-  :deep(.v-table__wrapper) {
-    overflow-y: visible;
-  }
-}
-</style>
