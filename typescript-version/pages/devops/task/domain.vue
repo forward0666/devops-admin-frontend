@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import apiClient from '~/services/api'
 
 definePageMeta({ layout: 'default' })
@@ -101,6 +101,7 @@ const filteredGroups = computed(() => {
 })
 
 onMounted(fetchDomains)
+watch(selectedProject, fetchDomains)
 </script>
 
 <template>
