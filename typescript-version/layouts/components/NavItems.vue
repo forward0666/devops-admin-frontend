@@ -215,8 +215,8 @@ const isProjectActive = (projectId: number) => {
 
       <VerticalNavGroup
         :item="{
-          title: 'Task',
-          icon: 'bx-task',
+          title: 'Tools',
+          icon: 'bx-wrench',
         }"
       >
         <VerticalNavLink :item="{ title: 'Domain', to: '/devops/tools/domain' }" />
