@@ -219,11 +219,11 @@ const isProjectActive = (projectId: number) => {
           icon: 'bx-task',
         }"
       >
-        <VerticalNavLink :item="{ title: 'Domain', to: '/devops/task/domain' }" />
-        <VerticalNavLink :item="{ title: 'Zone', to: '/devops/task/zone' }" />
-        <VerticalNavLink :item="{ title: 'Security', to: '/devops/task/security' }" />
-        <VerticalNavLink :item="{ title: 'SSL', to: '/devops/task/ssl' }" />
-        <VerticalNavLink :item="{ title: 'Cache', to: '/devops/task/cache' }" />
+        <VerticalNavLink :item="{ title: 'Domain', to: '/devops/tools/domain' }" />
+        <VerticalNavLink :item="{ title: 'Zone', to: '/devops/tools/zone' }" />
+        <VerticalNavLink :item="{ title: 'Security', to: '/devops/tools/security' }" />
+        <VerticalNavLink :item="{ title: 'SSL', to: '/devops/tools/ssl' }" />
+        <VerticalNavLink :item="{ title: 'Cache', to: '/devops/tools/cache' }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
