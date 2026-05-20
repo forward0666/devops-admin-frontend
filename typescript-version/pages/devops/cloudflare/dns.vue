@@ -246,15 +246,14 @@ function exportCSV() {
 
     <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
-      <div v-if="sortedRecords.length" style="flex: 1; min-height: 0; overflow-y: auto;">
-        <VTable class="text-no-wrap sticky-table" hover density="compact" style="table-layout: fixed; width: 100%;">
+      <VTable v-if="sortedRecords.length" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 250px" />
             <col style="width: 100px" />
             <col style="width: 450px" />
             <col />
           </colgroup>
-          <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
+          <thead>
             <tr class="text-caption text-medium-emphasis">
               <th style="width: 250px !important; max-width: 250px !important; overflow: hidden;">
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('domain')">
@@ -303,8 +302,7 @@ function exportCSV() {
               </template>
             </template>
           </tbody>
-        </VTable>
-      </div>
+      </VTable>
       <VCardText v-else-if="!loadingRecords" class="text-center py-8 text-medium-emphasis">
         <VIcon icon="bx-dns" size="48" class="mb-2" />
         <p>{{ domainFilter ? 'No matching records' : 'No synced DNS records. Click Sync to fetch from Cloudflare.' }}</p>
@@ -330,8 +328,18 @@ function exportCSV() {
   color: rgb(var(--v-theme-primary));
 }
 .sticky-table {
-  :deep(.v-table__wrapper) {
-    overflow-y: visible;
-  }
+  display: flex;
+  flex-direction: column;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
 }
 </style>

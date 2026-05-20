@@ -225,8 +225,7 @@ onMounted(async () => {
 
     <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <div v-if="zones.length > 0" style="flex: 1; min-height: 0; overflow-y: auto;">
-        <VTable class="text-no-wrap sticky-table" hover density="compact" style="table-layout: fixed; width: 100%;">
+      <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 340px" />
             <col style="width: 120px" />
@@ -234,7 +233,7 @@ onMounted(async () => {
             <col style="width: 90px" />
             <col style="width: 180px" />
           </colgroup>
-          <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
+          <thead>
             <tr class="text-caption text-medium-emphasis">
               <th style="width: 340px !important; max-width: 340px !important;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 120px; max-width: 120px;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
@@ -278,8 +277,7 @@ onMounted(async () => {
               </template>
             </template>
           </tbody>
-        </VTable>
-      </div>
+      </VTable>
       <VCardText v-else-if="!loadingZones" class="text-center py-8 text-medium-emphasis">
         <VIcon icon="bx-bolt" size="48" class="mb-2" />
         <p>{{ search ? 'No matching zones' : 'No synced zones. Click Sync on Zones page first.' }}</p>
@@ -306,8 +304,18 @@ onMounted(async () => {
   color: rgb(var(--v-theme-primary));
 }
 .sticky-table {
-  :deep(.v-table__wrapper) {
-    overflow-y: visible;
-  }
+  display: flex;
+  flex-direction: column;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
 }
 </style>

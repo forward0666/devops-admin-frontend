@@ -307,22 +307,20 @@ function exportCSV() {
 
     <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <div v-if="zones.length > 0" style="flex: 1; min-height: 0; overflow-y: auto;">
-        <VTable class="text-no-wrap sticky-table" hover density="compact" style="table-layout: fixed; width: 100%;">
+      <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <colgroup>
             <col style="width: 310px" />
+            <col style="width: 120px" />
+            <col style="width: 550px" />
             <col style="width: 90px" />
-            <col style="width: 450px" />
-            <col style="width: 100px" />
-            <col style="width: 80px" />
             <col />
           </colgroup>
-          <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
+          <thead>
             <tr class="text-caption text-medium-emphasis">
               <th style="width: 310px !important; max-width: 310px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 90px; max-width: 90px; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 80px; max-width: 80px; overflow: hidden;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 120px; max-width: 120px; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 550px !important; max-width: 550px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 90px; max-width: 90px;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th class="sortable" @click="toggleSort('synced')">Synced <VIcon size="14" :icon="sortKey === 'synced' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
             </tr>
           </thead>
@@ -349,10 +347,9 @@ function exportCSV() {
                     </VBtn>
                   </div>
                 </td>
+                <td style="width: 120px; max-width: 120px;"></td>
+                <td style="width: 550px !important; max-width: 550px !important;"></td>
                 <td style="width: 90px; max-width: 90px;"></td>
-                <td style="width: 450px !important; max-width: 450px !important;"></td>
-                <td style="width: 100px; max-width: 100px;"></td>
-                <td style="width: 80px; max-width: 80px;"></td>
                 <td></td>
               </tr>
               <!-- Rules rows -->
@@ -362,10 +359,10 @@ function exportCSV() {
                   <td style="width: 310px; max-width: 310px;">
                     <div style="max-width: 310px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                   </td>
-                  <td style="width: 90px !important; max-width: 90px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
-                  <td style="width: 450px; max-width: 450px; text-align: left;"><code style="display: block; max-width: 450px; white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
+                  <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
+                  <td style="width: 550px; max-width: 550px; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
 
-                  <td style="width: 80px; max-width: 80px;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
+                  <td style="width: 90px; max-width: 90px;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
                   <td class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
                 </tr>
               </template>
@@ -379,8 +376,7 @@ function exportCSV() {
               </template>
             </template>
           </tbody>
-        </VTable>
-      </div>
+      </VTable>
       <VCardText v-else-if="!loadingZones" class="text-center py-8 text-medium-emphasis">
         <VIcon icon="bx-shield-quarter" size="48" class="mb-2" />
         <p>{{ search ? 'No matching zones' : 'No synced zones. Click Sync on Zones page first.' }}</p>
@@ -406,8 +402,19 @@ function exportCSV() {
   color: rgb(var(--v-theme-primary));
 }
 .sticky-table {
-  :deep(.v-table__wrapper) {
-    overflow-y: visible;
-  }
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
 }
 </style>

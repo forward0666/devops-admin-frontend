@@ -217,27 +217,26 @@ const sslModeInfo: Record<string, string> = {
 
     <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <div v-if="zones.length > 0" style="flex: 1; min-height: 0; overflow-y: auto;">
-        <VTable class="text-no-wrap sticky-table" hover density="compact" style="table-layout: fixed; width: 100%;">
-          <colgroup>
-            <col style="width: 360px" />
-            <col style="width: 140px" />
-            <col style="width: 180px" />
-            <col />
-          </colgroup>
-          <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
-            <tr class="text-caption text-medium-emphasis">
-              <th style="width: 360px !important; max-width: 360px !important;" class="sortable" @click="toggleSort('name')">
-                Zone <VIcon size="14">{{ sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2' }}</VIcon>
-              </th>
-              <th style="width: 140px; max-width: 140px;" class="sortable" @click="toggleSort('ssl_mode')">
-                SSL Mode <VIcon size="14">{{ sortKey === 'ssl_mode' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2' }}</VIcon>
-              </th>
-              <th style="width: 180px; max-width: 180px;">Modified</th>
-              <th>Synced</th>
-            </tr>
-          </thead>
-          <tbody>
+      <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
+        <colgroup>
+          <col style="width: 360px" />
+          <col style="width: 140px" />
+          <col style="width: 180px" />
+          <col />
+        </colgroup>
+        <thead>
+          <tr class="text-caption text-medium-emphasis">
+            <th style="width: 360px !important; max-width: 360px !important;" class="sortable" @click="toggleSort('name')">
+              Zone <VIcon size="14">{{ sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2' }}</VIcon>
+            </th>
+            <th style="width: 140px; max-width: 140px;" class="sortable" @click="toggleSort('ssl_mode')">
+              SSL Mode <VIcon size="14">{{ sortKey === 'ssl_mode' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2' }}</VIcon>
+            </th>
+            <th style="width: 180px; max-width: 180px;">Modified</th>
+            <th>Synced</th>
+          </tr>
+        </thead>
+        <tbody>
             <template v-for="z in pagedZones" :key="z.zone_id">
               <tr style="background: rgb(var(--v-theme-on-surface), 0.04);">
                 <td style="width: 360px !important; max-width: 360px !important; padding: 0 !important;">
@@ -253,10 +252,9 @@ const sslModeInfo: Record<string, string> = {
                 <td style="width: 180px; max-width: 180px;" class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.modified_on ? new Date(sslMap[z.zone_id].modified_on).toLocaleString() : '-' }}</td>
                 <td class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.synced_at ? new Date(sslMap[z.zone_id].synced_at).toLocaleString() : '-' }}</td>
               </tr>
-            </template>
-          </tbody>
-        </VTable>
-      </div>
+          </template>
+        </tbody>
+      </VTable>
       <VCardText v-else-if="!loadingZones" class="text-center py-8 text-medium-emphasis">
         <VIcon icon="bx-lock" size="48" class="mb-2" />
         <p>{{ search ? 'No matching zones' : 'No synced zones. Click Sync on Zones page first.' }}</p>
@@ -283,16 +281,18 @@ const sslModeInfo: Record<string, string> = {
   color: rgb(var(--v-theme-primary));
 }
 .sticky-table {
-  :deep(.v-table__wrapper) {
-    overflow-y: visible;
-  }
+  display: flex;
+  flex-direction: column;
 }
-</style>
-
-<style scoped>
-.sticky-table {
-  :deep(.v-table__wrapper) {
-    overflow-y: visible;
-  }
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
 }
 </style>
