@@ -76,7 +76,7 @@ async function fetchRules() {
 // --- CRUD Dialog ---
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
-const form = ref({ ruleId: '', username: '', userIp: '', operator: '', domain: '', env: '', action: 'allow' })
+const form = ref({ ruleId: '', env: '', action: 'allow' })
 const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
@@ -92,7 +92,7 @@ function openCreate() {
     return
   }
   editingId.value = null
-  form.value = { ruleId: '', username: '', userIp: '', operator: '', domain: '', env: selectedEnv.value || '', action: 'allow' }
+  form.value = { ruleId: '', env: selectedEnv.value || '', action: 'allow' }
   dialog.value = true
 }
 
@@ -100,10 +100,6 @@ function openEdit(rule: any) {
   editingId.value = rule.id
   form.value = {
     ruleId: rule.ruleId || '',
-    username: rule.username || '',
-    userIp: rule.userIp || '',
-    operator: rule.operator || '',
-    domain: rule.domain || '',
     env: rule.env || '',
     action: rule.action || 'allow',
   }
@@ -222,11 +218,7 @@ const actionColors: Record<string, string> = {
         <VCardText class="pt-2">
           <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" hide-details class="mb-3" clearable />
           <VTextField v-model="form.ruleId" label="Rule ID" density="compact" hide-details class="mb-3" placeholder="cf_firewall_rule_xxx" />
-          <VTextField v-model="form.domain" label="Domain" density="compact" hide-details class="mb-3" placeholder="api.example.com" />
           <VSelect v-model="form.action" :items="actionOptions" label="Action" density="compact" hide-details class="mb-3" />
-          <VTextField v-model="form.username" label="Username" density="compact" hide-details class="mb-3" placeholder="user123" />
-          <VTextField v-model="form.userIp" label="User IP" density="compact" hide-details class="mb-3" placeholder="1.2.3.4" />
-          <VTextField v-model="form.operator" label="Operator" density="compact" hide-details placeholder="admin" />
         </VCardText>
         <VCardActions>
           <VSpacer />
