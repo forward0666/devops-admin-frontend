@@ -76,7 +76,7 @@ async function fetchRules() {
 // --- CRUD Dialog ---
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
-const form = ref({ ruleId: '', name: '', env: '' })
+const form = ref({ ruleId: '', name: '', env: '', zone: '' })
 const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
@@ -92,7 +92,7 @@ function openCreate() {
     return
   }
   editingId.value = null
-  form.value = { ruleId: '', name: '', env: selectedEnv.value || '' }
+  form.value = { ruleId: '', name: '', env: selectedEnv.value || '', zone: '' }
   dialog.value = true
 }
 
@@ -102,6 +102,7 @@ function openEdit(rule: any) {
     ruleId: rule.ruleId || '',
     name: rule.name || '',
     env: rule.env || '',
+    zone: rule.zone || '',
   }
   dialog.value = true
 }
@@ -218,7 +219,10 @@ const actionColors: Record<string, string> = {
         <VCardText class="pt-2">
           <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" hide-details class="mb-3" clearable />
           <VTextField v-model="form.name" label="Name" density="compact" hide-details class="mb-3" placeholder="白名单规则" />
-          <VTextField v-model="form.ruleId" label="Rule ID" density="compact" hide-details class="mb-3" placeholder="cf_firewall_rule_xxx" />
+          <div class="d-flex gap-3 mb-3">
+            <VTextField v-model="form.zone" label="Zone" density="compact" hide-details placeholder="example.com" style="flex: 1;" />
+            <VTextField v-model="form.ruleId" label="Rule ID" density="compact" hide-details placeholder="cf_firewall_rule_xxx" style="flex: 1;" />
+          </div>
         </VCardText>
         <VCardActions>
           <VSpacer />
