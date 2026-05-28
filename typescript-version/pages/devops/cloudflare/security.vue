@@ -309,18 +309,18 @@ function exportCSV() {
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
       <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <colgroup>
-            <col style="width: 207px" />
+            <col style="width: 257px" />
             <col style="width: 120px" />
-            <col style="width: 300px" />
+            <col style="width: 350px" />
             <col style="width: 300px" />
             <col style="width: 90px" />
             <col />
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 207px !important; max-width: 207px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 257px !important; max-width: 257px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 120px; max-width: 120px; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 300px !important; max-width: 300px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 350px !important; max-width: 350px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 300px; max-width: 300px; overflow: hidden;">Rule ID</th>
               <th style="width: 90px; max-width: 90px;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th>Synced</th>
@@ -330,8 +330,8 @@ function exportCSV() {
             <template v-for="z in pagedZones" :key="z.zone_id">
               <!-- Zone group header -->
               <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-                <td style="width: 207px !important; max-width: 207px !important; padding: 0 !important;">
-                  <div class="d-flex align-center" style="width: 207px; max-width: 207px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                <td style="width: 257px !important; max-width: 257px !important; padding: 0 !important;">
+                  <div class="d-flex align-center" style="width: 257px; max-width: 257px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
                     <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-shield-quarter" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ z.name }}</span>
@@ -350,7 +350,7 @@ function exportCSV() {
                   </div>
                 </td>
                 <td style="width: 120px; max-width: 120px;"></td>
-                <td style="width: 300px; max-width: 300px;"></td>
+                <td style="width: 350px; max-width: 350px;"></td>
                 <td style="width: 300px; max-width: 300px;"></td>
                 <td style="width: 90px; max-width: 90px;"></td>
                 <td></td>
@@ -359,11 +359,11 @@ function exportCSV() {
               <template v-if="expandedZones[z.zone_id]">
                 <template v-if="(rulesMap[z.zone_id] || []).length > 0">
                 <tr v-for="r in rulesMap[z.zone_id]" :key="r.rule_id">
-                  <td style="width: 207px; max-width: 207px;">
-                    <div style="max-width: 207px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
+                  <td style="width: 257px; max-width: 257px;">
+                    <div style="max-width: 257px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                   </td>
                   <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
-                  <td style="width: 300px; max-width: 300px; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
+                  <td style="width: 350px; max-width: 350px; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
                   <td style="width: 300px; max-width: 300px; white-space: normal; word-break: break-all;"><code class="text-caption">{{ r.rule_id }}</code></td>
 
                   <td style="width: 90px; max-width: 90px;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
