@@ -108,7 +108,7 @@ function openEdit(rule: any) {
 }
 
 async function save() {
-  if (!form.value.ruleId.trim() || !selectedProject.value) return
+  if (!form.value.name.trim() || !selectedProject.value) return
   saving.value = true
   try {
     const payload = { ...form.value, projectId: selectedProject.value }
