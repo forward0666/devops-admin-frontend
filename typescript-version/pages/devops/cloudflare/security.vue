@@ -307,7 +307,7 @@ function exportCSV() {
 
     <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%; table-layout: fixed;">
+      <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <colgroup>
             <col style="width: 257px" />
             <col style="width: 120px" />
@@ -409,6 +409,9 @@ function exportCSV() {
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+.sticky-table table {
+  table-layout: fixed !important;
 }
 .sticky-table :deep(.v-table__wrapper) {
   flex: 1;
