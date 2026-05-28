@@ -350,7 +350,8 @@ function exportCSV() {
                   </div>
                 </td>
                 <td style="width: 120px; max-width: 120px;"></td>
-                <td style="width: 550px !important; max-width: 550px !important;"></td>
+                <td style="width: 300px; max-width: 300px;"></td>
+                <td style="width: 200px; max-width: 200px;"></td>
                 <td style="width: 90px; max-width: 90px;"></td>
                 <td></td>
               </tr>
@@ -372,7 +373,7 @@ function exportCSV() {
               </template>
               <template v-if="expandedZones[z.zone_id] && (rulesMap[z.zone_id] || []).length === 0">
                 <tr>
-                  <td colspan="6" class="text-center py-4 text-medium-emphasis">
+                  <td colspan="7" class="text-center py-4 text-medium-emphasis">
                     <p class="mb-0">No synced rules. Click Sync to fetch from Cloudflare.</p>
                   </td>
                 </tr>
