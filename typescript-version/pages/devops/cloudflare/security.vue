@@ -417,6 +417,7 @@ function exportCSV() {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  max-height: calc(100vh - 200px);
 }
 .sticky-table :deep(thead) {
   position: sticky;
