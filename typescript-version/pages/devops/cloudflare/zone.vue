@@ -10,7 +10,8 @@ const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
 const route = useRoute()
 const router = useRouter()
-const selectedAccountId = ref<number | null>(Number(route.query.account) || null)
+const savedAccount = process.client ? localStorage.getItem("cf-account-id") : null
+const selectedAccountId = ref<number | null>(savedAccount ? Number(savedAccount) : (route.query.account ? Number(route.query.account) : null))
 const zones = ref<any[]>([])
 const loadingZones = ref(false)
 const syncing = ref(false)
@@ -19,6 +20,10 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 const accountOptions = computed(() => accounts.value.map((a: any) => ({ title: a.name, value: a.id })))
 
 watch(selectedAccountId, (val) => {
+  if (process.client) {
+    if (val !== null) localStorage.setItem("cf-account-id", String(val))
+    else localStorage.removeItem("cf-account-id")
+  }
   router.replace({ query: val ? { account: String(val) } : {} })
   if (val) fetchZones()
 })

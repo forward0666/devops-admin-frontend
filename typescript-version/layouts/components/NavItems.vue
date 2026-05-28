@@ -220,8 +220,9 @@ const isProjectActive = (projectId: number) => {
         }"
       >
         <VerticalNavLink :item="{ title: 'Domain', to: '/devops/tools/domain' }" />
-        <VerticalNavLink :item="{ title: 'Cache', to: '/devops/tools/cache' }" />
-        <VerticalNavLink :item="{ title: 'Security', to: '/devops/tools/security' }" />
+        <VerticalNavLink :item="{ title: 'Purge Cache', to: '/devops/tools/purgecache' }" />
+        <VerticalNavLink :item="{ title: 'Security Rules', to: '/devops/tools/security' }" />
+        <VerticalNavLink :item="{ title: 'WhiteList IP', to: '/devops/tools/whitelist' }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup

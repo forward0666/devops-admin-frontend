@@ -10,7 +10,8 @@ const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
 const route = useRoute()
 const router = useRouter()
-const selectedAccountId = ref<number | null>(Number(route.query.account) || null)
+const savedAccount = process.client ? localStorage.getItem("cf-account-id") : null
+const selectedAccountId = ref<number | null>(savedAccount ? Number(savedAccount) : (route.query.account ? Number(route.query.account) : null))
 const domainFilter = ref(route.query.search as string || '')
 const dnsRecords = ref<any[]>([])
 const loadingRecords = ref(false)
@@ -40,6 +41,10 @@ const filteredRecords = computed(() => {
 })
 
 watch(selectedAccountId, (val) => {
+  if (process.client) {
+    if (val !== null) localStorage.setItem("cf-account-id", String(val))
+    else localStorage.removeItem("cf-account-id")
+  }
   router.replace({ query: val ? { account: String(val) } : {} })
   if (val) fetchDnsRecords()
 })

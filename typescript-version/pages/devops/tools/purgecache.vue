@@ -10,12 +10,20 @@ const route = useRoute()
 const projects = ref<any[]>([])
 const domains = ref<any[]>([])
 const rules = ref<any[]>([])
-const selectedProject = ref<number | null>(route.query.project ? Number(route.query.project) : null)
-const selectedEnv = ref<string | null>((route.query.env as string) || null)
+const savedProject = process.client ? localStorage.getItem('cf-project-id') : null
+const savedEnv = process.client ? localStorage.getItem('cf-env') : null
+const selectedProject = ref<number | null>(savedProject ? Number(savedProject) : (route.query.project ? Number(route.query.project) : null))
+const selectedEnv = ref<string | null>(savedEnv || (route.query.env as string) || null)
 const loading = ref(false)
 
 // Persist filters
 watch([selectedProject, selectedEnv], ([p, e]) => {
+  if (process.client) {
+    if (p !== null) localStorage.setItem('cf-project-id', String(p))
+    else localStorage.removeItem('cf-project-id')
+    if (e) localStorage.setItem('cf-env', e)
+    else localStorage.removeItem('cf-env')
+  }
   const query: Record<string, string> = {}
   if (p !== null) query.project = String(p)
   if (e !== null) query.env = e
@@ -218,7 +226,7 @@ async function purgeAll() {
     <!-- Rules Table -->
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VCardTitle class="pt-4 px-6">Cache Rules</VCardTitle>
-      <VCardSubtitle class="px-6">Manage API cache purge rules</VCardSubtitle>
+
         <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <colgroup>
             <col style="width: 100px" />

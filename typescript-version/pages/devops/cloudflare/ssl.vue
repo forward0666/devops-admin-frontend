@@ -10,7 +10,8 @@ const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
 const route = useRoute()
 const router = useRouter()
-const selectedAccountId = ref<number | null>(Number(route.query.account) || null)
+const savedAccount = process.client ? localStorage.getItem("cf-account-id") : null
+const selectedAccountId = ref<number | null>(savedAccount ? Number(savedAccount) : (route.query.account ? Number(route.query.account) : null))
 const syncing = ref(false)
 const syncingZone = ref<string | null>(null)
 const saving = ref(false)
@@ -28,6 +29,10 @@ const sslModeColors: Record<string, string> = { off: 'error', flexible: 'warning
 const sslModeLabels: Record<string, string> = { off: 'Off', flexible: 'Flexible', full: 'Full', full_strict: 'Full (Strict)' }
 
 watch(selectedAccountId, (val) => {
+  if (process.client) {
+    if (val !== null) localStorage.setItem("cf-account-id", String(val))
+    else localStorage.removeItem("cf-account-id")
+  }
   router.replace({ query: val ? { account: String(val) } : {} })
   sslMap.value = {}
   expandedZones.value = {}
