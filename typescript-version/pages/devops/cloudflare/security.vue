@@ -312,7 +312,7 @@ function exportCSV() {
             <col style="width: 250px" />
             <col style="width: 120px" />
             <col style="width: 450px" />
-            <col style="width: 250px" />
+            <col style="width: 300px" />
             <col style="width: 95px" />
             <col />
           </colgroup>
@@ -321,7 +321,7 @@ function exportCSV() {
               <th style="width: 250px !important; max-width: 250px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 120px !important; max-width: 120px !important; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 250px !important; max-width: 250px !important; text-align: left;">Rule ID</th>
+              <th style="width: 300px !important; max-width: 300px !important; text-align: left;">Rule ID</th>
               <th style="width: 95px !important; max-width: 95px !important;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th>Synced</th>
             </tr>
@@ -351,7 +351,7 @@ function exportCSV() {
                 </td>
                 <td style="width: 120px !important; max-width: 120px !important;"></td>
                 <td style="width: 450px !important; max-width: 450px !important;"></td>
-                <td style="width: 250px !important; max-width: 250px !important;"></td>
+                <td style="width: 300px !important; max-width: 300px !important;"></td>
                 <td style="width: 95px !important; max-width: 95px !important;"></td>
                 <td></td>
               </tr>
