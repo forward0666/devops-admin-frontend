@@ -311,7 +311,7 @@ function exportCSV() {
           <colgroup>
             <col style="width: 257px" />
             <col style="width: 120px" />
-            <col style="width: 400px" />
+            <col style="width: 500px" />
             <col style="width: 250px" />
             <col style="width: 90px" />
             <col />
@@ -320,7 +320,7 @@ function exportCSV() {
             <tr class="text-caption text-medium-emphasis">
               <th style="width: 257px !important; max-width: 257px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 120px !important; max-width: 120px !important; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 400px !important; max-width: 400px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 500px !important; max-width: 500px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 250px !important; max-width: 250px !important; text-align: left;">Rule ID</th>
               <th style="width: 90px !important; max-width: 90px !important;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th>Synced</th>
@@ -350,7 +350,7 @@ function exportCSV() {
                   </div>
                 </td>
                 <td style="width: 120px !important; max-width: 120px !important;"></td>
-                <td style="width: 400px !important; max-width: 400px !important;"></td>
+                <td style="width: 500px !important; max-width: 500px !important;"></td>
                 <td style="width: 250px !important; max-width: 250px !important;"></td>
                 <td style="width: 90px !important; max-width: 90px !important;"></td>
                 <td></td>
@@ -363,7 +363,7 @@ function exportCSV() {
                     <div style="max-width: 257px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                   </td>
                   <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
-                  <td style="width: 400px !important; max-width: 400px !important; text-align: left; padding: 8px 16px !important; overflow: hidden;"><code style="white-space: pre-wrap !important; word-break: break-all !important; line-height: 1.4; display: block; max-width: 400px; overflow: hidden;" class="text-caption">{{ r.expression }}</code></td>
+                  <td style="width: 500px !important; max-width: 500px !important; text-align: left; padding: 8px 16px !important; overflow: hidden;"><code style="white-space: pre-wrap !important; word-break: break-all !important; line-height: 1.4; display: block; max-width: 500px; overflow: hidden;" class="text-caption">{{ r.expression }}</code></td>
                   <td style="width: 250px !important; max-width: 250px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
 
                   <td style="width: 90px !important; max-width: 90px !important;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
