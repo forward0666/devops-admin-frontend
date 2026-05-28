@@ -311,7 +311,7 @@ function exportCSV() {
           <colgroup>
             <col style="width: 207px" />
             <col style="width: 120px" />
-            <col style="width: 367px" />
+            <col style="width: 300px" />
             <col style="width: 200px" />
             <col style="width: 90px" />
             <col />
@@ -320,7 +320,7 @@ function exportCSV() {
             <tr class="text-caption text-medium-emphasis">
               <th style="width: 207px !important; max-width: 207px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 120px; max-width: 120px; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 367px !important; max-width: 367px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 300px !important; max-width: 300px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 200px; max-width: 200px; overflow: hidden;">Rule ID</th>
               <th style="width: 90px; max-width: 90px;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th>Synced</th>
@@ -362,7 +362,7 @@ function exportCSV() {
                     <div style="max-width: 207px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                   </td>
                   <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
-                  <td style="width: 367px; max-width: 367px; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
+                  <td style="width: 300px; max-width: 300px; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.expression }}</code></td>
                   <td style="width: 200px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><code class="text-caption">{{ r.rule_id }}</code></td>
 
                   <td style="width: 90px; max-width: 90px;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
