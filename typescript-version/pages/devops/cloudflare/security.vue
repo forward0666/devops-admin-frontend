@@ -367,7 +367,7 @@ function exportCSV() {
                   <td style="width: 250px !important; max-width: 250px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
 
                   <td style="width: 90px !important; max-width: 90px !important;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
-                  <td class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
+                  <td style="word-break: break-all; white-space: normal;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
                 </tr>
               </template>
               </template>
