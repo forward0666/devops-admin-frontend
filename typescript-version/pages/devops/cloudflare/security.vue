@@ -428,5 +428,7 @@ function exportCSV() {
 }
 .sticky-table :deep(tbody td) {
   border: 1px solid red !important;
+  overflow: hidden !important;
+  max-width: 0 !important;
 }
 </style>
