@@ -219,8 +219,7 @@ const actionColors: Record<string, string> = {
         <VCardText class="pt-2">
           <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" hide-details class="mb-3" clearable />
           <VTextField v-model="form.name" label="Name" density="compact" hide-details class="mb-3" placeholder="白名单规则" />
-          <VTextField v-model="form.zone" label="Zone ID" density="compact" hide-details class="mb-3" placeholder="c05f5e593f634d77..." />
-          <VTextField v-model="form.ruleId" label="Rule ID" density="compact" hide-details class="mb-3" placeholder="cf_firewall_rule_xxx" />
+
         </VCardText>
         <VCardActions>
           <VSpacer />
