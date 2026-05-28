@@ -220,7 +220,7 @@ const actionColors: Record<string, string> = {
           <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" hide-details class="mb-3" clearable />
           <VTextField v-model="form.name" label="Name" density="compact" hide-details class="mb-3" placeholder="白名单规则" />
           <div class="d-flex gap-3 mb-3">
-            <VTextField v-model="form.zone" label="Zone" density="compact" hide-details placeholder="example.com" style="flex: 1;" />
+            <VTextField v-model="form.zone" label="Zone" density="compact" hide-details placeholder="example.com" style="flex: 0.5;" />
             <VTextField v-model="form.ruleId" label="Rule ID" density="compact" hide-details placeholder="cf_firewall_rule_xxx" style="flex: 1;" />
           </div>
         </VCardText>
