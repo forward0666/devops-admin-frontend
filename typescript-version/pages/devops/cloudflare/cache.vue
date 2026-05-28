@@ -239,7 +239,7 @@ onMounted(async () => {
               <th style="width: 120px; max-width: 120px;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 90px; max-width: 90px;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 180px; max-width: 180px;" class="sortable" @click="toggleSort('synced')">Synced <VIcon size="14" :icon="sortKey === 'synced' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 180px; max-width: 180px;">Synced</th>
             </tr>
           </thead>
           <tbody>

@@ -72,6 +72,14 @@ const flatDepts = computed(() => {
   return result
 })
 
+const page = ref(1)
+const pageSize = ref(20)
+const totalPages = computed(() => Math.max(1, Math.ceil(flatDepts.value.length / pageSize.value)))
+const pagedItems = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return flatDepts.value.slice(start, start + pageSize.value)
+})
+
 const typeIcon = (type?: string) => {
   const map: Record<string, string> = { office: 'bx-building', department: 'bx-briefcase', team: 'bx-group' }
   return map[type || 'department'] || 'bx-folder'
@@ -143,39 +151,57 @@ async function confirmDelete() {
 </script>
 
 <template>
-  <div>
-    <VCard :loading="departmentStore.loading">
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">    <VCard class="mb-4">
       <VCardText class="d-flex align-center gap-3 flex-wrap">
         <VTextField v-model="search" placeholder="Search" prepend-inner-icon="bx-search" density="compact" hide-details variant="outlined" style="max-inline-size: 280px;" @update:model-value="" />
         <VSpacer />
+        <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
+        <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
+        <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
+        <VSelect v-model="pageSize" :items="[10, 20, 50, 100]" density="compact" style="max-width: 90px" hide-details @update:model-value="page = 1" />
         <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="openAddDialog">Add</VBtn>
       </VCardText>
-      <VDivider />
-      <VDataTable :headers="headers" :items="flatDepts" :search="search" :items-per-page="10" class="text-no-wrap">
-        <template #item.name="{ item }">
-          <div class="d-flex align-center" :style="{ paddingLeft: `${item.depth * 32}px` }">
-            <VIcon
-              v-if="item.children?.length"
-              :icon="isRowExpanded(item) ? 'bx-chevron-down' : 'bx-chevron-right'"
-              size="18"
-              class="me-2 text-medium-emphasis cursor-pointer"
-              @click.stop="toggleExpand(item)"
-            />
-            <div v-else style="inline-size: 26px;" class="me-2" />
-            <VIcon :icon="typeIcon(item.type)" :color="typeColor(item.type)" size="20" class="me-2" />
-            <span class="font-weight-medium">{{ item.name }}</span>
-          </div>
-        </template>
-        <template #item.userCount="{ item }">
-          <VChip v-if="item.userCount" variant="tonal" color="primary" size="small">{{ item.userCount }}</VChip>
-          <span v-else class="text-body-2 text-medium-emphasis">0</span>
-        </template>
-        <template #item.actions="{ item }">
-          <NuxtLink :to="`/admin/system/dept/view?id=${item.id}`"><IconBtn><VIcon icon="bx-show" /></IconBtn></NuxtLink>
-          <IconBtn @click="openEditDialog(item)"><VIcon icon="bx-edit" /></IconBtn>
-          <IconBtn color="error" @click="openDeleteDialog(item)"><VIcon icon="bx-trash" /></IconBtn>
-        </template>
-      </VDataTable>
+    </VCard>
+
+    <VCard :loading="departmentStore.loading" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+      <VTable hover density="compact" class="text-no-wrap sticky-table">
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th>Members</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in pagedItems" :key="item.id">
+            <td>
+              <div class="d-flex align-center" :style="{ paddingLeft: `${item.depth * 32}px` }">
+                <VIcon
+                  v-if="item.children?.length"
+                  :icon="isRowExpanded(item) ? 'bx-chevron-down' : 'bx-chevron-right'"
+                  size="18"
+                  class="me-2 text-medium-emphasis cursor-pointer"
+                  @click.stop="toggleExpand(item)"
+                />
+                <div v-else style="inline-size: 26px;" class="me-2" />
+                <VIcon :icon="typeIcon(item.type)" :color="typeColor(item.type)" size="20" class="me-2" />
+                <span class="font-weight-medium">{{ item.name }}</span>
+              </div>
+            </td>
+            <td>
+              <VChip v-if="item.userCount" variant="tonal" color="primary" size="small">{{ item.userCount }}</VChip>
+              <span v-else class="text-body-2 text-medium-emphasis">0</span>
+            </td>
+            <td>{{ item.description || '-' }}</td>
+            <td>
+              <NuxtLink :to="`/admin/system/dept/view?id=${item.id}`"><IconBtn><VIcon icon="bx-show" /></IconBtn></NuxtLink>
+              <IconBtn @click="openEditDialog(item)"><VIcon icon="bx-edit" /></IconBtn>
+              <IconBtn color="error" @click="openDeleteDialog(item)"><VIcon icon="bx-trash" /></IconBtn>
+            </td>
+          </tr>
+        </tbody>
+      </VTable>
     </VCard>
 
     <!-- Add Dialog -->
@@ -238,3 +264,22 @@ async function confirmDelete() {
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
+
+<style scoped>
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}
+</style>

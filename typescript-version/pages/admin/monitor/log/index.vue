@@ -3,6 +3,8 @@ const logStore = useOperationLogStore()
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const search = ref('')
+const page = ref(1)
+const pageSize = ref(20)
 const isDetailDialogVisible = ref(false)
 const selectedLog = ref<any>(null)
 const dateRange = ref<string[]>([])
@@ -57,12 +59,12 @@ function displayLabel() {
 
 const headers = [
   { title: 'ID', key: 'id', sortable: true },
-  { title: 'Module', key: 'resourceType' },
-  { title: 'Action', key: 'operationType' },
-  { title: 'Username', key: 'username' },
-  { title: 'IP', key: 'ipAddress' },
-  { title: 'Path', key: 'url' },
-  { title: 'Status', key: 'status' },
+  { title: 'Module', key: 'resourceType', sortable: true },
+  { title: 'Action', key: 'operationType', sortable: true },
+  { title: 'Username', key: 'username', sortable: true },
+  { title: 'IP', key: 'ipAddress', sortable: true },
+  { title: 'Path', key: 'url', sortable: true },
+  { title: 'Status', key: 'status', sortable: true },
   { title: 'Time', key: 'createdAt', sortable: true },
   { title: 'Detail', key: 'actions', sortable: false },
 ]
@@ -80,6 +82,12 @@ const filteredLogs = computed(() => {
     )
   }
   return items
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredLogs.value.length / pageSize.value)))
+const pagedLogs = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return filteredLogs.value.slice(start, start + pageSize.value)
 })
 
 async function fetchWithDate() {
@@ -109,8 +117,8 @@ onMounted(() => applyPreset('30d'))
 </script>
 
 <template>
-  <div>
-    <VCard :loading="logStore.loading">
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <VCard class="mb-4">
       <VCardText class="d-flex flex-wrap align-center gap-4">
         <VTextField v-model="search" placeholder="Keyword search" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
         <VMenu v-model="dateMenuOpen" :close-on-content-click="false" min-width="280">
@@ -156,26 +164,52 @@ onMounted(() => applyPreset('30d'))
         </VMenu>
         <VSpacer />
         <VBtn prepend-icon="bx-refresh" variant="tonal" color="primary" size="small" @click="refresh">Refresh</VBtn>
+        <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
+        <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
+        <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
+        <VSelect v-model="pageSize" :items="[10, 20, 50, 100]" density="compact" style="max-width: 90px" hide-details @update:model-value="page = 1" />
       </VCardText>
-      <VDivider />
-      <VDataTable :headers="headers" :items="filteredLogs" :items-per-page="10" :items-per-page-options="[10, 20, 50, 100]" class="text-no-wrap">
-        <template #item.operationType="{ item }">
-          <VChip v-if="item.operationType" variant="tonal" :color="item.operationType === 'INSERT' ? 'success' : item.operationType === 'UPDATE' ? 'info' : item.operationType === 'DELETE' ? 'error' : 'secondary'" size="small" label>{{ item.operationType }}</VChip>
-          <span v-else class="text-body-2 text-medium-emphasis">-</span>
-        </template>
-        <template #item.status="{ item }">
-          <VChip v-if="item.status" variant="tonal" :color="item.status === 'success' ? 'success' : 'error'" size="small" label>{{ item.status }}</VChip>
-          <span v-else class="text-body-2 text-medium-emphasis">-</span>
-        </template>
-        <template #item.createdAt="{ item }">
-          <span class="text-body-2">{{ item.createdAt || item.time || '-' }}</span>
-        </template>
-        <template #item.actions="{ item }">
-          <IconBtn size="small" @click="selectedLog = item; isDetailDialogVisible = true">
-            <VIcon icon="bx-show" size="18" />
-          </IconBtn>
-        </template>
-      </VDataTable>
+    </VCard>
+
+    <VCard :loading="logStore.loading" style="display: flex; flex-direction: column; flex: 1; min-height: 0; height: 0;">
+      <VTable hover density="compact" class="text-no-wrap sticky-table">
+        <thead>
+          <tr>
+            <th style="width: 80px;">ID</th>
+            <th style="width: 100px;">Module</th>
+            <th style="width: 100px;">Action</th>
+            <th style="width: 120px;">Username</th>
+            <th style="width: 130px;">IP</th>
+            <th>Path</th>
+            <th style="width: 80px;">Status</th>
+            <th style="width: 160px;">Time</th>
+            <th style="width: 80px;">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in pagedLogs" :key="item.id">
+            <td>{{ item.id || '-' }}</td>
+            <td>{{ item.resourceType || '-' }}</td>
+            <td>
+              <VChip v-if="item.operationType" variant="tonal" :color="item.operationType === 'INSERT' ? 'success' : item.operationType === 'UPDATE' ? 'info' : item.operationType === 'DELETE' ? 'error' : 'secondary'" size="small" label>{{ item.operationType }}</VChip>
+              <span v-else class="text-body-2 text-medium-emphasis">-</span>
+            </td>
+            <td>{{ item.username || '-' }}</td>
+            <td>{{ item.ipAddress || '-' }}</td>
+            <td>{{ item.url || '-' }}</td>
+            <td>
+              <VChip v-if="item.status" variant="tonal" :color="item.status === 'success' ? 'success' : 'error'" size="small" label>{{ item.status }}</VChip>
+              <span v-else class="text-body-2 text-medium-emphasis">-</span>
+            </td>
+            <td><span class="text-body-2">{{ item.createdAt || item.time || '-' }}</span></td>
+            <td>
+              <IconBtn size="small" @click="selectedLog = item; isDetailDialogVisible = true">
+                <VIcon icon="bx-show" size="18" />
+              </IconBtn>
+            </td>
+          </tr>
+        </tbody>
+      </VTable>
     </VCard>
 
     <VDialog v-model="isDetailDialogVisible" max-width="600">
@@ -201,3 +235,22 @@ onMounted(() => applyPreset('30d'))
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
+
+<style scoped>
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}
+</style>

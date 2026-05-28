@@ -139,7 +139,7 @@ onMounted(() => { loadMenus() })
 </script>
 
 <template>
-  <div>
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <div class="flex-grow-1">
@@ -153,6 +153,7 @@ onMounted(() => { loadMenus() })
     </VCard>
 
     <!-- Group by botType -->
+    <div style="flex: 1; overflow-y: auto;">
     <template v-for="bt in BOT_TYPES" :key="bt.value">
       <VCard v-if="menus.filter((m: any) => m.botType === bt.value).length > 0" class="mb-4">
         <VCardTitle class="text-subtitle-1 py-2 px-4">
@@ -202,6 +203,7 @@ onMounted(() => { loadMenus() })
         </VCardText>
       </VCard>
     </template>
+    </div>
 
     <!-- Create/Edit Dialog -->
     <VDialog v-model="dialog" max-width="600">
@@ -244,3 +246,5 @@ onMounted(() => { loadMenus() })
     </VSnackbar>
   </div>
 </template>
+
+

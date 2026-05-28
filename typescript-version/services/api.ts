@@ -366,6 +366,21 @@ export const userConsoleMiddlewareService = {
   },
 }
 
+export const cacheRuleService = {
+  list(projectId: number, env?: string) {
+    return request<any[]>({ method: 'get', url: '/cloudflare/cacheRule', params: { projectId, env: env || undefined } })
+  },
+  create(data: any) {
+    return request<any>({ method: 'post', url: '/cloudflare/cacheRule', data })
+  },
+  update(id: string, data: any) {
+    return request<any>({ method: 'put', url: `/cloudflare/cacheRule/${id}`, data })
+  },
+  delete(id: string, projectId: number) {
+    return request<void>({ method: 'delete', url: `/cloudflare/cacheRule/${id}`, params: { projectId } })
+  },
+}
+
 // ===== Telegram Bot Manager =====
 const BOT_HEADERS = { 'X-Encrypted-Data': import.meta.env.VITE_BOT_SECRET || '' }
 

@@ -97,10 +97,13 @@ const envIcon = (env: string) => ({ prod: 'bx-check-circle', uat: 'bx-test-tube'
 
 // Middlewares from API
 const middlewares = ref<any[]>([])
+const searchQuery = ref('')
 
 const envList = computed(() => {
   const envs = ['prod', 'uat', 'test', 'dev']
-  return envs.map(env => ({ env, children: middlewares.value.filter(m => m.env === env) }))
+  const q = searchQuery.value.toLowerCase()
+  const filtered = q ? middlewares.value.filter(m => m.name?.toLowerCase().includes(q) || m.remark?.toLowerCase().includes(q) || m.env?.toLowerCase().includes(q)) : middlewares.value
+  return envs.map(env => ({ env, children: filtered.filter(m => m.env === env) }))
 })
 
 const emptyAddr = (v: string) => v || '-'
@@ -237,19 +240,31 @@ function exportMiddlewares() {
 </script>
 
 <template>
-  <div>
-    <VCard>
-      <VCardText class="d-flex justify-end align-center flex-wrap gap-3">
-        <div class="d-flex align-center gap-3">
-          <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Middleware</VBtn>
-          <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
-          <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportMiddlewares">Export</VBtn>
-          <VBtn prepend-icon="bx-edit" variant="tonal" color="warning" size="small" :disabled="!canManage || !selectedMiddlewares.length" @click="isBulkEditDialogVisible = true">Edit ({{ selectedMiddlewares.length }})</VBtn>
-        </div>
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <VCard class="mb-4">
+      <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
+        <VTextField
+          v-model="searchQuery"
+          prepend-inner-icon="bx-search"
+          placeholder="Search middlewares..."
+          density="compact"
+          hide-details
+          clearable
+          style="max-width: 240px"
+        />
+        <VChip size="small" color="primary" variant="tonal">Total: {{ middlewares.length }}</VChip>
+        <VSpacer />
+        <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Middleware</VBtn>
+        <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
+        <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportMiddlewares">Export</VBtn>
+        <VBtn prepend-icon="bx-edit" variant="tonal" color="warning" size="small" :disabled="!canManage || !selectedMiddlewares.length" @click="isBulkEditDialogVisible = true">Edit ({{ selectedMiddlewares.length }})</VBtn>
       </VCardText>
+    </VCard>
+
+    <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VDivider />
       <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <VTable v-if="middlewares.length" class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
+      <VTable v-if="middlewares.length" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
         <thead>
           <tr class="text-caption text-medium-emphasis">
             <th style="padding-left: 50px; width: 40px;"><VCheckbox :model-value="allSelected" hide-details density="compact" @click="toggleSelectAll" /></th>
@@ -437,3 +452,21 @@ function exportMiddlewares() {
     </VSnackbar>
   </div>
 </template>
+<style scoped>
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}
+</style>

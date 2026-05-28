@@ -237,8 +237,8 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
 </script>
 
 <template>
-  <div>
-    <VCard>
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <VCard class="mb-4">
       <VCardText class="d-flex justify-end align-center flex-wrap gap-3">
         <VSelect
           v-model="selectedBot"
@@ -251,9 +251,12 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
         />
         <VBtn prepend-icon="bx-plus" color="primary" size="small" @click="isAddDialogVisible = true">Add Group</VBtn>
       </VCardText>
+    </VCard>
+
+    <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VDivider />
       <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <VTable v-if="groups.length" class="text-no-wrap" hover density="compact">
+      <VTable v-if="groups.length" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0;">
         <thead>
           <tr class="text-caption text-medium-emphasis">
             <th style="width: 120px;">Chat ID</th>
@@ -426,3 +429,22 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
+
+<style scoped>
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}
+</style>

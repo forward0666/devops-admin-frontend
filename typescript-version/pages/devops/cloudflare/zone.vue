@@ -192,9 +192,7 @@ function exportCSV() {
               Plan <VIcon size="16">{{ sortKey === 'plan' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
             </th>
             <th style="width: 140px">Name Server</th>
-            <th class="sortable" style="width: 250px" @click="toggleSort('synced_at')">
-              Synced <VIcon size="16">{{ sortKey === 'synced_at' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
-            </th>
+            <th style="width: 250px">Synced</th>
           </tr>
         </thead>
         <tbody>

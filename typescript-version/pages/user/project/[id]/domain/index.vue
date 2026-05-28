@@ -334,11 +334,9 @@ function exportDomains() {
       </VCardText>
     </VCard>
 
-    <VCard>
-      <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <div v-if="domains.length" style="flex: 1; min-height: 0; overflow-y: auto;">
-      <VTable class="text-no-wrap" hover density="compact" style="table-layout: fixed; width: 100%;">
-        <thead style="position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface));">
+    <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">      <VProgressLinear v-if="loading" indeterminate color="primary" />
+      <VTable v-if="domains.length" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
+      <thead>
           <tr class="text-caption text-medium-emphasis">
             <th style="width: 40px; padding-left: 50px;"><VCheckbox density="compact" hide-details :model-value="allExpandedDomainsSelected" :indeterminate="someExpandedDomainsSelected" @update:model-value="toggleSelectAll" /></th>
             <th>
@@ -394,7 +392,6 @@ function exportDomains() {
         </template>
         </tbody>
       </VTable>
-      </div>
       <VCardText v-else-if="!loading && !domains.length" class="text-center text-medium-emphasis pa-6">
         No domains configured
       </VCardText>
@@ -522,3 +519,21 @@ function exportDomains() {
     </VSnackbar>
   </div>
 </template>
+<style scoped>
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}
+</style>

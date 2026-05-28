@@ -2,8 +2,14 @@
 const searchQuery = ref('')
 const selectedRole = ref()
 const selectedStatus = ref()
-const itemsPerPage = ref(10)
 const selectedUsers = ref<any[]>([])
+const page = ref(1)
+const pageSize = ref(20)
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredUsers.value.length / pageSize.value)))
+const pagedItems = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return filteredUsers.value.slice(start, start + pageSize.value)
+})
 
 const isAddUserDialogVisible = ref(false)
 const isImportDialogVisible = ref(false)
@@ -147,162 +153,94 @@ const userHeaders = [
   { title: 'Action', key: 'actions', sortable: false },
 ]
 
+const allUsersSelected = computed(() => pagedItems.value.length > 0 && pagedItems.value.every((u: any) => selectedUsers.value.some((s: any) => s.id === u.id)))
+const someUsersSelected = computed(() => selectedUsers.value.length > 0 && !allUsersSelected.value)
+function toggleAllUsers(val: boolean) {
+  if (val) {
+    const existing = new Set(selectedUsers.value.map((s: any) => s.id))
+    pagedItems.value.forEach((u: any) => { if (!existing.has(u.id)) selectedUsers.value.push(u) })
+  } else {
+    const pagedIds = new Set(pagedItems.value.map((u: any) => u.id))
+    selectedUsers.value = selectedUsers.value.filter((s: any) => !pagedIds.has(s.id))
+  }
+}
+
 const roleOptions = ['admin', 'devops', 'user']
 const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'UI', 'Project Manager', 'Product Manager', 'QA Tester']
 </script>
 
 <template>
-  <div>
-    <VRow class="mb-6">
-      <VCol cols="12" sm="6" md="3">
-        <VCard>
-          <VCardText>
-            <div class="d-flex justify-space-between">
-              <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Total Users</div>
-                <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">{{ userStore.users.length }}</h4>
-                </div>
-              </div>
-              <VAvatar color="primary" variant="tonal" rounded size="40">
-                <VIcon icon="bx-group" size="24" />
-              </VAvatar>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-      <VCol cols="12" sm="6" md="3">
-        <VCard>
-          <VCardText>
-            <div class="d-flex justify-space-between">
-              <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Active</div>
-                <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">{{ userStore.users.filter((u: any) => u.active).length }}</h4>
-                </div>
-              </div>
-              <VAvatar color="success" variant="tonal" rounded size="40">
-                <VIcon icon="bx-user-check" size="24" />
-              </VAvatar>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-      <VCol cols="12" sm="6" md="3">
-        <VCard>
-          <VCardText>
-            <div class="d-flex justify-space-between">
-              <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Inactive</div>
-                <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">{{ userStore.users.filter((u: any) => !u.active).length }}</h4>
-                </div>
-              </div>
-              <VAvatar color="error" variant="tonal" rounded size="40">
-                <VIcon icon="bx-user-x" size="24" />
-              </VAvatar>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-      <VCol cols="12" sm="6" md="3">
-        <VCard>
-          <VCardText>
-            <div class="d-flex justify-space-between">
-              <div class="d-flex flex-column gap-y-1">
-                <div class="text-body-1 text-high-emphasis">Departments</div>
-                <div class="d-flex gap-x-2 align-center">
-                  <h4 class="text-h4">{{ departmentStore.departments.length }}</h4>
-                </div>
-              </div>
-              <VAvatar color="warning" variant="tonal" rounded size="40">
-                <VIcon icon="bx-building" size="24" />
-              </VAvatar>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
-
-    <VCard class="mb-6">
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <VCard class="mb-4">
       <VCardText class="d-flex flex-wrap gap-4">
         <VTextField v-model="searchQuery" placeholder="Search User" density="comfortable" style="inline-size: 15.625rem;" hide-details variant="outlined" />
         <VSpacer />
+        <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
+        <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
+        <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
+        <VSelect v-model="pageSize" :items="[10, 20, 50, 100]" density="compact" style="max-width: 90px" hide-details @update:model-value="page = 1" />
         <VBtn prepend-icon="bx-plus" color="primary" @click="isAddUserDialogVisible = true">
           Add New User
         </VBtn>
       </VCardText>
-      <VDivider />
+    </VCard>
+
+    <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VExpandTransition>
         <VCardText v-if="selectedUsers.length > 0" class="d-flex align-center gap-3 bg-primary-lighten-4 rounded-lg ma-3">
           <VIcon icon="bx-check-double" color="primary" size="20" />
           <span class="text-body-1 font-weight-medium">{{ selectedUsers.length }} user(s) selected</span>
         </VCardText>
       </VExpandTransition>
-      <VDataTable
-        v-model:selected="selectedUsers"
-        :headers="userHeaders"
-        :items="filteredUsers"
-        :items-per-page="itemsPerPage"
-        :loading="userStore.loading"
-        show-select
-        class="text-no-wrap"
-      >
-        <template #item.user="{ item }">
-          <div class="d-flex align-center gap-x-4">
-            <VAvatar size="34" variant="tonal" :color="resolveAvatarColor(item.fullName || item.username)">
-              <span class="text-sm font-weight-medium">{{ (item.fullName || item.username)?.charAt(0)?.toUpperCase() }}</span>
-            </VAvatar>
-            <div class="d-flex flex-column" style="min-inline-size: 180px;">
-              <h6 class="text-base">
-                <NuxtLink :to="`/admin/system/user/view?id=${item.id}`" class="font-weight-medium text-link">
-                  {{ item.fullName || item.username }}
-                </NuxtLink>
-              </h6>
-              <div class="text-sm text-medium-emphasis">{{ item.email || item.username }}</div>
-            </div>
-          </div>
-        </template>
-
-        <template #item.role="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <VIcon :icon="resolveUserRoleIcon(item.role).icon" :color="resolveUserRoleIcon(item.role).color" size="20" />
-            <div class="text-capitalize text-high-emphasis text-body-1">{{ item.role }}</div>
-          </div>
-        </template>
-
-        <template #item.position="{ item }">
-          <div class="text-body-1 text-high-emphasis">{{ item.position || '-' }}</div>
-        </template>
-
-        <template #item.department="{ item }">
-          <div class="text-body-1">{{ departmentStore.departments.find((d: any) => d.id === item.departmentId)?.name || '-' }}</div>
-        </template>
-
-        <template #item.status="{ item }">
-          <VChip variant="tonal" :color="resolveUserStatusVariant(item.active)" size="small" label>
-            {{ item.active ? 'Active' : 'Inactive' }}
-          </VChip>
-        </template>
-
-        <template #item.locked="{ item }">
-          <VChip variant="tonal" :color="item.locked ? 'error' : 'success'" size="small" label>
-            {{ item.locked ? 'Lock' : 'Unlock' }}
-          </VChip>
-        </template>
-
-        <template #item.actions="{ item }">
-          <NuxtLink :to="`/admin/system/user/view?id=${item.id}`">
-            <IconBtn><VIcon icon="bx-show" /></IconBtn>
-          </NuxtLink>
-          <IconBtn @click="openEditDialog(item)">
-            <VIcon icon="bx-edit" />
-          </IconBtn>
-          <IconBtn @click="openDeleteDialog(item)">
-            <VIcon icon="bx-trash" />
-          </IconBtn>
-        </template>
-      </VDataTable>
+      <VTable hover density="compact" class="text-no-wrap sticky-table">
+        <thead>
+          <tr>
+            <th class="ps-4" style="width: 48px;"><VCheckbox v-model="allUsersSelected" :indeterminate="someUsersSelected" hide-details density="compact" @update:model-value="toggleAllUsers" /></th>
+            <th>User</th>
+            <th>Role</th>
+            <th>Position</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Lock</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in pagedItems" :key="item.id">
+            <td class="ps-4"><VCheckbox v-model="selectedUsers" :value="item" hide-details density="compact" /></td>
+            <td>
+              <div class="d-flex align-center gap-x-4">
+                <VAvatar size="34" variant="tonal" :color="resolveAvatarColor(item.fullName || item.username)">
+                  <span class="text-sm font-weight-medium">{{ (item.fullName || item.username)?.charAt(0)?.toUpperCase() }}</span>
+                </VAvatar>
+                <div class="d-flex flex-column" style="min-inline-size: 180px;">
+                  <h6 class="text-base">
+                    <NuxtLink :to="`/admin/system/user/view?id=${item.id}`" class="font-weight-medium text-link">
+                      {{ item.fullName || item.username }}
+                    </NuxtLink>
+                  </h6>
+                  <div class="text-sm text-medium-emphasis">{{ item.email || item.username }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-center gap-x-2">
+                <VIcon :icon="resolveUserRoleIcon(item.role).icon" :color="resolveUserRoleIcon(item.role).color" size="20" />
+                <div class="text-capitalize text-high-emphasis text-body-1">{{ item.role }}</div>
+              </div>
+            </td>
+            <td><div class="text-body-1 text-high-emphasis">{{ item.position || '-' }}</div></td>
+            <td><div class="text-body-1">{{ departmentStore.departments.find((d: any) => d.id === item.departmentId)?.name || '-' }}</div></td>
+            <td><VChip variant="tonal" :color="resolveUserStatusVariant(item.active)" size="small" label>{{ item.active ? 'Active' : 'Inactive' }}</VChip></td>
+            <td><VChip variant="tonal" :color="item.locked ? 'error' : 'success'" size="small" label>{{ item.locked ? 'Lock' : 'Unlock' }}</VChip></td>
+            <td>
+              <NuxtLink :to="`/admin/system/user/view?id=${item.id}`"><IconBtn><VIcon icon="bx-show" /></IconBtn></NuxtLink>
+              <IconBtn @click="openEditDialog(item)"><VIcon icon="bx-edit" /></IconBtn>
+              <IconBtn @click="openDeleteDialog(item)"><VIcon icon="bx-trash" /></IconBtn>
+            </td>
+          </tr>
+        </tbody>
+      </VTable>
     </VCard>
 
     <!-- Add User Dialog -->
@@ -377,3 +315,22 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
     </VSnackbar>
   </div>
 </template>
+
+<style scoped>
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}
+</style>
