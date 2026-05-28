@@ -64,7 +64,7 @@ watch(selectedEnv, fetchRules)
 // --- CRUD Dialog ---
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
-const form = ref({ name: '', url: '', callbackData: '', env: '' })
+const form = ref({ name: '', url: '', env: '' })
 const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
@@ -74,13 +74,13 @@ function openCreate() {
     return
   }
   editingId.value = null
-  form.value = { name: '', url: '', callbackData: '', env: selectedEnv.value || '' }
+  form.value = { name: '', url: '', env: selectedEnv.value || '' }
   dialog.value = true
 }
 
 function openEdit(rule: any) {
   editingId.value = rule.id
-  form.value = { name: rule.name, url: rule.url, callbackData: rule.callbackData, env: rule.env || '' }
+  form.value = { name: rule.name, url: rule.url, env: rule.env || '' }
   dialog.value = true
 }
 
@@ -224,7 +224,6 @@ async function purgeAll() {
             <col style="width: 100px" />
             <col style="width: 160px" />
             <col style="width: 280px" />
-            <col style="width: 280px" />
             <col style="width: 180px" />
           </colgroup>
           <thead>
@@ -232,7 +231,6 @@ async function purgeAll() {
               <th>Env</th>
               <th>Name</th>
               <th>URL</th>
-              <th>Callback Data</th>
               <th style="text-align: center;">Action</th>
             </tr>
           </thead>
@@ -241,7 +239,7 @@ async function purgeAll() {
               <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
               <td class="font-weight-medium">{{ r.name }}</td>
               <td><code class="text-caption">{{ r.url }}</code></td>
-              <td><code class="text-caption">{{ r.callbackData }}</code></td>
+
               <td class="text-center">
                 <VBtn size="x-small" variant="tonal" color="warning" :loading="purging === `rule-${r.id}`" :disabled="!selectedProject" class="me-1" @click="purgeCache(r)">Purge</VBtn>
                 <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(r)">Edit</VBtn>
@@ -265,7 +263,7 @@ async function purgeAll() {
           <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" hide-details class="mb-3" clearable />
           <VTextField v-model="form.name" label="Name" density="compact" hide-details class="mb-3" placeholder="getGameList" />
           <VTextField v-model="form.url" label="URL" density="compact" hide-details class="mb-3" placeholder="/apiKK/api/game/getGameList" />
-          <VTextField v-model="form.callbackData" label="TG Callback Data" density="compact" hide-details placeholder="callback_data_getGameList" />
+
         </VCardText>
         <VCardActions>
           <VSpacer />
