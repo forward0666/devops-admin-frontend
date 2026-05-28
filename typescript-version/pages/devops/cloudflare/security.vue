@@ -309,19 +309,19 @@ function exportCSV() {
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
       <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <colgroup>
-            <col style="width: 300px" />
+            <col style="width: 250px" />
             <col style="width: 120px" />
             <col style="width: 450px" />
-            <col style="width: 300px" />
+            <col style="width: 250px" />
             <col style="width: 90px" />
             <col />
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 300px !important; max-width: 300px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 250px !important; max-width: 250px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 120px !important; max-width: 120px !important; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 300px !important; max-width: 300px !important; text-align: left;">Rule ID</th>
+              <th style="width: 250px !important; max-width: 250px !important; text-align: left;">Rule ID</th>
               <th style="width: 90px !important; max-width: 90px !important;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th>Synced</th>
             </tr>
@@ -330,8 +330,8 @@ function exportCSV() {
             <template v-for="z in pagedZones" :key="z.zone_id">
               <!-- Zone group header -->
               <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-                <td style="width: 300px !important; max-width: 300px !important; padding: 0 !important;">
-                  <div class="d-flex align-center" style="width: 300px; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                <td style="width: 250px !important; max-width: 250px !important; padding: 0 !important;">
+                  <div class="d-flex align-center" style="width: 250px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
                     <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-shield-quarter" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ z.name }}</span>
@@ -351,7 +351,7 @@ function exportCSV() {
                 </td>
                 <td style="width: 120px !important; max-width: 120px !important;"></td>
                 <td style="width: 450px !important; max-width: 450px !important;"></td>
-                <td style="width: 300px !important; max-width: 300px !important;"></td>
+                <td style="width: 250px !important; max-width: 250px !important;"></td>
                 <td style="width: 90px !important; max-width: 90px !important;"></td>
                 <td></td>
               </tr>
@@ -359,12 +359,12 @@ function exportCSV() {
               <template v-if="expandedZones[z.zone_id]">
                 <template v-if="(rulesMap[z.zone_id] || []).length > 0">
                 <tr v-for="r in rulesMap[z.zone_id]" :key="r.rule_id">
-                  <td style="width: 300px !important; max-width: 300px !important;">
-                    <div style="max-width: 300px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
+                  <td style="width: 250px !important; max-width: 250px !important;">
+                    <div style="max-width: 250px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                   </td>
                   <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
                   <td style="width: 450px !important; max-width: 450px !important; text-align: left; padding: 8px 16px !important; overflow: hidden;"><code style="white-space: pre-wrap !important; word-break: break-all !important; line-height: 1.4; display: block; max-width: 450px; overflow: hidden;" class="text-caption">{{ r.expression }}</code></td>
-                  <td style="width: 300px !important; max-width: 300px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
+                  <td style="width: 250px !important; max-width: 250px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
 
                   <td style="width: 90px !important; max-width: 90px !important;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
                   <td style="word-break: break-all; white-space: normal;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
