@@ -301,7 +301,7 @@ function exportCSV() {
         <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
         <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
         <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
-        <VSelect v-model="pageSize" :items="[10, 20, 50, 100]" density="compact" style="max-width: 90px" hide-details @update:model-value="page = 1" />
+        <VSelect v-model="pageSize" :items="[10, 20, 50, 100]" density="compact" style="max-width: 95px" hide-details @update:model-value="page = 1" />
       </VCardText>
     </VCard>
 
@@ -313,7 +313,7 @@ function exportCSV() {
             <col style="width: 120px" />
             <col style="width: 450px" />
             <col style="width: 250px" />
-            <col style="width: 90px" />
+            <col style="width: 95px" />
             <col />
           </colgroup>
           <thead>
@@ -322,7 +322,7 @@ function exportCSV() {
               <th style="width: 120px !important; max-width: 120px !important; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 250px !important; max-width: 250px !important; text-align: left;">Rule ID</th>
-              <th style="width: 90px !important; max-width: 90px !important;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 95px !important; max-width: 95px !important;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th>Synced</th>
             </tr>
           </thead>
@@ -352,7 +352,7 @@ function exportCSV() {
                 <td style="width: 120px !important; max-width: 120px !important;"></td>
                 <td style="width: 450px !important; max-width: 450px !important;"></td>
                 <td style="width: 250px !important; max-width: 250px !important;"></td>
-                <td style="width: 90px !important; max-width: 90px !important;"></td>
+                <td style="width: 95px !important; max-width: 95px !important;"></td>
                 <td></td>
               </tr>
               <!-- Rules rows -->
@@ -362,11 +362,11 @@ function exportCSV() {
                   <td style="width: 250px !important; max-width: 250px !important;">
                     <div style="max-width: 250px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                   </td>
-                  <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
+                  <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 95px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
                   <td style="width: 450px !important; max-width: 450px !important; text-align: left; padding: 8px 16px !important; overflow: hidden;"><code style="white-space: pre-wrap !important; word-break: break-all !important; line-height: 1.4; display: block; max-width: 450px; overflow: hidden;" class="text-caption">{{ r.expression }}</code></td>
                   <td style="width: 300px !important; max-width: 300px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
 
-                  <td style="width: 90px !important; max-width: 90px !important;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
+                  <td style="width: 95px !important; max-width: 95px !important;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
                   <td style="word-break: break-all; white-space: normal;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
                 </tr>
               </template>
