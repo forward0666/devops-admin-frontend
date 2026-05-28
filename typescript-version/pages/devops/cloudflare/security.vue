@@ -364,7 +364,7 @@ function exportCSV() {
                   </td>
                   <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 90px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
                   <td style="width: 450px !important; max-width: 450px !important; text-align: left; padding: 8px 16px !important; overflow: hidden;"><code style="white-space: pre-wrap !important; word-break: break-all !important; line-height: 1.4; display: block; max-width: 450px; overflow: hidden;" class="text-caption">{{ r.expression }}</code></td>
-                  <td style="width: 250px !important; max-width: 250px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
+                  <td style="width: 300px !important; max-width: 300px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
 
                   <td style="width: 90px !important; max-width: 90px !important;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
                   <td style="word-break: break-all; white-space: normal;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
