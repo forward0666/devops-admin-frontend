@@ -224,7 +224,7 @@ const actionColors: Record<string, string> = {
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
-          <VBtn color="primary" :loading="saving" :disabled="!form.ruleId.trim()" @click="save">Save</VBtn>
+          <VBtn color="primary" :loading="saving" :disabled="!form.name.trim()" @click="save">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
