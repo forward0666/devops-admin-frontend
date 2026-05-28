@@ -169,35 +169,23 @@ const actionColors: Record<string, string> = {
         <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <colgroup>
             <col style="width: 100px" />
-            <col style="width: 160px" />
             <col style="width: 200px" />
-            <col style="width: 200px" />
-            <col style="width: 150px" />
-            <col style="width: 200px" />
-            <col style="width: 120px" />
+            <col style="width: 300px" />
             <col style="width: 180px" />
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th>Env</th>
+              <th>Name</th>
               <th>Rule ID</th>
-              <th>Username</th>
-              <th>User IP</th>
-              <th>Action</th>
-              <th>Domain</th>
-              <th>Operator</th>
               <th style="text-align: center;">Action</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="r in rules" :key="r.id">
               <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
-              <td><code class="text-caption">{{ r.ruleId }}</code></td>
-              <td>{{ r.username || '-' }}</td>
-              <td><code class="text-caption">{{ r.userIp || '-' }}</code></td>
-              <td><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></td>
-              <td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.domain || '-' }}</td>
-              <td>{{ r.operator || '-' }}</td>
+              <td>{{ r.name || '-' }}</td>
+              <td><code class="text-caption">{{ r.ruleId || '-' }}</code></td>
               <td class="text-center">
                 <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(r)">Edit</VBtn>
                 <VBtn size="x-small" variant="tonal" color="error" @click="deleteRule(r)">Delete</VBtn>
