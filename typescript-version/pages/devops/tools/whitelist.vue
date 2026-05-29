@@ -106,6 +106,7 @@ async function deleteWhitelist(w: any) {
   try {
     const params: any = { projectId: selectedProject.value, ip: w.ip }
     if (w.ruleId) params.ruleId = w.ruleId
+    if (w.username) params.username = w.username
     await apiClient.delete(`${CF_GATEWAY}/whitelist/remove`, { params })
     await fetchWhitelists()
   } catch (e: any) {

@@ -45,10 +45,10 @@ async function fetchZones() {
   if (!selectedAccountId.value) return
   loadingZones.value = true
   try {
+    // Load rules FIRST so filteredZones can sort by priority immediately
+    await fetchAllRules()
     const { data } = await apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: selectedAccountId.value } })
     zones.value = data.data || []
-    // Load all rules at once
-    await fetchAllRules()
   } catch (e: any) {
     console.error('Failed to fetch zones', e)
   } finally {
@@ -68,6 +68,10 @@ async function fetchAllRules() {
       const zid = r.zone_id
       if (!map[zid]) map[zid] = []
       map[zid].push(r)
+    })
+    // Sort rules within each zone by priority
+    Object.keys(map).forEach(zid => {
+      map[zid].sort((a: any, b: any) => (a.priority ?? 99999) - (b.priority ?? 99999))
     })
     rulesMap.value = map
   } catch (e: any) {
@@ -174,68 +178,40 @@ const totalRules = computed(() => Object.values(rulesMap.value).flat().length)
 
 // Filtered zones by search
 const filteredZones = computed(() => {
-  if (!search.value) return zones.value
-  const s = search.value.toLowerCase()
-  return zones.value.filter(z =>
-    z.name?.toLowerCase().includes(s) ||
-    (rulesMap.value[z.zone_id] || []).some(r =>
-      (r.description || '').toLowerCase().includes(s) ||
-      (r.expression || '').toLowerCase().includes(s)
-    )
-  )
+  let list = zones.value
+  if (search.value) {
+    const s = search.value.toLowerCase()
+    list = list.filter(z => z.name?.toLowerCase().includes(s))
+  }
+  // Sort by min priority of rules
+  return [...list].sort((a, b) => {
+    const aRules = rulesMap.value[a.zone_id] || []
+    const bRules = rulesMap.value[b.zone_id] || []
+    const ap = aRules.length > 0 ? Math.min(...aRules.map((r: any) => r.priority ?? 99999)) : 99999
+    const bp = bRules.length > 0 ? Math.min(...bRules.map((r: any) => r.priority ?? 99999)) : 99999
+    return ap - bp
+  })
 })
 
 // Sorting
-const sortKey = ref<string>('name')
-const sortOrder = ref<'asc' | 'desc'>('asc')
 
-function toggleSort(key: string) {
-  if (sortKey.value === key) {
-    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    sortKey.value = key
-    sortOrder.value = 'asc'
-  }
-}
 
-const sortedZones = computed(() => {
-  const list = [...filteredZones.value]
-  const order = sortOrder.value === 'asc' ? 1 : -1
-  const key = sortKey.value
-  list.sort((a, b) => {
-    let va: any, vb: any
-    if (key === 'name') { va = a.name || ''; vb = b.name || '' }
-    else if (key === 'action') {
-      va = (rulesMap.value[a.zone_id] || []).map((r: any) => r.action || '').join(',')
-      vb = (rulesMap.value[b.zone_id] || []).map((r: any) => r.action || '').join(',')
-    } else if (key === 'expression') {
-      va = (rulesMap.value[a.zone_id] || []).map((r: any) => r.expression || '').join(',')
-      vb = (rulesMap.value[b.zone_id] || []).map((r: any) => r.expression || '').join(',')
-    } else if (key === 'status') {
-      va = (rulesMap.value[a.zone_id] || []).filter((r: any) => !r.paused).length
-      vb = (rulesMap.value[b.zone_id] || []).filter((r: any) => !r.paused).length
-    } else if (key === 'synced') {
-      va = (rulesMap.value[a.zone_id] || [])[0]?.synced_at || ''
-      vb = (rulesMap.value[b.zone_id] || [])[0]?.synced_at || ''
-    } else { va = ''; vb = '' }
-    if (typeof va === 'number') return (va - vb) * order
-    return String(va).localeCompare(String(vb)) * order
-  })
-  return list
-})
 
 // Pagination
 const page = ref(Number(route.query.page) || 1)
 const pageSize = ref(Number(route.query.size) || 20)
 
 watch([page, pageSize, search], () => {
-  router.replace({ query: { ...route.query, page: String(page.value), size: String(page.value), search: search.value || undefined } })
+  router.replace({ query: { ...route.query, page: String(page.value), size: String(pageSize.value), search: search.value || undefined } })
 })
 
-const totalPages = computed(() => Math.max(1, Math.ceil(sortedZones.value.length / pageSize.value)))
+// Reset page when search changes
+watch(search, () => { page.value = 1 })
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredZones.value.length / pageSize.value)))
 const pagedZones = computed(() => {
   const start = (page.value - 1) * pageSize.value
-  return sortedZones.value.slice(start, start + pageSize.value)
+  return filteredZones.value.slice(start, start + pageSize.value)
 })
 
 function getZoneRuleCount(zoneId: string): number {
@@ -314,20 +290,22 @@ function exportCSV() {
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
       <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <colgroup>
-            <col style="width: 250px" />
+            <col style="width: 350px" />
             <col style="width: 120px" />
-            <col style="width: 450px" />
-            <col style="width: 300px" />
+            <col style="width: 400px" />
+            <col style="width: 200px" />
+            <col style="width: 80px" />
             <col style="width: 95px" />
             <col />
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 250px !important; max-width: 250px !important; overflow: hidden;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 120px !important; max-width: 120px !important; overflow: hidden;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;" class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
-              <th style="width: 300px !important; max-width: 300px !important; text-align: left;">Rule ID</th>
-              <th style="width: 95px !important; max-width: 95px !important;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 350px !important; max-width: 350px !important; overflow: hidden;">Zone</th>
+              <th style="width: 120px !important; max-width: 120px !important; overflow: hidden;">Action</th>
+              <th style="width: 400px !important; max-width: 400px !important; overflow: hidden;">Expression</th>
+              <th style="width: 200px !important; max-width: 200px !important; text-align: left;">Rule ID</th>
+              <th style="width: 80px !important; max-width: 80px !important;">Priority</th>
+              <th style="width: 95px !important; max-width: 95px !important;">Status</th>
               <th>Synced</th>
             </tr>
           </thead>
@@ -335,8 +313,8 @@ function exportCSV() {
             <template v-for="z in pagedZones" :key="z.zone_id">
               <!-- Zone group header -->
               <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-                <td style="width: 250px !important; max-width: 250px !important; padding: 0 !important;">
-                  <div class="d-flex align-center" style="width: 250px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                <td style="width: 350px !important; max-width: 350px !important; padding: 0 !important;">
+                  <div class="d-flex align-center" style="width: 350px; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
                     <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-shield-quarter" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ z.name }}</span>
@@ -355,8 +333,9 @@ function exportCSV() {
                   </div>
                 </td>
                 <td style="width: 120px !important; max-width: 120px !important;"></td>
-                <td style="width: 450px !important; max-width: 450px !important;"></td>
-                <td style="width: 300px !important; max-width: 300px !important;"></td>
+                <td style="width: 400px !important; max-width: 400px !important;"></td>
+                <td style="width: 200px !important; max-width: 200px !important;"></td>
+                <td style="width: 80px !important; max-width: 80px !important;"></td>
                 <td style="width: 95px !important; max-width: 95px !important;"></td>
                 <td></td>
               </tr>
@@ -364,12 +343,13 @@ function exportCSV() {
               <template v-if="expandedZones[z.zone_id]">
                 <template v-if="(rulesMap[z.zone_id] || []).length > 0">
                 <tr v-for="r in rulesMap[z.zone_id]" :key="r.rule_id">
-                  <td style="width: 250px !important; max-width: 250px !important;">
-                    <div style="max-width: 250px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
+                  <td style="width: 350px !important; max-width: 350px !important;">
+                    <div style="max-width: 350px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                   </td>
                   <td style="width: 120px !important; max-width: 120px !important;"><div style="width: 95px; overflow: hidden;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></div></td>
-                  <td style="width: 450px !important; max-width: 450px !important; text-align: left; padding: 8px 16px !important; overflow: hidden;"><code style="white-space: pre-wrap !important; word-break: break-all !important; line-height: 1.4; display: block; max-width: 450px; overflow: hidden;" class="text-caption">{{ r.expression }}</code></td>
-                  <td style="width: 300px !important; max-width: 300px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
+                  <td style="width: 400px !important; max-width: 400px !important; text-align: left; padding: 8px 16px !important; overflow: hidden;"><code style="white-space: pre-wrap !important; word-break: break-all !important; line-height: 1.4; display: block; max-width: 450px; overflow: hidden;" class="text-caption">{{ r.expression }}</code></td>
+                  <td style="width: 200px !important; max-width: 200px !important; text-align: left; padding: 8px 16px !important;"><code style="white-space: pre-wrap; word-break: break-all; line-height: 1.4;" class="text-caption">{{ r.rule_id }}</code></td>
+                  <td style="width: 80px !important; max-width: 80px !important;" class="text-caption text-center">{{ r.priority ?? '-' }}</td>
 
                   <td style="width: 95px !important; max-width: 95px !important;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
                   <td style="word-break: break-all; white-space: normal;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
@@ -402,14 +382,7 @@ function exportCSV() {
   </div>
 </template>
 <style scoped>
-.sortable {
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-}
-.sortable:hover {
-  color: rgb(var(--v-theme-primary));
-}
+
 .sticky-table {
   display: flex;
   flex-direction: column;

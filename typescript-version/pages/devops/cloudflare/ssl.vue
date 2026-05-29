@@ -177,6 +177,7 @@ const page = ref(Number(route.query.page) || 1)
 const pageSize = ref(Number(route.query.size) || 20)
 
 watch([page, pageSize, search], () => {
+watch(search, () => { page.value = 1 })
   router.replace({ query: { ...route.query, page: String(page.value), size: String(pageSize.value), search: search.value || undefined } })
 })
 
