@@ -14,6 +14,13 @@ const dateMenuOpen = ref(false)
 const showCustomRange = ref(false)
 const selectedPreset = ref('Last 30 days')
 
+function formatDate(d: Date) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 const presets = [
   { label: 'Today', value: '0d' },
   { label: 'Yesterday', value: '-1d' },
@@ -31,18 +38,18 @@ function applyPreset(preset: string) {
   if (days === 0) {
     // Today: start of today
     from.setHours(0, 0, 0, 0)
-    dateRange.value = [from.toISOString().split('T')[0], now.toISOString().split('T')[0]]
+    dateRange.value = [formatDate(from), formatDate(now)]
     selectedPreset.value = 'Today'
   } else if (days === -1) {
     // Yesterday
     const yesterday = new Date(now)
     yesterday.setDate(yesterday.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
-    dateRange.value = [yesterday.toISOString().split('T')[0], yesterday.toISOString().split('T')[0]]
+    dateRange.value = [formatDate(yesterday), formatDate(yesterday)]
     selectedPreset.value = 'Yesterday'
   } else {
     from.setDate(from.getDate() - days)
-    dateRange.value = [from.toISOString().split('T')[0], now.toISOString().split('T')[0]]
+    dateRange.value = [formatDate(from), formatDate(now)]
     selectedPreset.value = `Last ${days} days`
   }
   dateMenuOpen.value = false
