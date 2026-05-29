@@ -93,7 +93,7 @@ async function fetchWithDate() {
     snackbar.value = { show: true, text: '请先选择日期范围', color: 'warning' }
     return
   }
-  const params: any = { category: 'AUTH' }
+  const params: any = { category: 'LOGIN' }
   params.startDate = dateRange.value[0]
   params.endDate = dateRange.value[1]
   await logStore.fetchLogs(params)
