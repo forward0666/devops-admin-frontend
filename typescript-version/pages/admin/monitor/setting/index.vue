@@ -10,8 +10,8 @@ const fieldGroups: { title: string; fields: { key: string; label: string; type: 
       { key: 'setting.name', label: 'System Name', type: 'text' },
       { key: 'setting.logo', label: 'System Logo URL', type: 'text' },
       { key: 'setting.language', label: 'System Language', type: 'text' },
-      { key: 'setting.theme', label: 'System Theme', type: 'text' },
     ],
+    full: true,
   },
   {
     title: 'Password',
@@ -22,6 +22,7 @@ const fieldGroups: { title: string; fields: { key: string; label: string; type: 
       { key: 'setting.password.require_number', label: 'Password Require Number', type: 'switch' },
       { key: 'setting.password.require_special', label: 'Password Require Special', type: 'switch' },
     ],
+    full: true,
   },
   {
     title: 'Login',
@@ -30,6 +31,7 @@ const fieldGroups: { title: string; fields: { key: string; label: string; type: 
       { key: 'setting.login.lockout_minutes', label: 'Login Lockout Minutes', type: 'number' },
       { key: 'setting.login.captcha_enabled', label: 'Login Captcha Enabled', type: 'switch' },
     ],
+    full: true,
   },
   {
     title: 'Session',
@@ -38,6 +40,7 @@ const fieldGroups: { title: string; fields: { key: string; label: string; type: 
       { key: 'setting.session.refresh_expire', label: 'Refresh Token Expire Seconds', type: 'number' },
       { key: 'setting.session.max_concurrent', label: 'Max Concurrent Session', type: 'number' },
     ],
+    full: true,
   },
   {
     title: 'IP Control',
