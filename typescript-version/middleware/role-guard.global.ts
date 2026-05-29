@@ -8,8 +8,8 @@ const adminRoutes = [
   '/admin/system/dept',
   '/admin/system/menu',
   '/admin/monitor/online',
-  '/admin/monitor/log',
-  '/admin/monitor/login-log',
+  '/admin/monitor/operationlog',
+  '/admin/monitor/loginlog',
   '/admin/tools/api',
   '/admin/tools/config',
 ]

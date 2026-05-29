@@ -124,14 +124,14 @@ const isProjectActive = (projectId: number) => {
         :item="{
           title: 'Login Log',
           icon: 'bx-log-in',
-          to: '/admin/monitor/login-log',
+          to: '/admin/monitor/loginlog',
         }"
       />
       <VerticalNavLink
         :item="{
           title: 'Operation Log',
           icon: 'bx-list-ul',
-          to: '/admin/monitor/log',
+          to: '/admin/monitor/operationlog',
         }"
       />
       <VDivider class="my-2 mx-3" />
