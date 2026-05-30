@@ -109,13 +109,26 @@ function removeEntry(idx: number) { if (form.value.entries.length > 1) form.valu
 
 async function save() {
   if (!form.value.name.trim() || !selectedProject.value) return
-  // 只检查当前表单内 entry 重复
+  // 检查同规则内 entry 重复
   const ruleIds = form.value.entries.map(e => e.ruleId.trim()).filter(Boolean)
   const uniqueIds = new Set(ruleIds)
   if (ruleIds.length !== uniqueIds.size) {
     const dupes = ruleIds.filter((id, i) => ruleIds.indexOf(id) !== i)
-    snackbar.value = { show: true, text: `Rule 内有重复 Rule ID: ${[...new Set(dupes)].join(', ')}`, color: 'error' }
+    snackbar.value = { show: true, text: `当前规则内有重复 Rule ID: ${[...new Set(dupes)].join(', ')}`, color: 'error' }
     return
+  }
+  // 跨规则校验，提示具体哪条规则已占用
+  if (ruleIds.length > 0) {
+    const existingIds = new Map<string, string>()
+    for (const r of rules.value) {
+      if (editingId.value && r.id === editingId.value) continue
+      for (const e of getEntries(r)) { if (e.ruleId) existingIds.set(e.ruleId.trim(), r.name) }
+    }
+    const conflicts = ruleIds.filter(rid => existingIds.has(rid)).map(rid => `${rid} (${existingIds.get(rid)})`)
+    if (conflicts.length > 0) {
+      snackbar.value = { show: true, text: `Rule ID 已被使用: ${conflicts.join(', ')}`, color: 'error' }
+      return
+    }
   }
   saving.value = true
   try {
