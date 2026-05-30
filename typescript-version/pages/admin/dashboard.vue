@@ -5,11 +5,11 @@ import DashboardRecentLogs from '@/views/dashboard/DashboardRecentLogs.vue'
 </script>
 
 <template>
-  <div>
+  <div style="display: flex; flex-direction: column; gap: 4px;">
     <!-- 👉 Stats Cards -->
     <DashboardStatsCards />
 
-    <VRow class="mt-1" style="row-gap: 4px;">
+    <VRow style="row-gap: 4px;">
       <!-- 👉 Role Distribution -->
       <VCol
         cols="12"
