@@ -26,32 +26,35 @@ const statusColor = (status: string) => {
 </script>
 
 <template>
-  <div>
-    <div class="text-body-2 font-weight-medium mb-2">最近操作日志</div>
-    <VTable v-if="recentLogs.length" class="text-no-wrap" hover density="compact">
-      <thead>
-        <tr>
-          <th class="text-left">操作人</th>
-          <th class="text-left">操作</th>
-          <th class="text-left d-none d-md-table-cell">IP</th>
-          <th class="text-left">时间</th>
-          <th class="text-center">状态</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="log in recentLogs" :key="log.user + log.time">
-          <td class="font-weight-medium">{{ log.user }}</td>
-          <td>{{ log.action }}</td>
-          <td class="d-none d-md-table-cell text-medium-emphasis">{{ log.ip }}</td>
-          <td class="text-medium-emphasis">{{ log.time }}</td>
-          <td class="text-center">
-            <VIcon size="18" :icon="statusIcon(log.status)" :color="statusColor(log.status)" />
-          </td>
-        </tr>
-      </tbody>
-    </VTable>
-    <div v-else-if="!dashboardStore.loading" class="text-center py-6 text-medium-emphasis">
-      暂无操作日志
-    </div>
-  </div>
+  <VCard>
+    <VCardTitle class="text-body-1 font-weight-medium">最近操作日志</VCardTitle>
+    <VDivider />
+    <VCardText class="pa-0">
+      <VTable v-if="recentLogs.length" class="text-no-wrap" hover density="compact">
+        <thead>
+          <tr>
+            <th class="text-left">操作人</th>
+            <th class="text-left">操作</th>
+            <th class="text-left d-none d-md-table-cell">IP</th>
+            <th class="text-left">时间</th>
+            <th class="text-center">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="log in recentLogs" :key="log.user + log.time">
+            <td class="font-weight-medium">{{ log.user }}</td>
+            <td>{{ log.action }}</td>
+            <td class="d-none d-md-table-cell text-medium-emphasis">{{ log.ip }}</td>
+            <td class="text-medium-emphasis">{{ log.time }}</td>
+            <td class="text-center">
+              <VIcon size="18" :icon="statusIcon(log.status)" :color="statusColor(log.status)" />
+            </td>
+          </tr>
+        </tbody>
+      </VTable>
+      <div v-else-if="!dashboardStore.loading" class="text-center py-6 text-medium-emphasis">
+        暂无操作日志
+      </div>
+    </VCardText>
+  </VCard>
 </template>
