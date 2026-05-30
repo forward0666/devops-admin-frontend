@@ -172,10 +172,7 @@ onMounted(() => {
     <!-- Add Project Dialog -->
     <VDialog v-model="isAddDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Add New Project</VCardTitle>
-          <VBtn icon variant="text" @click="isAddDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Add New Project</VCardTitle>
         <VCardText>
           <VTextField v-model="newProject.name" label="Project Name" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="newProject.status" label="Status" :items="['active', 'pending', 'completed']" density="comfortable" class="mb-3" variant="outlined" />
