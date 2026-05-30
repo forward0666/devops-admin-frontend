@@ -111,12 +111,22 @@ async function save() {
   if (!form.value.name.trim() || !selectedProject.value) return
   const newRuleIds = form.value.entries.map(e => e.ruleId.trim()).filter(Boolean)
   if (newRuleIds.length > 0) {
+    // 编辑时获取当前规则原有的 ruleId，排除自身
+    const currentRuleIds = new Set<string>()
+    if (editingId.value) {
+      const currentRule = rules.value.find((r: any) => r.id === editingId.value)
+      if (currentRule) {
+        for (const e of getEntries(currentRule)) { if (e.ruleId) currentRuleIds.add(e.ruleId.trim()) }
+      }
+    }
     const existingIds = new Set<string>()
     for (const r of rules.value) {
       if (editingId.value && r.id === editingId.value) continue
       for (const e of getEntries(r)) { if (e.ruleId) existingIds.add(e.ruleId.trim()) }
     }
-    const dupes = newRuleIds.filter(rid => existingIds.has(rid))
+    // 只检查新增的 ruleId（排除当前规则已有的）
+    const trulyNew = newRuleIds.filter(rid => !currentRuleIds.has(rid))
+    const dupes = trulyNew.filter(rid => existingIds.has(rid))
     if (dupes.length > 0) {
       snackbar.value = { show: true, text: `Duplicate Rule ID: ${dupes.join(', ')}`, color: 'error' }
       return
