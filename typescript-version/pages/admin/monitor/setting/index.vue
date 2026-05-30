@@ -84,7 +84,7 @@ onMounted(fetchSettings)
       <VCardText>
         <div v-for="field in group.fields" :key="field.key" class="d-flex align-center py-2">
           <div class="text-body-2" style="min-width: 220px;">{{ field.label }}</div>
-          <div class="flex-1">
+          <div style="width: 200px;">
             <VSwitch
               v-if="field.type === 'switch'"
               :model-value="toBool(getVal(field.key))"
