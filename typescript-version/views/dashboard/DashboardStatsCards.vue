@@ -17,19 +17,17 @@ const stats = computed(() => {
 </script>
 
 <template>
-  <VRow no-gutters class="ma-0" style="row-gap: 8px;">
-    <VCol v-for="stat in stats" :key="stat.title" cols="12" sm="6" md="3">
-      <VCard>
-        <VCardText class="d-flex align-center py-3">
-          <VAvatar size="36" rounded variant="tonal" :color="stat.color" class="me-3">
-            <VIcon :icon="stat.icon" size="20" />
-          </VAvatar>
-          <div>
-            <div class="text-body-2 text-medium-emphasis">{{ stat.title }}</div>
-            <div class="text-h6 font-weight-bold">{{ stat.value }}</div>
-          </div>
-        </VCardText>
-      </VCard>
-    </VCol>
-  </VRow>
+  <div class="d-flex gap-2">
+    <VCard v-for="stat in stats" :key="stat.title" class="flex-1">
+      <VCardText class="d-flex align-center py-3 px-4">
+        <VAvatar size="36" rounded variant="tonal" :color="stat.color" class="me-3">
+          <VIcon :icon="stat.icon" size="20" />
+        </VAvatar>
+        <div>
+          <div class="text-body-2 text-medium-emphasis">{{ stat.title }}</div>
+          <div class="text-h6 font-weight-bold">{{ stat.value }}</div>
+        </div>
+      </VCardText>
+    </VCard>
+  </div>
 </template>
