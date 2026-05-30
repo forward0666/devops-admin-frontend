@@ -8,7 +8,6 @@ const fieldGroups: { title: string; fields: { key: string; label: string; type: 
     title: 'Setting',
     fields: [
       { key: 'setting.name', label: 'System Name', type: 'text' },
-      { key: 'setting.logo', label: 'System Logo URL', type: 'text' },
       { key: 'setting.language', label: 'System Language', type: 'text' },
       { key: 'setting.password.min_length', label: 'Password Min Length', type: 'number' },
       { key: 'setting.password.expire_days', label: 'Password Expire Days', type: 'number' },
