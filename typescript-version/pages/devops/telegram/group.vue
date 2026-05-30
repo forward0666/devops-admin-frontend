@@ -30,7 +30,7 @@ const groups = ref<GroupItem[]>([])
 const bots = ref<any[]>([])
 const projects = ref<any[]>([])
 const loading = ref(false)
-const selectedBot = ref<string>('')
+const selectedBot = ref<string>(localStorage.getItem('telegram_group_selectedBot') || '')
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 // Add group
@@ -92,7 +92,7 @@ async function fetchGroups() {
   }
 }
 
-watch(selectedBot, () => fetchGroups())
+watch(selectedBot, (val) => { localStorage.setItem('telegram_group_selectedBot', val); fetchGroups() })
 onMounted(() => { fetchBots(); fetchProjects() })
 
 // Group CRUD
