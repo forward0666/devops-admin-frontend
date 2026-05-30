@@ -3,6 +3,8 @@ const projectStore = useProjectStore()
 const searchQuery = ref('')
 const selectedStatus = ref()
 const selectedProjects = ref<any[]>([])
+const sortBy = ref('created')
+const sortDir = ref<'asc' | 'desc'>('desc')
 const page = ref(1)
 const pageSize = ref(20)
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredProjects.value.length / pageSize.value)))
@@ -28,20 +30,44 @@ const resolveStatusVariant = (status: string) => {
 
 const filteredProjects = computed(() => {
   const query = searchQuery.value.toLowerCase()
-  return projectStore.projects.filter(p => {
+  let items = projectStore.projects.filter(p => {
     const matchStatus = !selectedStatus.value || p.status === selectedStatus.value
     const matchSearch = !query || p.name.toLowerCase().includes(query)
     return matchStatus && matchSearch
   })
+  // Sort
+  const key = sortBy.value
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  items = [...items].sort((a: any, b: any) => {
+    const va = a[key] ?? ''
+    const vb = b[key] ?? ''
+    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir
+    return String(va).localeCompare(String(vb)) * dir
+  })
+  return items
 })
 
 const headers = [
-  { title: 'Project', key: 'project', sortable: true },
+  { title: 'Project', key: 'name', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Progress', key: 'progress', sortable: true },
   { title: 'Created', key: 'created', sortable: true },
   { title: 'Action', key: 'actions', sortable: false },
 ]
+
+function toggleSort(key: string) {
+  if (sortBy.value === key) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortBy.value = key
+    sortDir.value = 'asc'
+  }
+}
+
+function sortIcon(key: string) {
+  if (sortBy.value !== key) return 'bx-sort'
+  return sortDir.value === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'
+}
 
 function openEdit(project: any) {
   editingProject.value = { ...project }
@@ -131,10 +157,18 @@ onMounted(() => {
         <thead>
           <tr>
             <th class="ps-4" style="width: 48px;"><VCheckbox v-model="allProjectsSelected" :indeterminate="someProjectsSelected" hide-details density="compact" @update:model-value="toggleAllProjects" /></th>
-            <th>Project</th>
-            <th>Status</th>
-            <th>Progress</th>
-            <th>Created</th>
+            <th class="cursor-pointer" @click="toggleSort('name')">
+              <div class="d-flex align-center gap-1">Project <VIcon :icon="sortIcon('name')" size="16" /></div>
+            </th>
+            <th class="cursor-pointer" @click="toggleSort('status')">
+              <div class="d-flex align-center gap-1">Status <VIcon :icon="sortIcon('status')" size="16" /></div>
+            </th>
+            <th class="cursor-pointer" @click="toggleSort('progress')">
+              <div class="d-flex align-center gap-1">Progress <VIcon :icon="sortIcon('progress')" size="16" /></div>
+            </th>
+            <th class="cursor-pointer" @click="toggleSort('created')">
+              <div class="d-flex align-center gap-1">Created <VIcon :icon="sortIcon('created')" size="16" /></div>
+            </th>
             <th>Action</th>
           </tr>
         </thead>
