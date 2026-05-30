@@ -64,11 +64,6 @@ function toggleSort(key: string) {
   }
 }
 
-function sortIcon(key: string) {
-  if (sortBy.value !== key) return 'bx-sort'
-  return sortDir.value === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'
-}
-
 function openEdit(project: any) {
   editingProject.value = { ...project }
   isEditDialogVisible.value = true
@@ -157,17 +152,17 @@ onMounted(() => {
         <thead>
           <tr>
             <th class="ps-4" style="width: 48px;"><VCheckbox v-model="allProjectsSelected" :indeterminate="someProjectsSelected" hide-details density="compact" @update:model-value="toggleAllProjects" /></th>
-            <th class="cursor-pointer" @click="toggleSort('name')">
-              <div class="d-flex align-center gap-1">Project <VIcon :icon="sortIcon('name')" size="16" /></div>
+            <th>
+              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('name')">Project <VIcon size="16" :icon="sortBy === 'name' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
             </th>
-            <th class="cursor-pointer" @click="toggleSort('status')">
-              <div class="d-flex align-center gap-1">Status <VIcon :icon="sortIcon('status')" size="16" /></div>
+            <th>
+              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('status')">Status <VIcon size="16" :icon="sortBy === 'status' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
             </th>
-            <th class="cursor-pointer" @click="toggleSort('progress')">
-              <div class="d-flex align-center gap-1">Progress <VIcon :icon="sortIcon('progress')" size="16" /></div>
+            <th>
+              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('progress')">Progress <VIcon size="16" :icon="sortBy === 'progress' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
             </th>
-            <th class="cursor-pointer" @click="toggleSort('created')">
-              <div class="d-flex align-center gap-1">Created <VIcon :icon="sortIcon('created')" size="16" /></div>
+            <th>
+              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('created')">Created <VIcon size="16" :icon="sortBy === 'created' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
             </th>
             <th>Action</th>
           </tr>
