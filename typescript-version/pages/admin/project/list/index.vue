@@ -51,7 +51,6 @@ const headers = [
   { title: 'Project', key: 'name', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Progress', key: 'progress', sortable: true },
-  { title: 'Created', key: 'created', sortable: true },
   { title: 'Action', key: 'actions', sortable: false },
 ]
 
@@ -161,9 +160,6 @@ onMounted(() => {
             <th>
               <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('progress')">Progress <VIcon size="16" :icon="sortBy === 'progress' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
             </th>
-            <th>
-              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('created')">Created <VIcon size="16" :icon="sortBy === 'created' ? (sortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></span>
-            </th>
             <th>Action</th>
           </tr>
         </thead>
@@ -187,7 +183,6 @@ onMounted(() => {
                 <span class="text-body-2 text-high-emphasis">{{ item.progress }}%</span>
               </div>
             </td>
-            <td><span class="text-body-2">{{ item.created }}</span></td>
             <td>
               <NuxtLink :to="`/admin/project/view?id=${item.id}`"><IconBtn><VIcon icon="bx-show" /></IconBtn></NuxtLink>
               <IconBtn @click="openEdit(item)"><VIcon icon="bx-edit" /></IconBtn>
