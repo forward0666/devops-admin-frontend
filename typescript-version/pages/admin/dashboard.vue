@@ -7,9 +7,9 @@ import DashboardRecentLogs from '@/views/dashboard/DashboardRecentLogs.vue'
 <template>
   <div>
     <!-- 👉 Stats Cards -->
-    <DashboardStatsCards class="mb-2" />
+    <DashboardStatsCards />
 
-    <VRow>
+    <VRow class="mt-1" style="row-gap: 4px;">
       <!-- 👉 Role Distribution -->
       <VCol
         cols="12"
