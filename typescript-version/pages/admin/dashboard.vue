@@ -5,7 +5,7 @@ import DashboardRecentLogs from '@/views/dashboard/DashboardRecentLogs.vue'
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; gap: 8px;">
+  <div style="display: flex; flex-direction: column;">
     <DashboardStatsCards />
     <DashboardRoleDistribution />
     <DashboardRecentLogs />
