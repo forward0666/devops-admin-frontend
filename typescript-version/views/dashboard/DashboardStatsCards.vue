@@ -17,7 +17,7 @@ const stats = computed(() => {
 </script>
 
 <template>
-  <VRow style="row-gap: 8px;">
+  <VRow no-gutters class="ma-0" style="row-gap: 8px;">
     <VCol v-for="stat in stats" :key="stat.title" cols="12" sm="6" md="3">
       <VCard>
         <VCardText class="d-flex align-center py-3">
