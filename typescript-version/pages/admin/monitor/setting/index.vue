@@ -82,28 +82,28 @@ onMounted(fetchSettings)
       </VCardTitle>
       <VDivider />
       <VCardText>
-        <VRow>
-          <VCol v-for="field in group.fields" :key="field.key" :cols="group.full ? 12 : 6" :md="group.full ? 12 : 6">
+        <div v-for="field in group.fields" :key="field.key" class="d-flex align-center py-2">
+          <div class="text-body-2" style="min-width: 220px;">{{ field.label }}</div>
+          <div class="flex-1">
             <VSwitch
               v-if="field.type === 'switch'"
               :model-value="toBool(getVal(field.key))"
-              :label="field.label"
               color="primary"
               hide-details
+              density="compact"
               @update:model-value="setVal(field.key, $event)"
             />
             <VTextField
               v-else
               :model-value="getVal(field.key)"
-              :label="field.label"
               :type="field.type"
-              density="comfortable"
+              density="compact"
               variant="outlined"
               hide-details
               @update:model-value="setVal(field.key, $event)"
             />
-          </VCol>
-        </VRow>
+          </div>
+        </div>
       </VCardText>
     </VCard>
     <VBtn color="primary" :loading="loading" @click="saveSettings">
