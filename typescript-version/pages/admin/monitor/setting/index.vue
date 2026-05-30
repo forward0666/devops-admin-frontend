@@ -5,46 +5,22 @@ const settings = ref<Record<string, any>>({})
 
 const fieldGroups: { title: string; fields: { key: string; label: string; type: 'text' | 'number' | 'switch' }[] }[] = [
   {
-    title: 'System',
+    title: 'Setting',
     fields: [
       { key: 'setting.name', label: 'System Name', type: 'text' },
       { key: 'setting.logo', label: 'System Logo URL', type: 'text' },
       { key: 'setting.language', label: 'System Language', type: 'text' },
-    ],
-    full: true,
-  },
-  {
-    title: 'Password',
-    fields: [
       { key: 'setting.password.min_length', label: 'Password Min Length', type: 'number' },
       { key: 'setting.password.expire_days', label: 'Password Expire Days', type: 'number' },
       { key: 'setting.password.require_uppercase', label: 'Password Require Uppercase', type: 'switch' },
       { key: 'setting.password.require_number', label: 'Password Require Number', type: 'switch' },
       { key: 'setting.password.require_special', label: 'Password Require Special', type: 'switch' },
-    ],
-    full: true,
-  },
-  {
-    title: 'Login',
-    fields: [
       { key: 'setting.login.max_attempts', label: 'Login Max Attempts', type: 'number' },
       { key: 'setting.login.lockout_minutes', label: 'Login Lockout Minutes', type: 'number' },
       { key: 'setting.login.captcha_enabled', label: 'Login Captcha Enabled', type: 'switch' },
-    ],
-    full: true,
-  },
-  {
-    title: 'Session',
-    fields: [
       { key: 'setting.session.token_expire', label: 'Token Expire Seconds', type: 'number' },
       { key: 'setting.session.refresh_expire', label: 'Refresh Token Expire Seconds', type: 'number' },
       { key: 'setting.session.max_concurrent', label: 'Max Concurrent Session', type: 'number' },
-    ],
-    full: true,
-  },
-  {
-    title: 'IP Control',
-    fields: [
       { key: 'setting.ip.allowed_ips', label: 'IP Allowed List (comma separated)', type: 'text' },
       { key: 'setting.ip.blocked_ips', label: 'IP Blocked List (comma separated)', type: 'text' },
     ],
