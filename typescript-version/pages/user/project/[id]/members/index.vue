@@ -282,10 +282,7 @@ onMounted(() => {
     <!-- Delete Member Dialog -->
     <VDialog v-model="isDeleteDialogVisible" max-width="400">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Remove Member</VCardTitle>
-          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Remove Member</VCardTitle>
         <VCardText>
           Are you sure you want to remove <strong>{{ deletingMember?.fullName || deletingMember?.username }}</strong> from this project?
         </VCardText>
