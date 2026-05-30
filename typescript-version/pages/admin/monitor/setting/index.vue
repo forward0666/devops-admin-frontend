@@ -20,6 +20,7 @@ const fieldGroups: { title: string; fields: { key: string; label: string; type: 
       { key: 'setting.session.token_expire', label: 'Token Expire Seconds', type: 'number' },
       { key: 'setting.session.refresh_expire', label: 'Refresh Token Expire Seconds', type: 'number' },
       { key: 'setting.session.max_concurrent', label: 'Max Concurrent Session', type: 'number' },
+      { key: 'setting.ip.whitelist_enabled', label: 'Whitelist Mode', type: 'switch' },
       { key: 'setting.ip.allowed_ips', label: 'IP Allowed List (comma separated)', type: 'text' },
       { key: 'setting.ip.blocked_ips', label: 'IP Blocked List (comma separated)', type: 'text' },
     ],
