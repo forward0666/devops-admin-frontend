@@ -8,71 +8,19 @@ const rawStats = computed(() => dashboardStore.stats)
 const stats = computed(() => {
   const s = rawStats.value
   return [
-    {
-      title: '用户总数',
-      value: s?.totalUsers != null ? String(s.totalUsers) : '-',
-      icon: 'tabler-users',
-      color: 'primary',
-      subtitle: '',
-    },
-    {
-      title: '活跃用户',
-      value: s?.activeUsers != null ? String(s.activeUsers) : '-',
-      icon: 'tabler-user-check',
-      color: 'success',
-      subtitle: '',
-    },
-    {
-      title: '禁用用户',
-      value: s?.disabledUsers != null ? String(s.disabledUsers) : '-',
-      icon: 'tabler-user-x',
-      color: 'error',
-      subtitle: '',
-    },
-    {
-      title: '今日新增',
-      value: s?.newUsersToday != null ? String(s.newUsersToday) : '-',
-      icon: 'tabler-user-plus',
-      color: 'info',
-      subtitle: '',
-    },
+    { title: '用户总数', value: s?.totalUsers ?? '-', color: 'primary' },
+    { title: '活跃用户', value: s?.activeUsers ?? '-', color: 'success' },
+    { title: '禁用用户', value: s?.disabledUsers ?? '-', color: 'error' },
+    { title: '今日新增', value: s?.newUsersToday ?? '-', color: 'info' },
   ]
 })
 </script>
 
 <template>
-  <VRow>
-    <VCol
-      v-for="stat in stats"
-      :key="stat.title"
-      cols="12"
-      sm="6"
-      md="3"
-    >
-      <VCard>
-        <VCardText class="d-flex align-center py-3">
-          <VAvatar
-            size="36"
-            rounded
-            variant="tonal"
-            :color="stat.color"
-            class="me-3"
-          >
-            <VIcon
-              :icon="stat.icon"
-              size="20"
-            />
-          </VAvatar>
-          <div class="flex-grow-1">
-            <div class="text-subtitle-2 text-medium-emphasis">
-              {{ stat.title }}
-            </div>
-            <div class="text-h5 font-weight-bold">
-              {{ stat.value }}
-            </div>
-          </div>
-        </VCardText>
-      </VCard>
-    </VCol>
-  </VRow>
+  <div class="d-flex gap-4">
+    <div v-for="stat in stats" :key="stat.title" class="d-flex align-center gap-2">
+      <VChip :color="stat.color" variant="tonal" size="small" label>{{ stat.value }}</VChip>
+      <span class="text-body-2 text-medium-emphasis">{{ stat.title }}</span>
+    </div>
+  </div>
 </template>

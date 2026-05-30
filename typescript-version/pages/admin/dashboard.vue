@@ -5,26 +5,9 @@ import DashboardRecentLogs from '@/views/dashboard/DashboardRecentLogs.vue'
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; gap: 4px;">
-    <!-- 👉 Stats Cards -->
+  <div style="display: flex; flex-direction: column; gap: 8px;">
     <DashboardStatsCards />
-
-    <VRow style="row-gap: 4px;">
-      <!-- 👉 Role Distribution -->
-      <VCol
-        cols="12"
-        md="5"
-      >
-        <DashboardRoleDistribution />
-      </VCol>
-
-      <!-- 👉 Recent Logs -->
-      <VCol
-        cols="12"
-        md="7"
-      >
-        <DashboardRecentLogs />
-      </VCol>
-    </VRow>
+    <DashboardRoleDistribution />
+    <DashboardRecentLogs />
   </div>
 </template>
