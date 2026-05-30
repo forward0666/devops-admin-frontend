@@ -236,10 +236,7 @@ onMounted(fetchProject)
       <!-- Edit Overview Dialog -->
       <VDialog v-model="isOverviewDialogVisible" max-width="600">
         <VCard>
-          <VCardItem>
-            <VCardTitle>Edit Project Overview</VCardTitle>
-            <VBtn icon variant="text" @click="isOverviewDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-          </VCardItem>
+        <VCardTitle>Edit Project Overview</VCardTitle>
           <VCardText>
             <VTextarea v-model="editOverview.description" label="Description" rows="4" class="mb-3" variant="outlined" />
             <VRow>
@@ -264,10 +261,7 @@ onMounted(fetchProject)
       <!-- Edit Tech Stack Dialog -->
       <VDialog v-model="isTechDialogVisible" max-width="500">
         <VCard>
-          <VCardItem>
-            <VCardTitle>Edit Tech Stack</VCardTitle>
-            <VBtn icon variant="text" @click="isTechDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-          </VCardItem>
+        <VCardTitle>Edit Tech Stack</VCardTitle>
           <VCardText>
             <VTextarea v-model="editTechStack" label="Tech Stack (comma separated)" rows="4" variant="outlined" hint="Separate each technology with a comma" />
           </VCardText>
@@ -281,10 +275,7 @@ onMounted(fetchProject)
       <!-- Edit Objectives Dialog -->
       <VDialog v-model="isObjectivesDialogVisible" max-width="500">
         <VCard>
-          <VCardItem>
-            <VCardTitle>Edit Objectives</VCardTitle>
-            <VBtn icon variant="text" @click="isObjectivesDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-          </VCardItem>
+        <VCardTitle>Edit Objectives</VCardTitle>
           <VCardText>
             <VTextarea v-model="editObjectives" label="Objectives (comma separated)" rows="6" variant="outlined" hint="Separate each objective with a comma" />
           </VCardText>

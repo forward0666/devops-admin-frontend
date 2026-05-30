@@ -298,7 +298,6 @@ onMounted(() => {
       <VCard>
         <VCardItem>
           <VCardTitle>Edit Member</VCardTitle>
-          <template #append><VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn></template>
         </VCardItem>
         <VDivider />
         <VCardText class="pt-6">

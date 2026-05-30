@@ -246,12 +246,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
     <!-- Add User Dialog -->
     <VDialog v-model="isAddUserDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Add New User</VCardTitle>
-          <VBtn icon variant="text" @click="isAddUserDialogVisible = false">
-            <VIcon icon="bx-x" />
-          </VBtn>
-        </VCardItem>
+        <VCardTitle>Add New User</VCardTitle>
         <VCardText>
           <VTextField v-model="newUser.username" label="Username" :rules="[v => !!v?.trim() || 'Username is required']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="newUser.password" label="Password" type="password" :rules="[v => !!v || 'Password is required']" density="comfortable" class="mb-3" variant="outlined" />
@@ -272,10 +267,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
     <!-- Edit User Dialog -->
     <VDialog v-model="isEditUserDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Edit User</VCardTitle>
-          <VBtn icon variant="text" @click="isEditUserDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Edit User</VCardTitle>
         <VCardText>
           <VTextField v-model="editingUser.username" label="Username" :rules="[v => !!v?.trim() || 'Username is required']" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editingUser.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
@@ -297,10 +289,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
     <!-- Delete Confirm Dialog -->
     <VDialog v-model="isDeleteDialogVisible" max-width="400">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Delete User</VCardTitle>
-          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Delete User</VCardTitle>
         <VCardText>Are you sure you want to delete <strong>{{ deletingUser?.fullName || deletingUser?.username }}</strong>? This action cannot be undone.</VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>

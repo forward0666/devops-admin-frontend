@@ -327,10 +327,7 @@ function exportMiddlewares() {
     <!-- Import Dialog -->
     <VDialog v-model="isImportDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Import Middlewares</VCardTitle>
-          <VBtn icon variant="text" @click="isImportDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Import Middlewares</VCardTitle>
         <VCardText>
           <div
             class="drop-zone pa-8 text-center border rounded-lg"
@@ -365,10 +362,7 @@ function exportMiddlewares() {
     <!-- Add Middleware Dialog -->
     <VDialog v-model="isAddDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Add Middleware</VCardTitle>
-          <VBtn icon variant="text" @click="isAddDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Add Middleware</VCardTitle>
         <VCardText>
           <VForm ref="addFormRef">
             <VTextField v-model="newMiddleware.name" label="Name" placeholder="nginx-proxy" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Name is required']" />
@@ -391,10 +385,7 @@ function exportMiddlewares() {
     <!-- Edit Middleware Dialog -->
     <VDialog v-model="isEditDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Edit Middleware</VCardTitle>
-          <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Edit Middleware</VCardTitle>
         <VCardText>
           <VForm ref="editFormRef">
             <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Name is required']" />
@@ -416,10 +407,7 @@ function exportMiddlewares() {
     <!-- Bulk Edit Dialog -->
     <VDialog v-model="isBulkEditDialogVisible" max-width="450">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Bulk Edit Middlewares ({{ selectedMiddlewares.length }})</VCardTitle>
-          <VBtn icon variant="text" @click="isBulkEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Bulk Edit Middlewares ({{ selectedMiddlewares.length }})</VCardTitle>
         <VCardText>
           <VSelect v-model="bulkForm.type" label="Type" :items="['self-host', 'cloud']" density="comfortable" class="mb-3" variant="outlined" clearable />
           <VTextField v-model="bulkForm.protocol" label="Protocol" placeholder="HTTP/HTTPS" density="comfortable" class="mb-3" variant="outlined" />

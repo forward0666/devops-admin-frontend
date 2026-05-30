@@ -459,10 +459,7 @@ function exportDomains() {
     <!-- Edit Domain Dialog -->
     <VDialog v-model="isEditDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Edit Domain</VCardTitle>
-          <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Edit Domain</VCardTitle>
         <VCardText>
           <VForm ref="editFormRef">
             <VTextField v-model="editingItem.domain" label="Domain" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Domain is required']" />
@@ -483,7 +480,6 @@ function exportDomains() {
       <VCard>
         <VCardItem>
           <VCardTitle>Edit ({{ selectedDomains.length }} selected)</VCardTitle>
-          <template #append><VBtn icon variant="text" @click="isBulkEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn></template>
         </VCardItem>
         <VCardText>
           <div class="text-body-2 text-medium-emphasis mb-4">Leave field empty to keep unchanged.</div>
@@ -501,10 +497,7 @@ function exportDomains() {
     <!-- Delete Dialog -->
     <VDialog v-model="isDeleteDialogVisible" max-width="400">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Remove Domain</VCardTitle>
-          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Remove Domain</VCardTitle>
         <VCardText>Are you sure you want to remove <strong>{{ deletingItem?.domain }}</strong>?</VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>

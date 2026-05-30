@@ -207,10 +207,7 @@ async function confirmDelete() {
     <!-- Add Dialog -->
     <VDialog v-model="isDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Add New Department</VCardTitle>
-          <VBtn icon variant="text" @click="isDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Add New Department</VCardTitle>
         <VCardText>
           <VForm ref="addFormRef">
             <VTextField v-model="form.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
@@ -228,10 +225,7 @@ async function confirmDelete() {
     <!-- Edit Dialog -->
     <VDialog v-model="isEditDialogVisible" max-width="500">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Edit Department</VCardTitle>
-          <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Edit Department</VCardTitle>
         <VCardText>
           <VForm ref="editFormRef">
             <VTextField v-model="editingItem.name" label="Name" density="comfortable" class="mb-3" :rules="[v => !!v || 'Name is required']" variant="outlined" />
@@ -248,10 +242,7 @@ async function confirmDelete() {
     <!-- Delete Dialog -->
     <VDialog v-model="isDeleteDialogVisible" max-width="400">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Delete</VCardTitle>
-          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Delete</VCardTitle>
         <VCardText>Are you sure you want to delete <strong>{{ deletingItem?.name }}</strong>?</VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>

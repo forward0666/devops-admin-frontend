@@ -188,10 +188,7 @@ onMounted(() => {
     <!-- Edit Project Dialog -->
     <VDialog v-model="isEditDialogVisible" max-width="500">
       <VCard v-if="editingProject">
-        <VCardItem>
-          <VCardTitle>Edit Project</VCardTitle>
-          <VBtn icon variant="text" @click="isEditDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Edit Project</VCardTitle>
         <VCardText>
           <VTextField v-model="editingProject.name" label="Project Name" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect v-model="editingProject.status" label="Status" :items="['active', 'pending', 'completed', 'archived']" density="comfortable" class="mb-3" variant="outlined" />
@@ -207,10 +204,7 @@ onMounted(() => {
     <!-- Delete Confirm Dialog -->
     <VDialog v-model="isDeleteDialogVisible" max-width="400">
       <VCard>
-        <VCardItem>
-          <VCardTitle>Delete Project</VCardTitle>
-          <VBtn icon variant="text" @click="isDeleteDialogVisible = false"><VIcon icon="bx-x" /></VBtn>
-        </VCardItem>
+        <VCardTitle>Delete Project</VCardTitle>
         <VCardText>Are you sure you want to delete this project? This action cannot be undone.</VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isDeleteDialogVisible = false">Cancel</VBtn>
