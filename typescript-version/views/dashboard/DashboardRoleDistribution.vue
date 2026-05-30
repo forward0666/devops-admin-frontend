@@ -42,17 +42,19 @@ const chartOptions = computed(() => {
 </script>
 
 <template>
-  <div class="d-flex align-center gap-4">
-    <div style="width: 100px; height: 100px;">
-      <VueApexCharts type="donut" :options="chartOptions" :series="series" />
-    </div>
-    <div class="flex-grow-1">
-      <div class="text-body-2 font-weight-medium mb-2">用户角色分布</div>
-      <div v-for="(role, i) in roleData" :key="role.label" class="d-flex align-center mb-1">
-        <div class="rounded-circle me-2" :style="{ width: '8px', height: '8px', backgroundColor: chartOptions.colors[i] }" />
-        <span class="text-body-2 flex-grow-1">{{ role.label }}</span>
-        <span class="text-body-2 font-weight-medium">{{ role.count }} ({{ role.pct }}%)</span>
+  <VCard>
+    <VCardText class="d-flex align-center gap-4">
+      <div style="width: 100px; height: 100px;">
+        <VueApexCharts type="donut" :options="chartOptions" :series="series" />
       </div>
-    </div>
-  </div>
+      <div class="flex-grow-1">
+        <div class="text-body-2 font-weight-medium mb-2">用户角色分布</div>
+        <div v-for="(role, i) in roleData" :key="role.label" class="d-flex align-center mb-1">
+          <div class="rounded-circle me-2" :style="{ width: '8px', height: '8px', backgroundColor: chartOptions.colors[i] }" />
+          <span class="text-body-2 flex-grow-1">{{ role.label }}</span>
+          <span class="text-body-2 font-weight-medium">{{ role.count }} ({{ role.pct }}%)</span>
+        </div>
+      </div>
+    </VCardText>
+  </VCard>
 </template>
