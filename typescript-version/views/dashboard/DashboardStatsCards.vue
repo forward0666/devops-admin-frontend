@@ -50,17 +50,17 @@ const stats = computed(() => {
       md="3"
     >
       <VCard>
-        <VCardText class="d-flex align-center">
+        <VCardText class="d-flex align-center py-3">
           <VAvatar
-            size="48"
+            size="36"
             rounded
             variant="tonal"
             :color="stat.color"
-            class="me-4"
+            class="me-3"
           >
             <VIcon
               :icon="stat.icon"
-              size="26"
+              size="20"
             />
           </VAvatar>
           <div class="flex-grow-1">
