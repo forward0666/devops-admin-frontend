@@ -93,7 +93,7 @@ async function fetchGroups() {
 }
 
 watch(selectedBot, (val) => { localStorage.setItem('telegram_group_selectedBot', val); fetchGroups() })
-onMounted(() => { fetchBots(); fetchProjects() })
+onMounted(async () => { await fetchBots(); fetchGroups(); fetchProjects() })
 
 // Group CRUD
 async function addGroup() {
