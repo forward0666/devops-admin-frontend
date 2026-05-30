@@ -17,8 +17,8 @@ const stats = computed(() => {
 </script>
 
 <template>
-  <div class="d-flex gap-2">
-    <VCard v-for="stat in stats" :key="stat.title" class="flex-1">
+  <div class="d-flex flex-wrap gap-2">
+    <VCard v-for="stat in stats" :key="stat.title" style="flex: 1 1 200px; min-width: 200px;">
       <VCardText class="d-flex align-center py-3 px-4">
         <VAvatar size="36" rounded variant="tonal" :color="stat.color" class="me-3">
           <VIcon :icon="stat.icon" size="20" />
