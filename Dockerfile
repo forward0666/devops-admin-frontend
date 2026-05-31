@@ -2,12 +2,12 @@ FROM node:24-alpine AS build-stage
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 COPY package.json pnpm-lock.yaml ./
 COPY typescript-version/package.json ./typescript-version/
 
-RUN pnpm config set onlyBuiltDependencies '' && pnpm install
+RUN pnpm install
 
 COPY . .
 
@@ -29,4 +29,3 @@ RUN chown -R nginx:nginx /www/wwwroot \
 USER nginx
 
 EXPOSE 80
-
