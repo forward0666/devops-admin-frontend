@@ -2,7 +2,7 @@ FROM nginx:1.30.1
 
 RUN mkdir -p /www/wwwroot /var/run/nginx /var/cache/nginx
 
-COPY typescript-version/.output/public/ /www/wwwroot/
+COPY .output/public/ /www/wwwroot/
 
 RUN chown -R nginx:nginx /www/wwwroot \
  && chown -R nginx:nginx /var/cache/nginx \
