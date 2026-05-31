@@ -7,7 +7,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml ./
 COPY typescript-version/package.json ./typescript-version/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 COPY . .
 
