@@ -5,6 +5,7 @@ import VerticalNavLink from "@layouts/components/VerticalNavLink.vue";
 import { userConsoleProjectService } from '~/services/api'
 
 const authStore = useAuthStore()
+import { ADMIN, DEVOPS, USER, LOGIN, HOME_ROUTE_MAP, USER_PROJECT } from '~/constants/routes'
 const projectStore = ref<any>(null)
 const userProjectList = ref<any[]>([])
 const projectList = computed(() => {
@@ -37,12 +38,7 @@ if (import.meta.client) {
 function switchConsole(role: 'admin' | 'user' | 'devops') {
   const authStore = useAuthStore()
   authStore.setConsoleRole(role)
-  const routeMap: Record<string, string> = {
-    admin: '/admin/dashboard',
-    devops: '/devops/dashboard',
-    user: '/user/dashboard',
-  }
-  navigateTo(routeMap[role] || '/user/dashboard')
+  navigateTo(HOME_ROUTE_MAP[role] || USER.DASHBOARD)
 }
 
 const isProjectActive = (projectId: number) => {
@@ -80,7 +76,7 @@ const isProjectActive = (projectId: number) => {
         :item="{
           title: 'Dashboard',
           icon: 'bx-home',
-          to: '/admin/dashboard',
+          to: ADMIN.DASHBOARD,
         }"
       />
 
@@ -89,15 +85,15 @@ const isProjectActive = (projectId: number) => {
           title: 'User',
           icon: 'bx-user',
         }"
-        :open="currentRoute?.path?.includes('/admin/system/user')"
+        :open="currentRoute?.path?.includes(ADMIN.SYSTEM_USER_LIST)"
       >
-        <VerticalNavLink :item="{ title: 'List', to: '/admin/system/user/list' }" />
-        <VerticalNavLink :item="{ title: 'View', to: '/admin/system/user/view' }" />
+        <VerticalNavLink :item="{ title: 'List', to: ADMIN.SYSTEM_USER_LIST }" />
+        <VerticalNavLink :item="{ title: 'View', to: ADMIN.SYSTEM_USER_VIEW }" />
       </VerticalNavGroup>
 
-      <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }" :open="currentRoute?.path?.includes('/admin/system/dept')">
-        <VerticalNavLink :item="{ title: 'List', to: '/admin/system/dept/list' }" />
-        <VerticalNavLink :item="{ title: 'View', to: '/admin/system/dept/view' }" />
+      <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }" :open="currentRoute?.path?.includes(ADMIN.SYSTEM_DEPT_LIST)">
+        <VerticalNavLink :item="{ title: 'List', to: ADMIN.SYSTEM_DEPT_LIST }" />
+        <VerticalNavLink :item="{ title: 'View', to: ADMIN.SYSTEM_DEPT_VIEW }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
@@ -105,10 +101,10 @@ const isProjectActive = (projectId: number) => {
           title: 'Project',
           icon: 'bx-folder',
         }"
-        :open="currentRoute?.path?.includes('/admin/project')"
+        :open="currentRoute?.path?.includes(ADMIN.PROJECT_LIST)"
       >
-        <VerticalNavLink :item="{ title: 'List', to: '/admin/project/list' }" />
-        <VerticalNavLink :item="{ title: 'View', to: '/admin/project/view' }" />
+        <VerticalNavLink :item="{ title: 'List', to: ADMIN.PROJECT_LIST }" />
+        <VerticalNavLink :item="{ title: 'View', to: ADMIN.PROJECT_VIEW }" />
       </VerticalNavGroup>
 
       <!-- 👉 Online -->
@@ -116,7 +112,7 @@ const isProjectActive = (projectId: number) => {
         :item="{
           title: 'Online User',
           icon: 'bx-wifi',
-          to: '/admin/monitor/online',
+          to: ADMIN.MONITOR_ONLINE,
         }"
       />
 
@@ -124,14 +120,14 @@ const isProjectActive = (projectId: number) => {
         :item="{
           title: 'Login Log',
           icon: 'bx-log-in',
-          to: '/admin/monitor/loginlog',
+          to: ADMIN.MONITOR_LOGIN_LOG,
         }"
       />
       <VerticalNavLink
         :item="{
           title: 'Operation Log',
           icon: 'bx-list-ul',
-          to: '/admin/monitor/operationlog',
+          to: ADMIN.MONITOR_OPERATION_LOG,
         }"
       />
       <VDivider class="my-2 mx-3" />
@@ -139,7 +135,7 @@ const isProjectActive = (projectId: number) => {
         :item="{
           title: 'Setting',
           icon: 'bx-cog',
-          to: '/admin/monitor/setting',
+          to: ADMIN.MONITOR_SETTING,
         }"
       />
 
@@ -151,7 +147,7 @@ const isProjectActive = (projectId: number) => {
         :item="{
           title: 'Dashboard',
           icon: 'bx-home',
-          to: '/devops/dashboard',
+          to: DEVOPS.DASHBOARD,
         }"
       />
 
@@ -164,37 +160,37 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink
           :item="{
             title: 'Bot Manager',
-            to: '/devops/telegram',
+            to: DEVOPS.TG_INDEX,
           }"
         />
         <VerticalNavLink
           :item="{
             title: 'Authorized Chat',
-            to: '/devops/telegram/chats',
+            to: DEVOPS.TG_CHATS,
           }"
         />
         <VerticalNavLink
           :item="{
             title: 'Blacklist Chat',
-            to: '/devops/telegram/blacklist',
+            to: DEVOPS.TG_BLACKLIST,
           }"
         />
         <VerticalNavLink
           :item="{
             title: 'Group Binding',
-            to: '/devops/telegram/group',
+            to: DEVOPS.TG_GROUP,
           }"
         />
         <VerticalNavLink
           :item="{
             title: 'Service Status',
-            to: '/devops/telegram/status',
+            to: DEVOPS.TG_STATUS,
           }"
         />
         <VerticalNavLink
           :item="{
             title: 'Menu Config',
-            to: '/devops/telegram/menu',
+            to: DEVOPS.TG_MENU,
           }"
         />
       </VerticalNavGroup>
@@ -205,12 +201,12 @@ const isProjectActive = (projectId: number) => {
           icon: 'bx-cloud',
         }"
       >
-        <VerticalNavLink :item="{ title: 'Account', to: '/devops/cloudflare' }" />
-        <VerticalNavLink :item="{ title: 'DNS', to: '/devops/cloudflare/dns' }" />
-        <VerticalNavLink :item="{ title: 'Zone', to: '/devops/cloudflare/zone' }" />
-        <VerticalNavLink :item="{ title: 'Security', to: '/devops/cloudflare/security' }" />
-        <VerticalNavLink :item="{ title: 'SSL', to: '/devops/cloudflare/ssl' }" />
-        <VerticalNavLink :item="{ title: 'Cache', to: '/devops/cloudflare/cache' }" />
+        <VerticalNavLink :item="{ title: 'Account', to: DEVOPS.CF_INDEX }" />
+        <VerticalNavLink :item="{ title: 'DNS', to: DEVOPS.CF_DNS }" />
+        <VerticalNavLink :item="{ title: 'Zone', to: DEVOPS.CF_ZONE }" />
+        <VerticalNavLink :item="{ title: 'Security', to: DEVOPS.CF_SECURITY }" />
+        <VerticalNavLink :item="{ title: 'SSL', to: DEVOPS.CF_SSL }" />
+        <VerticalNavLink :item="{ title: 'Cache', to: DEVOPS.CF_CACHE }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
@@ -219,10 +215,10 @@ const isProjectActive = (projectId: number) => {
           icon: 'bx-wrench',
         }"
       >
-        <VerticalNavLink :item="{ title: 'Domain', to: '/devops/tools/domain' }" />
-        <VerticalNavLink :item="{ title: 'Purge Cache', to: '/devops/tools/purgecache' }" />
-        <VerticalNavLink :item="{ title: 'Security Rules', to: '/devops/tools/security' }" />
-        <VerticalNavLink :item="{ title: 'WhiteList IP', to: '/devops/tools/whitelist' }" />
+        <VerticalNavLink :item="{ title: 'Domain', to: DEVOPS.TOOLS_DOMAIN }" />
+        <VerticalNavLink :item="{ title: 'Purge Cache', to: DEVOPS.TOOLS_PURGE_CACHE }" />
+        <VerticalNavLink :item="{ title: 'Security Rules', to: DEVOPS.TOOLS_SECURITY }" />
+        <VerticalNavLink :item="{ title: 'WhiteList IP', to: DEVOPS.TOOLS_WHITELIST }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
@@ -231,7 +227,7 @@ const isProjectActive = (projectId: number) => {
           icon: 'bx-cloud',
         }"
       >
-        <VerticalNavLink :item="{ title: 'Dashboard', to: '/devops/tencent' }" />
+        <VerticalNavLink :item="{ title: 'Dashboard', to: DEVOPS.TENCENT }" />
       </VerticalNavGroup>
     </template>
 
@@ -240,14 +236,14 @@ const isProjectActive = (projectId: number) => {
         :item="{
           title: 'Dashboard',
           icon: 'bx-home',
-          to: '/user/dashboard',
+          to: USER.DASHBOARD,
         }"
       />
       <VerticalNavLink
         :item="{
           title: 'Profile',
           icon: 'bx-user',
-          to: '/user/profile',
+          to: USER.PROFILE,
         }"
       />
 
@@ -260,10 +256,10 @@ const isProjectActive = (projectId: number) => {
       >
         <template v-for="project in projectList" :key="`project-nav-${project.id}-${projectKey}`">
           <VerticalNavGroup :item="{ title: project.name, icon: 'bx-folder' }" :open="isProjectActive(project.id)">
-            <VerticalNavLink :item="{ title: 'Info', to: `/user/project/${project.id}/info` }" />
-            <VerticalNavLink :item="{ title: 'Member', to: `/user/project/${project.id}/members` }" />
-            <VerticalNavLink :item="{ title: 'Domain', to: `/user/project/${project.id}/domain` }" />
-            <VerticalNavLink :item="{ title: 'Middleware', to: `/user/project/${project.id}/middleware` }" />
+            <VerticalNavLink :item="{ title: 'Info', to: USER_PROJECT(project.id, 'info') }" />
+            <VerticalNavLink :item="{ title: 'Member', to: USER_PROJECT(project.id, 'members') }" />
+            <VerticalNavLink :item="{ title: 'Domain', to: USER_PROJECT(project.id, 'domain') }" />
+            <VerticalNavLink :item="{ title: 'Middleware', to: USER_PROJECT(project.id, 'middleware') }" />
           </VerticalNavGroup>
         </template>
       </VerticalNavGroup>
@@ -276,7 +272,7 @@ const isProjectActive = (projectId: number) => {
       :item="{
         title: 'Login',
         icon: 'bx-log-in',
-        to: '/login',
+        to: LOGIN,
       }"
     />
   </template>

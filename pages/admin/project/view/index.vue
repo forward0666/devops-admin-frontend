@@ -1,3 +1,4 @@
+import { ADMIN } from '~/constants/routes'
 <script setup lang="ts">
 import { projectService, projectMemberService, userService } from '~/services/api'
 
@@ -170,7 +171,7 @@ watch(projectId, (newId) => {
       <VCol cols="12" class="text-center py-16">
         <VIcon icon="bx-error-circle" size="64" color="warning" />
         <h5 class="text-h5 mt-4">Project Not Found</h5>
-        <VBtn variant="tonal" class="mt-4" to="/admin/project/list">Back to Projects</VBtn>
+        <VBtn variant="tonal" class="mt-4" :to="ADMIN.PROJECT_LIST">Back to Projects</VBtn>
       </VCol>
     </VRow>
 

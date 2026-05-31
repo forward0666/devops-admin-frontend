@@ -1,3 +1,4 @@
+import { ADMIN } from '~/constants/routes'
 <script setup lang="ts">
 const route = useRoute()
 const userStore = useUserStore()
@@ -94,7 +95,7 @@ const userData = computed(() => {
       <VCol cols="12" class="text-center py-16">
         <VIcon icon="bx-error-circle" size="64" color="warning" />
         <h5 class="text-h5 mt-4">User Not Found</h5>
-        <VBtn variant="tonal" class="mt-4" to="/admin/system/user/list">Back to Users</VBtn>
+        <VBtn variant="tonal" class="mt-4" :to="ADMIN.SYSTEM_USER_LIST">Back to Users</VBtn>
       </VCol>
     </VRow>
 

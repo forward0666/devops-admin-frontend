@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { userConsoleProfileService } from '~/services/api'
+import { LOGIN } from '~/constants/routes'
 const authStore = useAuthStore()
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
@@ -101,7 +102,7 @@ async function changePassword() {
     // Password changed, force logout and redirect to login
     if (res?.message?.includes('please login again')) {
       await authStore.logout()
-      window.location.href = '/login'
+      window.location.href = LOGIN
       return
     }
     snackbar.value = { show: true, text: 'Password changed', color: 'success' }

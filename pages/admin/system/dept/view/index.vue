@@ -1,3 +1,4 @@
+import { ADMIN } from '~/constants/routes'
 <script setup lang="ts">
 const route = useRoute()
 const departmentStore = useDepartmentStore()
@@ -62,7 +63,7 @@ const activeTab = ref('overview')
       <VCol cols="12" class="text-center py-16">
         <VIcon icon="bx-error-circle" size="64" color="warning" />
         <h5 class="text-h5 mt-4">Department Not Found</h5>
-        <VBtn variant="tonal" class="mt-4" to="/admin/system/dept/list">Back to Departments</VBtn>
+        <VBtn variant="tonal" class="mt-4" :to="ADMIN.SYSTEM_DEPT_LIST">Back to Departments</VBtn>
       </VCol>
     </VRow>
 

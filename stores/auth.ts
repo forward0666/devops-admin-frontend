@@ -1,5 +1,6 @@
 // useAuthStore - 认证与角色管理
 import { defineStore } from 'pinia'
+import { HOME_ROUTE_MAP } from '~/constants/routes'
 import { authService } from '~/services/api'
 
 export type UserRole = 'user' | 'devops' | 'admin' | 'sys_admin'
@@ -53,11 +54,7 @@ export const useAuthStore = defineStore('auth', {
     /** 当前是否在 admin 界面 */
     isConsoleAdmin: (state): boolean => state._ready && state.consoleRole === 'admin',
     isReady: (state) => state._ready,
-    homeRoute: (state) => {
-      if (state.consoleRole === 'user') return '/user/dashboard'
-      if (state.consoleRole === 'devops') return '/devops/dashboard'
-      return '/admin/dashboard'
-    },
+    homeRoute: (state) => HOME_ROUTE_MAP[state.consoleRole],
     userName: (state) => state.user?.fullName || state.user?.username || '',
   },
 

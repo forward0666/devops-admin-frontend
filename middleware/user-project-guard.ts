@@ -1,4 +1,5 @@
 import { userConsoleMemberService, userConsoleProjectService } from '~/services/api'
+import { USER } from '~/constants/routes'
 
 export default defineNuxtRouteMiddleware(async (to) => {
   // Only guard /user/project/[id]/* routes
@@ -17,9 +18,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const members = Array.isArray(res) ? res : res?.data || []
     const isMember = members.some((m: any) => Number(m.userId) === Number(authStore.user?.id))
     if (!isMember) {
-      return navigateTo('/user/dashboard')
+      return navigateTo(USER.DASHBOARD)
     }
   } catch {
-    return navigateTo('/user/dashboard')
+    return navigateTo(USER.DASHBOARD)
   }
 })

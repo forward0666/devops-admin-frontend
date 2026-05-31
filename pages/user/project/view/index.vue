@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { userConsoleProjectService as projectService, userConsoleMemberService as projectMemberService } from '~/services/api'
+import { USER } from '~/constants/routes'
 
 const activeTab = ref('overview')
 const route = useRoute()
@@ -66,7 +67,7 @@ onMounted(fetchProject)
       <VIcon icon="bx-error-circle" size="64" color="warning" />
       <h4 class="text-h4 mt-4">Project Not Found</h4>
       <p class="text-body-1 text-medium-emphasis mt-2">The project you're looking for doesn't exist.</p>
-      <VBtn color="primary" class="mt-4" prepend-icon="bx-arrow-back" @click="router.push('/user/project/list')">
+      <VBtn color="primary" class="mt-4" prepend-icon="bx-arrow-back" @click="router.push(USER.PROJECT_LIST)">
         Back to Projects
       </VBtn>
     </div>

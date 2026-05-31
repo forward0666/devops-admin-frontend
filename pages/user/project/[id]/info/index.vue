@@ -1,3 +1,4 @@
+import { USER } from '~/constants/routes'
 <script lang="ts">definePageMeta({ middleware: ["user-project-guard"] })</script>
 <script setup lang="ts">
 import { userConsoleProjectService as projectService } from '~/services/api'
@@ -138,7 +139,7 @@ onMounted(fetchProject)
       <VIcon icon="bx-error-circle" size="64" color="warning" class="mb-4" />
       <h4 class="text-h4 mb-2">Project Not Found</h4>
       <p class="text-body-1 text-medium-emphasis mb-4">The project you're looking for doesn't exist.</p>
-      <VBtn prepend-icon="bx-arrow-back" color="primary" variant="tonal" to="/user/project/list">Back to Projects</VBtn>
+      <VBtn prepend-icon="bx-arrow-back" color="primary" variant="tonal" :to="USER.PROJECT_LIST">Back to Projects</VBtn>
     </div>
 
     <div v-else>

@@ -32,4 +32,5 @@ npm run dev
 
 ```sh
 npm run build
+rm -rf node_modules .nuxt && pnpm install && npx nuxi prepare
 ```
