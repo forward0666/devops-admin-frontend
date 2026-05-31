@@ -1,0 +1,1 @@
+import{u as s}from"./DBV-KQkJ.js";s("cf_accounts",[]);s("cf_dns_records",[]);s("cf_zones",[]);s("cf_firewall_rules",[]);s("cf_cache_logs",[]);const e={dns:"info",zone:"success",firewall:"error",ssl:"warning",cache:"secondary"},a={dns:"DNS",zone:"Zone",firewall:"Firewall",ssl:"SSL",cache:"Cache"};export{a as T,e as a};
