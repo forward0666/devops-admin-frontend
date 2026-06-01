@@ -17,21 +17,27 @@ const currentRoute = import.meta.client ? useRoute() : null
 
 if (import.meta.client) {
   projectStore.value = useProjectStore()
-  if (!projectStore.value.projects?.length) {
-    projectStore.value.fetchProjects()
-  }
-  watch(() => projectStore.value?.projects.length, () => {
-    projectKey.value++
-  })
 
-  // Fetch user's own projects for user console
+  // Fetch admin/devops projects only when authenticated
+  const fetchAdminProjects = () => {
+    if (authStore.isAuthenticated && !authStore.isUser && !projectStore.value.projects?.length) {
+      projectStore.value.fetchProjects()
+    }
+  }
+
+  // Fetch user's own projects only when authenticated & in user console
   const fetchUserProjects = async () => {
+    if (!authStore.isAuthenticated) return
     try {
       const res = await userConsoleProjectService.list()
       userProjectList.value = Array.isArray(res) ? res : res?.data || []
     } catch { userProjectList.value = [] }
   }
+
+  fetchAdminProjects()
   fetchUserProjects()
+  watch(() => projectStore.value?.projects.length, () => { projectKey.value++ })
+  watch(() => authStore.isAuthenticated, (v) => { if (v) { fetchAdminProjects(); fetchUserProjects() } })
   watch(() => authStore.consoleRole, fetchUserProjects)
 }
 
