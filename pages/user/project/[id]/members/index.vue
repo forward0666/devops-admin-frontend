@@ -148,7 +148,7 @@ const filteredMembers = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return members.value.filter(m => {
     const displayName = m.fullName || m.username || ''
-    const matchRole = !selectedProjectRole.value || m.role === selectedProjectRole.value
+    const matchRole = !selectedProjectRole.value || m.projectRole === selectedProjectRole.value
     const matchSearch = !query
       || displayName.toLowerCase().includes(query)
       || m.username?.toLowerCase().includes(query)
