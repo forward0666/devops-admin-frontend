@@ -354,7 +354,7 @@ onMounted(() => { loadBots() })
         <VCardActions>
           <VSpacer />
           <VBtn variant="outlined" @click="showDeleteDialog = false">Cancel</VBtn>
-          <VBtn color="error" :disabled="deleteBotName !== selectedBot?.botName" @click="handleDeleteBot">Delete</VBtn>
+          <VBtn color="error" :disabled="deleteBotName.trim() !== selectedBot?.botName" @click="handleDeleteBot">Delete</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
