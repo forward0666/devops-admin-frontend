@@ -2,7 +2,7 @@ import axios from 'axios'
 import type { ApiResponse } from '~/types/api'
 
 // 环境变量配置
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 10000
 
 // 创建 axios 实例
@@ -18,7 +18,8 @@ const apiClient = axios.create({
 // 请求拦截器：自动加 Bearer Token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token')
+    // 客户端从 localStorage 读 token
+    const token = process.client ? localStorage.getItem('auth_token') : null
     if (token) {
       if (!config.headers)
         config.headers = {}
