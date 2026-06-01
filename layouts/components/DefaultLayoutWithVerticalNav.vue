@@ -21,14 +21,6 @@ watch(isNavCollapsed, (val) => {
     <!-- 👉 navbar -->
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">
-        <!-- 👉 Vertical nav toggle in overlay mode -->
-        <IconBtn
-          class="ms-1 d-lg-none"
-          @click="toggleVerticalOverlayNavActive(true)"
-        >
-          <VIcon icon="bx-menu" />
-        </IconBtn>
-
         <VSpacer />
       </div>
     </template>
