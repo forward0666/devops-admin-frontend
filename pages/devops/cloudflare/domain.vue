@@ -75,7 +75,7 @@ const statusCodeStats = computed(() => {
       stats.pub.count++
     }
   }
-  return [stats.total, stats.up, stats.s403, stats.s404, stats.s502, stats.s503, stats.down, stats.noData, stats.pub, stats.priv]
+  return [stats.total, stats.pub, stats.priv, stats.up, stats.s403, stats.s404, stats.s502, stats.s503, stats.down, stats.noData]
 })
 
 const filteredRecords = computed(() => {
