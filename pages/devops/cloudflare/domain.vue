@@ -293,7 +293,7 @@ onMounted(async () => {
           <col style="width: 170px" />
           <col style="width: 150px" />
           <col style="width: 100px" />
-          <col style="width: 150px" />
+          <col style="width: 200px" />
           <col style="width: 140px" />
           <col style="width: 140px" />
           <col style="width: 150px" />
@@ -309,7 +309,7 @@ onMounted(async () => {
             <th style="width: 170px !important; max-width: 170px !important; overflow: hidden;">Name</th>
             <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Content</th>
             <th style="width: 20px; text-align: center;">Proxied</th>
-            <th style="width: 150px;">Last Status</th>
+            <th style="width: 200px;">Last Status</th>
             <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
             <th style="width: 150px;">Probe Time</th>
@@ -344,7 +344,7 @@ onMounted(async () => {
                 <td style="width: 20px; text-align: center;">
                   <VChip size="x-small" :color="r.proxied ? 'success' : 'grey'" variant="tonal">{{ r.proxied ? 'Yes' : 'No' }}</VChip>
                 </td>
-                <td style="width: 150px;">
+                <td style="width: 200px;">
                   <template v-if="monitorStatus[r.name]">
                     <VChip size="x-small" :color="monitorStatus[r.name].status === 'up' ? 'success' : monitorStatus[r.name].status === 'down' ? 'error' : 'warning'" variant="tonal">
                       {{ monitorStatus[r.name].status_code || monitorStatus[r.name].status }}
