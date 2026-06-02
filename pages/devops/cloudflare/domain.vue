@@ -209,7 +209,7 @@ function collapseAll() {
 
 function exportCSV() {
   if (!sortedRecords.value.length) return
-  const headers = ['zone_name', 'type', 'name', 'content', 'proxied', 'synced_at', 'account_name']
+  const headers = ['zone_name', 'type', 'name', 'content', 'proxied', 'account_name']
   const rows = sortedRecords.value.map(r => headers.map(h => {
     let v = r[h]
     if (typeof v === 'boolean') v = v ? 'Yes' : 'No'
@@ -293,7 +293,6 @@ onMounted(async () => {
           <col style="width: 170px" />
           <col style="width: 150px" />
           <col style="width: 100px" />
-          <col style="width: 150px" />
           <col style="width: 200px" />
           <col style="width: 140px" />
           <col style="width: 140px" />
@@ -309,7 +308,6 @@ onMounted(async () => {
             <th style="width: 170px !important; max-width: 170px !important; overflow: hidden;">Name</th>
             <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Content</th>
             <th style="width: 20px; text-align: center;">Proxied</th>
-            <th style="width: 190px;">Synced</th>
             <th style="width: 200px;">Last Status</th>
             <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
@@ -318,7 +316,7 @@ onMounted(async () => {
         <tbody>
           <template v-for="domain in pagedDomainKeys" :key="domain">
             <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-              <td colspan="9" style="padding: 0 !important;">
+              <td colspan="8" style="padding: 0 !important;">
                 <div class="d-flex align-center" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
                   <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                   <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
@@ -343,9 +341,6 @@ onMounted(async () => {
                 </td>
                 <td style="width: 20px; text-align: center;">
                   <VChip size="x-small" :color="r.proxied ? 'success' : 'grey'" variant="tonal">{{ r.proxied ? 'Yes' : 'No' }}</VChip>
-                </td>
-                <td style="width: 170px;">
-                  <span class="text-caption">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</span>
                 </td>
                 <td style="width: 200px;">
                   <template v-if="monitorStatus[r.name]">
