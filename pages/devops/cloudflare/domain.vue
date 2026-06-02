@@ -320,12 +320,12 @@ onMounted(async () => {
           <col style="width: 50px" />
           <col style="width: 100px" />
           <col style="width: 220px" />
-          <col style="width: 150px" />
+          <col style="width: 160px" />
           <col style="width: 80px" />
           <col style="width: 200px" />
           <col style="width: 140px" />
           <col style="width: 140px" />
-          <col style="width: 150px" />
+          <col style="width: 160px" />
           <col style="width: 80px" />
         </colgroup>
         <thead>
@@ -337,12 +337,12 @@ onMounted(async () => {
             </th>
             <th style="width: 100px; max-width: 100px; overflow: hidden; text-align: center;">Type</th>
             <th style="width: 220px !important; max-width: 220px !important; overflow: hidden;">Name</th>
-            <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Content</th>
+            <th style="width: 160px !important; max-width: 160px !important; overflow: hidden;">Content</th>
             <th style="width: 20px; text-align: center;">Proxied</th>
             <th style="width: 200px;">Last Status</th>
             <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
-            <th style="width: 150px;">Probe Time</th>
+            <th style="width: 160px;">Probe Time</th>
             <th style="width: 80px; text-align: center;">Public</th>
           </tr>
         </thead>
@@ -369,7 +369,7 @@ onMounted(async () => {
                 <td style="width: 220px !important; max-width: 220px !important; text-align: left; word-break: break-all; ">
                   <code style="display: block; width: 220px; word-break: break-all; " class="text-caption">{{ r.name }}</code>
                 </td>
-                <td style="width: 150px !important; max-width: 150px !important; word-break: break-all;">
+                <td style="width: 160px !important; max-width: 160px !important; word-break: break-all;">
                   <code class="text-caption">{{ r.content }}</code>
                 </td>
                 <td style="width: 20px; text-align: center;">
@@ -396,7 +396,7 @@ onMounted(async () => {
                   <span v-if="r.last_probe_ip && r.last_probe_ip !== 'fail'" class="text-caption">{{ r.last_probe_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
-                <td style="width: 150px;">
+                <td style="width: 160px;">
                   <span v-if="r.last_checked_at" class="text-caption">{{ new Date(r.last_checked_at + 'Z').toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
