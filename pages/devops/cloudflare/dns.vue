@@ -357,7 +357,4 @@ function exportCSV() {
   z-index: 10;
   background: rgb(var(--v-theme-surface));
 }
-.sticky-table :deep(td), .sticky-table :deep(th) {
-  border: 1px solid red !important;
-}
 </style>
