@@ -290,7 +290,7 @@ onMounted(async () => {
         <colgroup>
           <col style="width: 200px" />
           <col style="width: 80px" />
-          <col style="width: 150px" />
+          <col style="width: 170px" />
           <col style="width: 150px" />
           <col style="width: 100px" />
           <col style="width: 150px" />
@@ -304,11 +304,11 @@ onMounted(async () => {
               </span>
             </th>
             <th style="width: 100px; max-width: 100px; overflow: hidden; text-align: center;">Type</th>
-            <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Name</th>
+            <th style="width: 170px !important; max-width: 170px !important; overflow: hidden;">Name</th>
             <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Content</th>
             <th style="width: 20px; text-align: center;">Proxied</th>
             <th style="width: 190px;">Synced</th>
-            <th style="width: 200px; text-align: center;">Status</th>
+            <th style="width: 200px;">Last Status</th>
           </tr>
         </thead>
         <tbody>
@@ -331,8 +331,8 @@ onMounted(async () => {
                     <VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip>
                   </div>
                 </td>
-                <td style="width: 150px !important; max-width: 150px !important; text-align: left; word-break: break-all; ">
-                  <code style="display: block; width: 150px; word-break: break-all; " class="text-caption">{{ r.name }}</code>
+                <td style="width: 170px !important; max-width: 170px !important; text-align: left; word-break: break-all; ">
+                  <code style="display: block; width: 170px; word-break: break-all; " class="text-caption">{{ r.name }}</code>
                 </td>
                 <td style="width: 150px !important; max-width: 150px !important; word-break: break-all;">
                   <code class="text-caption">{{ r.content }}</code>
@@ -343,7 +343,7 @@ onMounted(async () => {
                 <td style="width: 170px;">
                   <span class="text-caption">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</span>
                 </td>
-                <td style="width: 200px; text-align: center;">
+                <td style="width: 200px;">
                   <template v-if="monitorStatus[r.name]">
                     <VChip size="x-small" :color="monitorStatus[r.name].status === 'up' ? 'success' : monitorStatus[r.name].status === 'down' ? 'error' : 'warning'" variant="tonal">
                       {{ monitorStatus[r.name].status_code || monitorStatus[r.name].status }}
