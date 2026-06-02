@@ -325,7 +325,7 @@ onMounted(async () => {
           <col style="width: 200px" />
           <col style="width: 140px" />
           <col style="width: 140px" />
-          <col style="width: 160px" />
+          <col style="width: 150px" />
           <col style="width: 80px" />
         </colgroup>
         <thead>
@@ -342,7 +342,7 @@ onMounted(async () => {
             <th style="width: 200px;">Last Status</th>
             <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
-            <th style="width: 160px;">Probe Time</th>
+            <th style="width: 150px;">Probe Time</th>
             <th style="width: 80px; text-align: center;">Public</th>
           </tr>
         </thead>
@@ -396,7 +396,7 @@ onMounted(async () => {
                   <span v-if="r.last_probe_ip && r.last_probe_ip !== 'fail'" class="text-caption">{{ r.last_probe_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
-                <td style="width: 160px;">
+                <td style="width: 150px;">
                   <span v-if="r.last_checked_at" class="text-caption">{{ new Date(r.last_checked_at + 'Z').toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
