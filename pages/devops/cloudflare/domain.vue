@@ -40,10 +40,13 @@ const typeColors: Record<string, string> = {
 }
 
 const statusCodeStats = computed(() => {
-  const stats = {
+  const stats: Record<string, { count: number, label: string, icon: string, color: string }> = {
     total: { count: 0, label: 'Total', icon: 'bx-globe', color: 'primary' },
     up: { count: 0, label: 'Up (200)', icon: 'bx-check-circle', color: 'success' },
-    error: { count: 0, label: 'Error (4xx/5xx)', icon: 'bx-error', color: 'error' },
+    s403: { count: 0, label: '403', icon: 'bx-shield-x', color: 'error' },
+    s404: { count: 0, label: '404', icon: 'bx-error', color: 'warning' },
+    s502: { count: 0, label: '502', icon: 'bx-server', color: 'error' },
+    s503: { count: 0, label: '503', icon: 'bx-cloud', color: 'error' },
     down: { count: 0, label: 'Down', icon: 'bx-x-circle', color: 'warning' },
     noData: { count: 0, label: 'No Data', icon: 'bx-minus-circle', color: 'grey' },
   }
@@ -51,15 +54,21 @@ const statusCodeStats = computed(() => {
     stats.total.count++
     if (r.last_status_code === 200) {
       stats.up.count++
-    } else if (r.last_status_code && r.last_status_code >= 400) {
-      stats.error.count++
+    } else if (r.last_status_code === 403) {
+      stats.s403.count++
+    } else if (r.last_status_code === 404) {
+      stats.s404.count++
+    } else if (r.last_status_code === 502) {
+      stats.s502.count++
+    } else if (r.last_status_code === 503) {
+      stats.s503.count++
     } else if (r.last_status === 'down' || r.last_status === 'error') {
       stats.down.count++
     } else {
       stats.noData.count++
     }
   }
-  return [stats.total, stats.up, stats.error, stats.down, stats.noData]
+  return [stats.total, stats.up, stats.s403, stats.s404, stats.s502, stats.s503, stats.down, stats.noData]
 })
 
 const filteredRecords = computed(() => {
