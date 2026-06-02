@@ -181,6 +181,16 @@ function collapseAll() {
   localStorage.setItem('dns_domain_expanded', JSON.stringify({}))
 }
 
+async function togglePublic(record: any, value: boolean) {
+  try {
+    await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record._id}`, { is_public: value })
+    record.is_public = value
+    snackbar.value = { show: true, text: value ? 'Marked as public' : 'Marked as private', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to update', color: 'error' }
+  }
+}
+
 function exportCSV() {
   if (!sortedRecords.value.length) return
   const headers = ['zone_name', 'type', 'name', 'content', 'proxied', 'account_name']
@@ -271,6 +281,7 @@ onMounted(async () => {
           <col style="width: 140px" />
           <col style="width: 140px" />
           <col style="width: 150px" />
+          <col style="width: 80px" />
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
@@ -287,12 +298,13 @@ onMounted(async () => {
             <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
             <th style="width: 150px;">Probe Time</th>
+            <th style="width: 80px; text-align: center;">Public</th>
           </tr>
         </thead>
         <tbody>
           <template v-for="domain in pagedDomainKeys" :key="domain">
             <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-              <td colspan="9" style="padding: 0 !important;">
+              <td colspan="10" style="padding: 0 !important;">
                 <div class="d-flex align-center" style="padding: 12px 16px;">
                   <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                   <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
@@ -342,6 +354,16 @@ onMounted(async () => {
                 <td style="width: 150px;">
                   <span v-if="r.last_checked_at" class="text-caption">{{ new Date(r.last_checked_at + 'Z').toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
+                </td>
+                <td style="width: 80px; text-align: center;">
+                  <VSwitch
+                    :model-value="!!r.is_public"
+                    @update:model-value="togglePublic(r, $event)"
+                    color="success"
+                    density="compact"
+                    hide-details
+                    style="display: inline-flex;"
+                  />
                 </td>
               </tr>
             </template>
