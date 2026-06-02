@@ -292,7 +292,7 @@ onMounted(async () => {
           <col style="width: 80px" />
           <col style="width: 170px" />
           <col style="width: 150px" />
-          <col style="width: 50px" />
+          <col style="width: 80px" />
           <col style="width: 200px" />
           <col style="width: 140px" />
           <col style="width: 140px" />
@@ -305,7 +305,7 @@ onMounted(async () => {
                 Zone <VIcon size="14" :icon="domainSortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down'" class="text-disabled" />
               </span>
             </th>
-            <th style="width: 50px; max-width: 50px; overflow: hidden; text-align: center;">Type</th>
+            <th style="width: 100px; max-width: 100px; overflow: hidden; text-align: center;">Type</th>
             <th style="width: 170px !important; max-width: 170px !important; overflow: hidden;">Name</th>
             <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Content</th>
             <th style="width: 20px; text-align: center;">Proxied</th>
