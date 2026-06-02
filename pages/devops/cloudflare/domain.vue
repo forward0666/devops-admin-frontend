@@ -343,7 +343,7 @@ onMounted(async () => {
             <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
             <th style="width: 150px;">Probe Time</th>
-            <th style="width: 80px; text-align: center;">Public</th>
+            <th style="width: 80px; text-align: center;">Private</th>
           </tr>
         </thead>
         <tbody>
@@ -402,8 +402,8 @@ onMounted(async () => {
                 </td>
                 <td style="width: 80px; text-align: center;">
                   <VSwitch
-                    :model-value="!!r.is_public"
-                    @update:model-value="togglePublic(r, $event)"
+                    :model-value="!r.is_public"
+                    @update:model-value="togglePublic(r, !$event)"
                     color="success"
                     density="compact"
                     hide-details
