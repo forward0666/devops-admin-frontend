@@ -257,7 +257,7 @@ function exportCSV() {
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
       <VTable v-if="sortedRecords.length" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
           <colgroup>
-            <col style="width: 200px" />
+            <col style="width: 120px" />
             <col style="width: 100px" />
             <col style="width: 250px" />
             <col style="width: 350px" />
@@ -267,7 +267,7 @@ function exportCSV() {
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 200px !important; max-width: 200px !important; overflow: hidden;">
+              <th style="width: 120px !important; max-width: 120px !important; overflow: hidden;">
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('domain')">
                   Domain <VIcon size="14" :icon="domainSortKey === 'domain' ? (domainSortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
                 </span>
