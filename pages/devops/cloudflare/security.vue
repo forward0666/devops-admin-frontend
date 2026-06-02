@@ -346,7 +346,7 @@ function exportCSV() {
                   <td style="width: 80px !important; max-width: 80px !important;" class="text-caption text-center">{{ r.priority ?? '-' }}</td>
 
                   <td style="width: 95px !important; max-width: 95px !important;"><VChip size="x-small" :color="r.paused ? 'grey' : 'success'" variant="tonal">{{ r.paused ? 'paused' : 'active' }}</VChip></td>
-                  <td style="word-break: break-all; white-space: normal;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
+                  <td style="word-break: break-all; white-space: normal;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}</td>
                 </tr>
               </template>
               </template>

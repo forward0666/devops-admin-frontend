@@ -214,7 +214,7 @@ function exportCSV() {
                 {{ ns }}
               </div>
             </td>
-            <td class="text-caption text-medium-emphasis">{{ z.synced_at ? new Date(z.synced_at).toLocaleString() : '-' }}</td>
+            <td class="text-caption text-medium-emphasis">{{ z.synced_at ? new Date(z.synced_at + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}</td>
           </tr>
         </tbody>
       </VTable>

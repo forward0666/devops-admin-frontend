@@ -123,7 +123,7 @@ async function handleDelete(id: string) {
               </div>
             </td>
             <td class="text-medium-emphasis">{{ account.description || '-' }}</td>
-            <td class="text-caption text-medium-emphasis">{{ new Date(account.created_at).toLocaleDateString() }}</td>
+            <td class="text-caption text-medium-emphasis">{{ new Date(account.created_at + 'Z').toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' }) }}</td>
             <td>
               <VBtn icon size="x-small" variant="text" color="primary" @click="openEdit(account)">
                 <VIcon icon="bx-edit" size="16" />

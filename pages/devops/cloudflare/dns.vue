@@ -312,7 +312,7 @@ function exportCSV() {
                   <td style="width: 350px !important; max-width: 350px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><code class="text-caption">{{ r.content }}</code></td>
                   <td style="width: 80px; text-align: center;"><VChip size="x-small" :color="r.proxied ? 'success' : 'grey'" variant="tonal">{{ r.proxied ? 'Yes' : 'No' }}</VChip></td>
                   <td style="width: 80px; text-align: center;"><span class="text-caption">{{ r.ttl === 1 ? 'Auto' : r.ttl }}</span></td>
-                  <td style="width: 190px;"><span class="text-caption">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</span></td>
+                  <td style="width: 190px;"><span class="text-caption">{{ r.synced_at ? new Date(r.synced_at + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}</span></td>
                 </tr>
               </template>
             </template>

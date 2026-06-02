@@ -270,7 +270,7 @@ onMounted(async () => {
                     <td style="width: 120px; max-width: 120px;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></td>
                     <td style="white-space: normal; word-break: break-all;"><code class="text-caption">{{ r.expression }}</code></td>
                     <td style="width: 90px; max-width: 90px;"><VChip size="x-small" :color="r.status === 'active' ? 'success' : 'grey'" variant="tonal">{{ r.status }}</VChip></td>
-                    <td style="width: 180px; max-width: 180px;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</td>
+                    <td style="width: 180px; max-width: 180px;" class="text-caption text-medium-emphasis">{{ r.synced_at ? new Date(r.synced_at + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}</td>
                   </tr>
                 </template>
                 <tr v-if="(rulesMap[z.zone_id] || []).length === 0">
