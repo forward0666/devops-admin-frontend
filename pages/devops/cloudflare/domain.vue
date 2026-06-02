@@ -262,7 +262,7 @@ onMounted(async () => {
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
       <VTable v-if="sortedRecords.length" class="sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
         <colgroup>
-          <col style="width: 120px" />
+          <col style="width: 50px" />
           <col style="width: 100px" />
           <col style="width: 170px" />
           <col style="width: 150px" />
@@ -274,7 +274,7 @@ onMounted(async () => {
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
-            <th style="width: 120px !important; max-width: 120px !important; overflow: hidden;">
+            <th style="width: 50px !important; max-width: 50px !important; overflow: hidden;">
               <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('domain')">
                 Zone <VIcon size="14" :icon="domainSortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down'" class="text-disabled" />
               </span>
@@ -303,7 +303,7 @@ onMounted(async () => {
             </tr>
             <template v-if="expandedDomains[domain]">
               <tr v-for="r in (groupedRecords[domain] || [])" :key="r.record_id">
-                <td style="width: 120px !important; max-width: 120px !important;"></td>
+                <td style="width: 50px !important; max-width: 50px !important;"></td>
                 <td style="width: 100px !important; max-width: 100px !important;">
                   <div style="display: flex; justify-content: center; align-items: center;">
                     <VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip>
