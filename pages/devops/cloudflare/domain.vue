@@ -307,13 +307,13 @@ onMounted(async () => {
     </VCard>
 
     <!-- Status Code Stats -->
-    <div class="d-flex flex-wrap gap-3 mb-4">
-      <VCard v-for="stat in statusCodeStats" :key="stat.label" :style="{ minWidth: '120px' }">
-        <VCardText class="d-flex align-center gap-2 py-3">
-          <VIcon :icon="stat.icon" :color="stat.color" size="24" />
+    <div class="d-flex flex-wrap gap-2 mb-4" style="overflow: hidden;">
+      <VCard v-for="stat in statusCodeStats" :key="stat.label" :style="{ minWidth: '90px', flex: '1 1 0' }">
+        <VCardText class="d-flex align-center gap-1 py-2 px-3">
+          <VIcon :icon="stat.icon" :color="stat.color" size="18" />
           <div>
-            <div class="text-h6 font-weight-bold">{{ stat.count }}</div>
-            <div class="text-caption text-medium-emphasis">{{ stat.label }}</div>
+            <div class="text-body-1 font-weight-bold">{{ stat.count }}</div>
+            <div class="text-caption text-medium-emphasis" style="font-size: 10px;">{{ stat.label }}</div>
           </div>
         </VCardText>
       </VCard>
