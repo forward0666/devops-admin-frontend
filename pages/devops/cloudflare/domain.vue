@@ -47,7 +47,7 @@ const statusCodeStats = computed(() => {
     s404: { count: 0, label: '404', icon: 'bx-error', color: 'warning' },
     s502: { count: 0, label: '502', icon: 'bx-server', color: 'error' },
     s503: { count: 0, label: '503', icon: 'bx-cloud', color: 'error' },
-    down: { count: 0, label: 'Down', icon: 'bx-x-circle', color: 'warning' },
+    down: { count: 0, label: 'Down', icon: 'bx-x-circle', color: 'error' },
     noData: { count: 0, label: 'No Data', icon: 'bx-minus-circle', color: 'grey' },
   }
   for (const r of dnsRecords.value) {
