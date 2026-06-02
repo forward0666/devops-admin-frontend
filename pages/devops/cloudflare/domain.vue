@@ -274,7 +274,7 @@ onMounted(async () => {
         <colgroup>
           <col style="width: 50px" />
           <col style="width: 100px" />
-          <col style="width: 170px" />
+          <col style="width: 220px" />
           <col style="width: 150px" />
           <col style="width: 80px" />
           <col style="width: 200px" />
@@ -291,7 +291,7 @@ onMounted(async () => {
               </span>
             </th>
             <th style="width: 100px; max-width: 100px; overflow: hidden; text-align: center;">Type</th>
-            <th style="width: 170px !important; max-width: 170px !important; overflow: hidden;">Name</th>
+            <th style="width: 220px !important; max-width: 220px !important; overflow: hidden;">Name</th>
             <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Content</th>
             <th style="width: 20px; text-align: center;">Proxied</th>
             <th style="width: 200px;">Last Status</th>
@@ -321,8 +321,8 @@ onMounted(async () => {
                     <VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip>
                   </div>
                 </td>
-                <td style="width: 170px !important; max-width: 170px !important; text-align: left; word-break: break-all; ">
-                  <code style="display: block; width: 170px; word-break: break-all; " class="text-caption">{{ r.name }}</code>
+                <td style="width: 220px !important; max-width: 220px !important; text-align: left; word-break: break-all; ">
+                  <code style="display: block; width: 220px; word-break: break-all; " class="text-caption">{{ r.name }}</code>
                 </td>
                 <td style="width: 150px !important; max-width: 150px !important; word-break: break-all;">
                   <code class="text-caption">{{ r.content }}</code>
