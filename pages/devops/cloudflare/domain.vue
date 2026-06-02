@@ -87,7 +87,7 @@ async function fetchMonitorStatus() {
         const results = res.data.data || []
         for (const r of results) {
           if (r.domain && !statusMap[r.domain]) {
-            statusMap[r.domain] = { status: r.status, status_code: r.status_code, response_time_ms: r.response_time_ms, probe_ip: r.probe_ip }
+            statusMap[r.domain] = { status: r.status, status_code: r.status_code, response_time_ms: r.response_time_ms, resolved_ip: r.resolved_ip, probe_ip: r.probe_ip }
           }
         }
       } catch (e) {
@@ -296,6 +296,7 @@ onMounted(async () => {
           <col style="width: 150px" />
           <col style="width: 200px" />
           <col style="width: 140px" />
+          <col style="width: 140px" />
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
@@ -310,13 +311,14 @@ onMounted(async () => {
             <th style="width: 20px; text-align: center;">Proxied</th>
             <th style="width: 190px;">Synced</th>
             <th style="width: 200px;">Last Status</th>
+            <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
           </tr>
         </thead>
         <tbody>
           <template v-for="domain in pagedDomainKeys" :key="domain">
             <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-              <td colspan="8" style="padding: 0 !important;">
+              <td colspan="9" style="padding: 0 !important;">
                 <div class="d-flex align-center" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
                   <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                   <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
@@ -355,6 +357,10 @@ onMounted(async () => {
                   <template v-else-if="r.status_code">
                     <VChip size="x-small" :color="r.status_code === 200 ? 'success' : r.status_code >= 500 ? 'error' : 'warning'" variant="tonal">{{ r.status_code }}</VChip>
                   </template>
+                  <span v-else class="text-caption text-disabled">-</span>
+                </td>
+                <td style="width: 140px;">
+                  <span v-if="monitorStatus[r.name]?.resolved_ip" class="text-caption">{{ monitorStatus[r.name].resolved_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
                 <td style="width: 140px;">
