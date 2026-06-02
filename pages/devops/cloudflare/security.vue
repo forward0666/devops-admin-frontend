@@ -288,7 +288,7 @@ function exportCSV() {
 
     <VCard v-if="selectedAccountId" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
-      <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
+      <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
           <colgroup>
             <col style="width: 350px" />
             <col style="width: 120px" />
@@ -313,8 +313,8 @@ function exportCSV() {
             <template v-for="z in pagedZones" :key="z.zone_id">
               <!-- Zone group header -->
               <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-                <td style="width: 350px !important; max-width: 350px !important; padding: 0 !important;">
-                  <div class="d-flex align-center" style="width: 350px; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                <td colspan="7" style="padding: 0 !important;">
+                  <div class="d-flex align-center" style="padding: 12px 16px;">
                     <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-shield-quarter" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ z.name }}</span>
@@ -332,12 +332,6 @@ function exportCSV() {
                     </VBtn>
                   </div>
                 </td>
-                <td style="width: 120px !important; max-width: 120px !important;"></td>
-                <td style="width: 400px !important; max-width: 400px !important;"></td>
-                <td style="width: 200px !important; max-width: 200px !important;"></td>
-                <td style="width: 80px !important; max-width: 80px !important;"></td>
-                <td style="width: 95px !important; max-width: 95px !important;"></td>
-                <td></td>
               </tr>
               <!-- Rules rows -->
               <template v-if="expandedZones[z.zone_id]">

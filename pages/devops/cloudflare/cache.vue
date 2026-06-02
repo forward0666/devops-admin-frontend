@@ -251,8 +251,8 @@ onMounted(async () => {
           <tbody>
             <template v-for="z in pagedZones" :key="z.zone_id">
               <tr class="cursor-pointer" @click="toggleZone(z.zone_id)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-                <td style="width: 340px !important; max-width: 340px !important; padding: 0 !important;">
-                  <div class="d-flex align-center" style="width: 340px; max-width: 340px; overflow: hidden; padding: 10px 16px;">
+                <td colspan="5" style="padding: 0 !important;">
+                  <div class="d-flex align-center" style="padding: 10px 16px;">
                     <VIcon :icon="expandedZones[z.zone_id] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-bolt" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ z.name }}</span>
@@ -260,10 +260,6 @@ onMounted(async () => {
                     <VBtn size="x-small" variant="tonal" color="primary" :loading="syncingZone === z.zone_id" @click.stop="syncZone(z.zone_id)" prepend-icon="bx-refresh" class="ms-2">Sync</VBtn>
                   </div>
                 </td>
-                <td style="width: 120px; max-width: 120px;"></td>
-                <td></td>
-                <td style="width: 90px; max-width: 90px;"></td>
-                <td style="width: 180px; max-width: 180px;"></td>
               </tr>
               <template v-if="expandedZones[z.zone_id]">
                 <template v-if="(rulesMap[z.zone_id] || []).length > 0">
