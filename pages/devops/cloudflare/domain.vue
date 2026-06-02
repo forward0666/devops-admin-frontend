@@ -288,15 +288,15 @@ onMounted(async () => {
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
       <VTable v-if="sortedRecords.length" class="sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
         <colgroup>
-          <col style="width: 200px" />
+          <col style="width: 150px" />
           <col style="width: 80px" />
           <col style="width: 170px" />
           <col style="width: 150px" />
           <col style="width: 100px" />
-          <col style="width: 200px" />
+          <col style="width: 150px" />
           <col style="width: 140px" />
           <col style="width: 140px" />
-          <col style="width: 200px" />
+          <col style="width: 150px" />
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
@@ -309,10 +309,10 @@ onMounted(async () => {
             <th style="width: 170px !important; max-width: 170px !important; overflow: hidden;">Name</th>
             <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Content</th>
             <th style="width: 20px; text-align: center;">Proxied</th>
-            <th style="width: 200px;">Last Status</th>
+            <th style="width: 150px;">Last Status</th>
             <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
-            <th style="width: 200px;">Probe Time</th>
+            <th style="width: 150px;">Probe Time</th>
           </tr>
         </thead>
         <tbody>
@@ -344,7 +344,7 @@ onMounted(async () => {
                 <td style="width: 20px; text-align: center;">
                   <VChip size="x-small" :color="r.proxied ? 'success' : 'grey'" variant="tonal">{{ r.proxied ? 'Yes' : 'No' }}</VChip>
                 </td>
-                <td style="width: 200px;">
+                <td style="width: 150px;">
                   <template v-if="monitorStatus[r.name]">
                     <VChip size="x-small" :color="monitorStatus[r.name].status === 'up' ? 'success' : monitorStatus[r.name].status === 'down' ? 'error' : 'warning'" variant="tonal">
                       {{ monitorStatus[r.name].status_code || monitorStatus[r.name].status }}
@@ -364,7 +364,7 @@ onMounted(async () => {
                   <span v-if="monitorStatus[r.name]?.probe_ip" class="text-caption">{{ monitorStatus[r.name].probe_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
-                <td style="width: 200px;">
+                <td style="width: 150px;">
                   <span v-if="monitorStatus[r.name]?.checked_at" class="text-caption">{{ new Date(monitorStatus[r.name].checked_at).toLocaleTimeString('zh-CN', { hour12: false }) }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
