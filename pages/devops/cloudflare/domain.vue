@@ -293,7 +293,7 @@ onMounted(async () => {
           <template v-for="domain in pagedDomainKeys" :key="domain">
             <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
               <td colspan="10" style="padding: 0 !important;">
-                <div class="d-flex align-center" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                <div class="d-flex align-center" style="padding: 12px 16px;">
                   <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                   <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
                   <span class="font-weight-bold text-body-1">{{ domain }}</span>
