@@ -183,7 +183,7 @@ function collapseAll() {
 
 async function togglePublic(record: any, value: boolean) {
   try {
-    await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record._id}`, { is_public: value })
+    await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record.id || record._id}`, { is_public: value })
     record.is_public = value
     snackbar.value = { show: true, text: value ? 'Marked as public' : 'Marked as private', color: 'success' }
   } catch (e: any) {
