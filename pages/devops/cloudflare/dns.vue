@@ -295,7 +295,7 @@ function exportCSV() {
           <tbody>
             <template v-for="domain in pagedDomainKeys" :key="domain">
               <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-                <td style="width: 200px !important; max-width: 200px !important; padding: 0 !important;">
+                <td colspan="7" style="padding: 0 !important;">
                   <div class="d-flex align-center" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
                     <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
@@ -303,12 +303,6 @@ function exportCSV() {
                     <VChip size="x-small" variant="tonal" color="primary" class="ms-2">{{ groupedRecords[domain]?.length || 0 }}</VChip>
                   </div>
                 </td>
-                <td style="width: 100px; max-width: 100px;"></td>
-                <td style="width: 250px !important; max-width: 250px !important;"></td>
-                <td style="width: 350px !important; max-width: 350px !important;"></td>
-                <td style="width: 80px;"></td>
-                <td style="width: 80px; text-align: center;"></td>
-                <td style="width: 190px;"></td>
               </tr>
               <template v-if="expandedDomains[domain]">
                 <tr v-for="r in (groupedRecords[domain] || [])" :key="r.record_id">
