@@ -15,6 +15,7 @@ const dialog = ref(false)
 const editingId = ref<string | null>(null)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 const saving = ref(false)
+const checkingIds = ref<number[]>([])
 
 // Form
 const form = ref({
@@ -192,6 +193,18 @@ async function handleDelete(id: string) {
   }
 }
 
+async function triggerCheck(id: number) {
+  checkingIds.value.push(id)
+  try {
+    await apiClient.post(`${MONITOR_GATEWAY}/rules/${id}/check`)
+    snackbar.value = { show: true, text: 'Check triggered', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to trigger check', color: 'error' }
+  } finally {
+    checkingIds.value = checkingIds.value.filter(i => i !== id)
+  }
+}
+
 // Watchers
 watch(() => form.value.domains, (val) => {
   if (val.includes('all') && val.length > 1) {
@@ -245,7 +258,7 @@ onMounted(async () => {
           <col style="width: 250px" />
           <col style="width: 120px" />
           <col style="width: 100px" />
-          <col style="width: 100px" />
+          <col style="width: 130px" />
         </colgroup>
         <thead>
           <tr>
@@ -254,7 +267,7 @@ onMounted(async () => {
             <th style="width: 250px">Domain</th>
             <th style="width: 120px">Interval</th>
             <th style="width: 100px; text-align: center;">Status</th>
-            <th style="width: 100px; text-align: center;">Action</th>
+            <th style="width: 130px; text-align: center;">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -287,6 +300,9 @@ onMounted(async () => {
               </VChip>
             </td>
             <td style="text-align: center;">
+              <VBtn icon size="x-small" variant="text" color="success" @click="triggerCheck(rule.id)" :loading="checkingIds.includes(rule.id)">
+                <VIcon icon="bx-play" size="16" />
+              </VBtn>
               <VBtn icon size="x-small" variant="text" color="primary" @click="openEdit(rule)">
                 <VIcon icon="bx-edit" size="16" />
               </VBtn>
