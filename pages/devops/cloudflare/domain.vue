@@ -49,6 +49,8 @@ const statusCodeStats = computed(() => {
     s503: { count: 0, label: '503', icon: 'bx-cloud', color: 'error' },
     down: { count: 0, label: 'Down', icon: 'bx-x-circle', color: 'error' },
     noData: { count: 0, label: 'No Data', icon: 'bx-minus-circle', color: 'grey' },
+    pub: { count: 0, label: 'Public', icon: 'bx-globe', color: 'info' },
+    priv: { count: 0, label: 'Private', icon: 'bx-lock', color: 'warning' },
   }
   for (const r of dnsRecords.value) {
     stats.total.count++
@@ -67,8 +69,13 @@ const statusCodeStats = computed(() => {
     } else {
       stats.noData.count++
     }
+    if (r.is_public === false) {
+      stats.priv.count++
+    } else {
+      stats.pub.count++
+    }
   }
-  return [stats.total, stats.up, stats.s403, stats.s404, stats.s502, stats.s503, stats.down, stats.noData]
+  return [stats.total, stats.up, stats.s403, stats.s404, stats.s502, stats.s503, stats.down, stats.noData, stats.pub, stats.priv]
 })
 
 const filteredRecords = computed(() => {
