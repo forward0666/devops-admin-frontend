@@ -346,13 +346,13 @@ onMounted(async () => {
                 </td>
                 <td style="width: 200px;">
                   <template v-if="monitorStatus[r.name]">
-                    <VChip size="x-small" :color="monitorStatus[r.name].status === 'up' ? 'success' : monitorStatus[r.name].status === 'down' ? 'error' : 'warning'" variant="tonal">
+                    <VChip size="x-small" :color="(monitorStatus[r.name].status_code === 200 || monitorStatus[r.name].status === 'up') ? 'success' : (monitorStatus[r.name].status_code >= 500 || monitorStatus[r.name].status_code === 403 || monitorStatus[r.name].status === 'down') ? 'error' : 'warning'" variant="tonal">
                       {{ monitorStatus[r.name].status_code || monitorStatus[r.name].status }}
                     </VChip>
                     <span v-if="monitorStatus[r.name].response_time_ms" class="text-caption text-medium-emphasis ms-1">{{ monitorStatus[r.name].response_time_ms }}ms</span>
                   </template>
                   <template v-else-if="r.status_code">
-                    <VChip size="x-small" :color="r.status_code === 200 ? 'success' : r.status_code >= 500 ? 'error' : 'warning'" variant="tonal">{{ r.status_code }}</VChip>
+                    <VChip size="x-small" :color="r.status_code === 200 ? 'success' : (r.status_code >= 500 || r.status_code === 403) ? 'error' : 'warning'" variant="tonal">{{ r.status_code }}</VChip>
                   </template>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
