@@ -5,14 +5,12 @@ import apiClient from '~/services/api'
 definePageMeta({ layout: 'default' })
 
 const CF_GATEWAY = '/cloudflare'
-const MONITOR_GATEWAY = '/monitor'
 
 const route = useRoute()
 const router = useRouter()
 const selectedAccountId = ref<number | null>(route.query.account ? Number(route.query.account) : -1)
 const domainFilter = ref(route.query.search as string || '')
 const dnsRecords = ref<any[]>([])
-const monitorStatus = ref<Record<string, any>>({})
 const accounts = ref<any[]>([])
 const loadingAccounts = ref(false)
 const loadingRecords = ref(false)
@@ -66,7 +64,6 @@ async function fetchDnsRecords() {
     if (selectedAccountId.value && selectedAccountId.value !== -1) params.account_id = selectedAccountId.value
     const { data } = await apiClient.get(`${CF_GATEWAY}/dnsDomain`, { params })
     dnsRecords.value = data.data || []
-    await fetchMonitorStatus()
   } catch (e: any) {
     console.error('Failed to fetch DNS domains', e)
     dnsRecords.value = []
@@ -75,30 +72,7 @@ async function fetchDnsRecords() {
   }
 }
 
-async function fetchMonitorStatus() {
-  try {
-    const { data } = await apiClient.get(`${MONITOR_GATEWAY}/rules`)
-    const rules = data.data || []
-    const statusMap: Record<string, any> = {}
-    for (const rule of rules) {
-      if (!rule.enabled) continue
-      try {
-        const res = await apiClient.get(`${MONITOR_GATEWAY}/rules/${rule.id}/results`, { params: { limit: 10000 } })
-        const results = res.data.data || []
-        for (const r of results) {
-          if (r.domain && !statusMap[r.domain]) {
-            statusMap[r.domain] = { status: r.status, status_code: r.status_code, response_time_ms: r.response_time_ms, resolved_ip: r.resolved_ip, probe_ip: r.probe_ip, checked_at: r.checked_at }
-          }
-        }
-      } catch (e) {
-        console.warn(`Failed to fetch results for rule ${rule.id}`, e)
-      }
-    }
-    monitorStatus.value = statusMap
-  } catch (e) {
-    console.warn('Failed to fetch monitor rules', e)
-  }
-}
+
 
 async function syncDns() {
   syncing.value = true
@@ -345,11 +319,12 @@ onMounted(async () => {
                   <VChip size="x-small" :color="r.proxied ? 'success' : 'grey'" variant="tonal">{{ r.proxied ? 'Yes' : 'No' }}</VChip>
                 </td>
                 <td style="width: 200px;">
-                  <template v-if="monitorStatus[r.name]">
-                    <VChip size="x-small" :color="(monitorStatus[r.name].status_code === 200 || monitorStatus[r.name].status === 'up') ? 'success' : (monitorStatus[r.name].status_code >= 500 || monitorStatus[r.name].status_code === 403 || monitorStatus[r.name].status === 'down') ? 'error' : 'warning'" variant="tonal">
-                      {{ monitorStatus[r.name].status_code || monitorStatus[r.name].status }}
-                    </VChip>
-                    <span v-if="monitorStatus[r.name].response_time_ms" class="text-caption text-medium-emphasis ms-1">{{ monitorStatus[r.name].response_time_ms }}ms</span>
+                  <template v-if="r.last_status_code">
+                    <VChip size="x-small" :color="r.last_status_code === 200 ? 'success' : (r.last_status_code >= 500 || r.last_status_code === 403) ? 'error' : 'warning'" variant="tonal">{{ r.last_status_code }}</VChip>
+                    <span v-if="r.last_response_time_ms" class="text-caption text-medium-emphasis ms-1">{{ r.last_response_time_ms }}ms</span>
+                  </template>
+                  <template v-else-if="r.last_status">
+                    <VChip size="x-small" :color="r.last_status === 'up' ? 'success' : 'error'" variant="tonal">{{ r.last_status }}</VChip>
                   </template>
                   <template v-else-if="r.status_code">
                     <VChip size="x-small" :color="r.status_code === 200 ? 'success' : (r.status_code >= 500 || r.status_code === 403) ? 'error' : 'warning'" variant="tonal">{{ r.status_code }}</VChip>
@@ -357,15 +332,15 @@ onMounted(async () => {
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
                 <td style="width: 140px;">
-                  <span v-if="monitorStatus[r.name]?.resolved_ip" class="text-caption">{{ monitorStatus[r.name].resolved_ip }}</span>
+                  <span v-if="r.last_resolved_ip" class="text-caption">{{ r.last_resolved_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
                 <td style="width: 140px;">
-                  <span v-if="monitorStatus[r.name]?.probe_ip" class="text-caption">{{ monitorStatus[r.name].probe_ip }}</span>
+                  <span v-if="r.last_probe_ip && r.last_probe_ip !== 'fail'" class="text-caption">{{ r.last_probe_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
                 <td style="width: 150px;">
-                  <span v-if="monitorStatus[r.name]?.checked_at" class="text-caption">{{ new Date(monitorStatus[r.name].checked_at + 'Z').toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</span>
+                  <span v-if="r.last_checked_at" class="text-caption">{{ new Date(r.last_checked_at + 'Z').toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
               </tr>
