@@ -296,11 +296,11 @@ function exportCSV() {
             <template v-for="domain in pagedDomainKeys" :key="domain">
               <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
                 <td style="width: 200px !important; max-width: 200px !important; padding: 0 !important;">
-                  <div class="d-flex align-center" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                  <div class="d-flex align-center" style="padding: 12px 16px; min-width: 0;">
                     <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
-                    <span class="font-weight-bold text-body-1">{{ domain }}</span>
-                    <VChip size="x-small" variant="tonal" color="primary" class="ms-2">{{ groupedRecords[domain]?.length || 0 }}</VChip>
+                    <span class="font-weight-bold text-body-1" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1;">{{ domain }}</span>
+                    <VChip size="x-small" variant="tonal" color="primary" class="ms-2" style="flex-shrink: 0;">{{ groupedRecords[domain]?.length || 0 }}</VChip>
                   </div>
                 </td>
                 <td style="width: 100px; max-width: 100px;"></td>
