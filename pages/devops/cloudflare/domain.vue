@@ -296,7 +296,7 @@ onMounted(async () => {
           <col style="width: 200px" />
           <col style="width: 140px" />
           <col style="width: 140px" />
-          <col style="width: 170px" />
+          <col style="width: 180px" />
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
@@ -312,7 +312,7 @@ onMounted(async () => {
             <th style="width: 200px;">Last Status</th>
             <th style="width: 140px;">Resolved IP</th>
             <th style="width: 140px;">Probe IP</th>
-            <th style="width: 170px;">Probe Time</th>
+            <th style="width: 180px;">Probe Time</th>
           </tr>
         </thead>
         <tbody>
@@ -364,7 +364,7 @@ onMounted(async () => {
                   <span v-if="monitorStatus[r.name]?.probe_ip" class="text-caption">{{ monitorStatus[r.name].probe_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
-                <td style="width: 170px;">
+                <td style="width: 180px;">
                   <span v-if="monitorStatus[r.name]?.checked_at" class="text-caption">{{ new Date(monitorStatus[r.name].checked_at).toLocaleString() }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
