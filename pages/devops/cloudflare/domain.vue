@@ -262,8 +262,8 @@ onMounted(async () => {
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
       <VTable v-if="sortedRecords.length" class="sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
         <colgroup>
-          <col style="width: 150px" />
-          <col style="width: 80px" />
+          <col style="width: 120px" />
+          <col style="width: 100px" />
           <col style="width: 170px" />
           <col style="width: 150px" />
           <col style="width: 80px" />
@@ -292,7 +292,7 @@ onMounted(async () => {
         <tbody>
           <template v-for="domain in pagedDomainKeys" :key="domain">
             <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-              <td colspan="10" style="padding: 0 !important;">
+              <td colspan="9" style="padding: 0 !important;">
                 <div class="d-flex align-center" style="padding: 12px 16px;">
                   <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                   <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
@@ -304,7 +304,7 @@ onMounted(async () => {
             <template v-if="expandedDomains[domain]">
               <tr v-for="r in (groupedRecords[domain] || [])" :key="r.record_id">
                 <td style="width: 120px !important; max-width: 120px !important;"></td>
-                <td style="width: 90px !important; max-width: 90px !important;">
+                <td style="width: 100px !important; max-width: 100px !important;">
                   <div style="display: flex; justify-content: center; align-items: center;">
                     <VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip>
                   </div>
