@@ -103,7 +103,20 @@ async function fetchRules() {
   loading.value = true
   try {
     const { data } = await apiClient.get(`${MONITOR_GATEWAY}/rules`)
-    rules.value = data.data || []
+    rules.value = (data.data || []).map((r: any) => {
+      let domains = r.domains
+      if (typeof domains === 'string') {
+        try { domains = JSON.parse(domains) } catch { domains = [] }
+      }
+      return {
+        ...r,
+        domains: domains || [],
+        checkInterval: r.check_interval ?? r.checkInterval ?? 5,
+        accountId: r.account_id ?? r.accountId,
+        customDomains: r.custom_domains ?? r.customDomains ?? '',
+        lastCheck: r.last_check ?? r.lastCheck,
+      }
+    })
   } catch (e: any) {
     console.error('Failed to fetch rules', e)
   } finally {
@@ -130,11 +143,11 @@ function openEdit(rule: any) {
   form.value = {
     name: rule.name,
     source: rule.source,
-    accountId: rule.accountId,
-    domains: rule.domains || [],
-    customDomains: rule.customDomains || '',
-    checkInterval: rule.checkInterval,
-    enabled: rule.enabled,
+    accountId: rule.accountId || rule.account_id || null,
+    domains: Array.isArray(rule.domains) ? [...rule.domains] : [],
+    customDomains: rule.customDomains || rule.custom_domains || '',
+    checkInterval: rule.checkInterval || rule.check_interval || 5,
+    enabled: !!rule.enabled,
   }
   dialog.value = true
 }
