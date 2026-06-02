@@ -233,7 +233,7 @@ onMounted(async () => {
       <VProgressLinear v-if="loadingZones" indeterminate color="primary" />
       <VTable v-if="zones.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
           <colgroup>
-            <col style="width: 340px" />
+            <col style="width: 290px" />
             <col style="width: 120px" />
             <col />
             <col style="width: 90px" />
@@ -241,7 +241,7 @@ onMounted(async () => {
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 340px !important; max-width: 340px !important;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
+              <th style="width: 290px !important; max-width: 290px !important;" class="sortable" @click="toggleSort('name')">Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 120px; max-width: 120px;" class="sortable" @click="toggleSort('action')">Action <VIcon size="14" :icon="sortKey === 'action' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th class="sortable" @click="toggleSort('expression')">Expression <VIcon size="14" :icon="sortKey === 'expression' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
               <th style="width: 90px; max-width: 90px;" class="sortable" @click="toggleSort('status')">Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" /></th>
@@ -264,8 +264,8 @@ onMounted(async () => {
               <template v-if="expandedZones[z.zone_id]">
                 <template v-if="(rulesMap[z.zone_id] || []).length > 0">
                   <tr v-for="r in rulesMap[z.zone_id]" :key="r.rule_id">
-                    <td style="width: 340px; max-width: 340px;">
-                      <div style="max-width: 340px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
+                    <td style="width: 290px; max-width: 290px;">
+                      <div style="max-width: 290px; white-space: normal; word-break: break-all; padding-left: 36px;" class="font-weight-medium">{{ r.description || r.rule_id }}</div>
                     </td>
                     <td style="width: 120px; max-width: 120px;"><VChip size="x-small" :color="actionColors[r.action] || 'grey'" variant="tonal">{{ r.action }}</VChip></td>
                     <td style="white-space: normal; word-break: break-all;"><code class="text-caption">{{ r.expression }}</code></td>
