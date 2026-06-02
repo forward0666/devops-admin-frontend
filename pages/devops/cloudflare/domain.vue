@@ -39,6 +39,29 @@ const typeColors: Record<string, string> = {
   A: 'success', CNAME: 'primary',
 }
 
+const statusCodeStats = computed(() => {
+  const stats = {
+    total: { count: 0, label: 'Total', icon: 'bx-globe', color: 'primary' },
+    up: { count: 0, label: 'Up (200)', icon: 'bx-check-circle', color: 'success' },
+    error: { count: 0, label: 'Error (4xx/5xx)', icon: 'bx-error', color: 'error' },
+    down: { count: 0, label: 'Down', icon: 'bx-x-circle', color: 'warning' },
+    noData: { count: 0, label: 'No Data', icon: 'bx-minus-circle', color: 'grey' },
+  }
+  for (const r of dnsRecords.value) {
+    stats.total.count++
+    if (r.last_status_code === 200) {
+      stats.up.count++
+    } else if (r.last_status_code && r.last_status_code >= 400) {
+      stats.error.count++
+    } else if (r.last_status === 'down' || r.last_status === 'error') {
+      stats.down.count++
+    } else {
+      stats.noData.count++
+    }
+  }
+  return [stats.total, stats.up, stats.error, stats.down, stats.noData]
+})
+
 const filteredRecords = computed(() => {
   if (!domainFilter.value) return dnsRecords.value
   const s = domainFilter.value.toLowerCase()
@@ -266,6 +289,19 @@ onMounted(async () => {
         <VSelect v-model="pageSize" :items="[20, 50, 100, 500]" density="compact" style="max-width: 80px" hide-details @update:model-value="page = 1" />
       </VCardText>
     </VCard>
+
+    <!-- Status Code Stats -->
+    <div class="d-flex flex-wrap gap-3 mb-4">
+      <VCard v-for="stat in statusCodeStats" :key="stat.label" :style="{ minWidth: '120px' }">
+        <VCardText class="d-flex align-center gap-2 py-3">
+          <VIcon :icon="stat.icon" :color="stat.color" size="24" />
+          <div>
+            <div class="text-h6 font-weight-bold">{{ stat.count }}</div>
+            <div class="text-caption text-medium-emphasis">{{ stat.label }}</div>
+          </div>
+        </VCardText>
+      </VCard>
+    </div>
 
     <!-- Table -->
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
