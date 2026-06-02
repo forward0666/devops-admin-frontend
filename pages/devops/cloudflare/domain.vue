@@ -365,7 +365,7 @@ onMounted(async () => {
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
                 <td style="width: 150px;">
-                  <span v-if="monitorStatus[r.name]?.checked_at" class="text-caption">{{ new Date(monitorStatus[r.name].checked_at).toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</span>
+                  <span v-if="monitorStatus[r.name]?.checked_at" class="text-caption">{{ new Date(monitorStatus[r.name].checked_at + 'Z').toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
               </tr>
