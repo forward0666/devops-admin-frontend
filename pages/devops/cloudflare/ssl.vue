@@ -233,10 +233,10 @@ const sslModeInfo: Record<string, string> = {
         <thead>
           <tr class="text-caption text-medium-emphasis">
             <th style="width: 360px !important; max-width: 360px !important;" class="sortable" @click="toggleSort('name')">
-              Zone <VIcon size="14">{{ sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2' }}</VIcon>
+              Zone <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
             </th>
             <th style="width: 140px; max-width: 140px;" class="sortable" @click="toggleSort('ssl_mode')">
-              SSL Mode <VIcon size="14">{{ sortKey === 'ssl_mode' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2' }}</VIcon>
+              SSL Mode <VIcon size="14" :icon="sortKey === 'ssl_mode' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
             </th>
             <th style="width: 180px; max-width: 180px;">Modified</th>
             <th>Synced</th>

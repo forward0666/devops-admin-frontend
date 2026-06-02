@@ -208,11 +208,12 @@ const isProjectActive = (projectId: number) => {
         }"
       >
         <VerticalNavLink :item="{ title: 'Account', to: DEVOPS.CF_INDEX }" />
-        <VerticalNavLink :item="{ title: 'DNS', to: DEVOPS.CF_DNS }" />
         <VerticalNavLink :item="{ title: 'Zone', to: DEVOPS.CF_ZONE }" />
+        <VerticalNavLink :item="{ title: 'DNS', to: DEVOPS.CF_DNS }" />
         <VerticalNavLink :item="{ title: 'Security', to: DEVOPS.CF_SECURITY }" />
         <VerticalNavLink :item="{ title: 'SSL', to: DEVOPS.CF_SSL }" />
         <VerticalNavLink :item="{ title: 'Cache', to: DEVOPS.CF_CACHE }" />
+        <VerticalNavLink :item="{ title: 'Domain', to: DEVOPS.CF_DOMAIN }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
@@ -221,10 +222,10 @@ const isProjectActive = (projectId: number) => {
           icon: 'bx-wrench',
         }"
       >
-        <VerticalNavLink :item="{ title: 'Domain', to: DEVOPS.TOOLS_DOMAIN }" />
         <VerticalNavLink :item="{ title: 'Purge Cache', to: DEVOPS.TOOLS_PURGE_CACHE }" />
         <VerticalNavLink :item="{ title: 'Security Rules', to: DEVOPS.TOOLS_SECURITY }" />
         <VerticalNavLink :item="{ title: 'WhiteList IP', to: DEVOPS.TOOLS_WHITELIST }" />
+        <VerticalNavLink :item="{ title: 'Monitor', to: DEVOPS.TOOLS_MONITOR }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup

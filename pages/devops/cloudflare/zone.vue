@@ -187,14 +187,14 @@ function exportCSV() {
         <thead>
           <tr>
             <th class="sortable" @click="toggleSort('name')">
-              Domain <VIcon size="16">{{ sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
+              Domain <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
             </th>
             <th style="width: 140px">Zone ID</th>
             <th class="sortable" style="width: 100px" @click="toggleSort('status')">
-              Status <VIcon size="16">{{ sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
+              Status <VIcon size="14" :icon="sortKey === 'status' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
             </th>
             <th class="sortable" style="width: 190px" @click="toggleSort('plan')">
-              Plan <VIcon size="16">{{ sortKey === 'plan' ? (sortOrder === 'asc' ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt') : 'bx-sort' }}</VIcon>
+              Plan <VIcon size="14" :icon="sortKey === 'plan' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
             </th>
             <th style="width: 140px">Name Server</th>
             <th style="width: 250px">Synced</th>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { TAG_COLORS, TAG_LABELS } from '~/composables/useCf'
+import { ref, onMounted } from 'vue'
 import { useCfAccount } from '~/composables/useCfAccount'
 import apiClient from '~/services/api'
 
@@ -18,10 +17,7 @@ const form = ref({
   name: '',
   apiKey: '',
   description: '',
-  tags: [] as string[],
 })
-
-const allTags = ['dns', 'zone', 'firewall', 'ssl', 'cache']
 
 onMounted(() => fetchAccounts())
 
@@ -31,13 +27,13 @@ function toggleKey(id: string) {
 
 function openCreate() {
   editingId.value = null
-  form.value = { name: '', apiKey: '', description: '', tags: [] }
+  form.value = { name: '', apiKey: '', description: '' }
   dialog.value = true
 }
 
 function openEdit(account: any) {
   editingId.value = account.id
-  form.value = { name: account.name, apiKey: '', description: account.description || '', tags: [...(account.tags || [])] }
+  form.value = { name: account.name, apiKey: '', description: account.description || '' }
   dialog.value = true
 }
 
@@ -55,7 +51,6 @@ async function save() {
     const body: any = {
       name: form.value.name,
       description: form.value.description,
-      tags: form.value.tags,
     }
     if (form.value.apiKey.trim()) body.apiKey = form.value.apiKey.trim()
 
@@ -85,12 +80,6 @@ async function handleDelete(id: string) {
     snackbar.value = { show: true, text: e?.response?.data?.message || 'Failed to delete', color: 'error' }
   }
 }
-
-const tagCount = computed(() => {
-  const c: Record<string, number> = {}
-  allTags.forEach(t => c[t] = accounts.value.filter(a => (a.tags || []).includes(t)).length)
-  return c
-})
 </script>
 
 <template>
@@ -107,13 +96,6 @@ const tagCount = computed(() => {
       </VCardText>
     </VCard>
 
-    <!-- Tag summary -->
-    <div class="d-flex flex-wrap gap-2 mb-4">
-      <VChip v-for="tag in allTags" :key="tag" :color="TAG_COLORS[tag]" size="small" variant="tonal" class="px-1">
-        {{ TAG_LABELS[tag] }} ({{ tagCount[tag] }})
-      </VChip>
-    </div>
-
     <!-- Account Table -->
     <VCard>
       <VProgressLinear v-if="loading" indeterminate color="primary" />
@@ -121,9 +103,8 @@ const tagCount = computed(() => {
         <thead>
           <tr>
             <th style="width: 180px">Name</th>
-            <th style="width: 220px">API Key</th>
+            <th style="width: 550px">API Key</th>
             <th>Description</th>
-            <th style="width: 200px">Tags</th>
             <th style="width: 160px">Created</th>
             <th style="width: 100px">Action</th>
           </tr>
@@ -131,20 +112,17 @@ const tagCount = computed(() => {
         <tbody>
           <tr v-for="account in accounts" :key="account.id">
             <td class="font-weight-medium">{{ account.name }}</td>
-            <td>
-              <code class="text-caption" style="font-size: 11px">
-                {{ showKeys[account.id] ? account.api_key : maskKey(account.api_key) }}
-              </code>
-              <VBtn icon size="x-small" variant="text" class="ms-1" @click="toggleKey(account.id)">
-                <VIcon :icon="showKeys[account.id] ? 'bx-hide' : 'bx-show'" size="16" />
-              </VBtn>
+            <td style="width: 550px; max-width: 550px; overflow: hidden;">
+              <div style="display: flex; align-items: center; overflow: hidden;">
+                <code class="text-caption" style="font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">
+                  {{ showKeys[account.id] ? account.api_key : maskKey(account.api_key) }}
+                </code>
+                <VBtn icon size="x-small" variant="text" style="flex-shrink: 0;" @click="toggleKey(account.id)">
+                  <VIcon :icon="showKeys[account.id] ? 'bx-hide' : 'bx-show'" size="16" />
+                </VBtn>
+              </div>
             </td>
             <td class="text-medium-emphasis">{{ account.description || '-' }}</td>
-            <td>
-              <VChip v-for="tag in account.tags" :key="tag" :color="TAG_COLORS[tag]" size="x-small" variant="tonal" class="me-1">
-                {{ TAG_LABELS[tag] }}
-              </VChip>
-            </td>
             <td class="text-caption text-medium-emphasis">{{ new Date(account.created_at).toLocaleDateString() }}</td>
             <td>
               <VBtn icon size="x-small" variant="text" color="primary" @click="openEdit(account)">
@@ -176,21 +154,7 @@ const tagCount = computed(() => {
               </VBtn>
             </template>
           </VTextField>
-          <VTextarea v-model="form.description" label="Description" density="compact" rows="2" class="mb-3" />
-          <div class="mb-2 text-subtitle-2">Feature Tags</div>
-          <div class="d-flex flex-wrap gap-2">
-            <VChip
-              v-for="tag in allTags" :key="tag"
-              :color="form.tags.includes(tag) ? TAG_COLORS[tag] : undefined"
-              :variant="form.tags.includes(tag) ? 'flat' : 'outlined'"
-              size="small"
-              class="cursor-pointer"
-              @click="form.tags.includes(tag) ? form.tags = form.tags.filter((t: string) => t !== tag) : form.tags.push(tag)"
-            >
-              {{ TAG_LABELS[tag] }}
-            </VChip>
-          </div>
-          <p class="text-caption text-medium-emphasis mt-2">Select which features this key can access</p>
+          <VTextarea v-model="form.description" label="Description" density="compact" rows="2" />
         </VCardText>
         <VCardActions>
           <VSpacer />

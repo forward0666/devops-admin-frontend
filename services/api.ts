@@ -35,6 +35,8 @@ apiClient.interceptors.request.use(
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_BOT_SECRET || ''
       } else if (url.startsWith('/cloudflare/')) {
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_CF_SECRET || ''
+      } else if (url.startsWith('/monitor/')) {
+        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_GATEWAY_SECRET || ''
       } else if (url.startsWith('/login/') || url.startsWith('/auth/')) {
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_LOGIN_SECRET || ''
       } else {
@@ -55,7 +57,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       const requestUrl = error.config?.url || ''
       // bot / cloudflare 路由的 401 不触发全局登出（使用独立的 Auth 密钥）
-      if (!requestUrl.startsWith('/bot/') && !requestUrl.startsWith('/cloudflare/')) {
+      if (!requestUrl.startsWith('/bot/') && !requestUrl.startsWith('/cloudflare/') && !requestUrl.startsWith('/monitor/')) {
         localStorage.removeItem('auth_token')
         localStorage.removeItem('auth_user')
         localStorage.removeItem('auth')

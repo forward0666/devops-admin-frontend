@@ -10,15 +10,17 @@ const { accounts, loading, fetchAccounts, getToken } = useCfAccount()
 
 const route = useRoute()
 const router = useRouter()
-const savedAccount = process.client ? localStorage.getItem("cf-account-id") : null
-const selectedAccountId = ref<number | null>(savedAccount ? Number(savedAccount) : (route.query.account ? Number(route.query.account) : null))
+const selectedAccountId = ref<number | null>(route.query.account ? Number(route.query.account) : -1)
 const domainFilter = ref(route.query.search as string || '')
 const dnsRecords = ref<any[]>([])
 const loadingRecords = ref(false)
 const syncing = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
-const accountOptions = computed(() => accounts.value.map((a: any) => ({ title: a.name, value: a.id })))
+const accountOptions = computed(() => [
+  { title: 'All', value: -1 },
+  ...accounts.value.map((a: any) => ({ title: a.name, value: a.id })),
+])
 
 const typeCounts = computed(() => {
   const map: Record<string, number> = {}
@@ -50,10 +52,11 @@ watch(selectedAccountId, (val) => {
 })
 
 async function fetchDnsRecords() {
-  if (!selectedAccountId.value) return
   loadingRecords.value = true
   try {
-    const { data } = await apiClient.get(`${CF_GATEWAY}/dns`, { params: { account_id: selectedAccountId.value } })
+    const params: Record<string, any> = {}
+    if (selectedAccountId.value && selectedAccountId.value !== -1) params.account_id = selectedAccountId.value
+    const { data } = await apiClient.get(`${CF_GATEWAY}/dns`, { params })
     dnsRecords.value = data.data || []
   } catch (e: any) {
     console.error('Failed to fetch DNS records', e)
@@ -236,7 +239,7 @@ function exportCSV() {
           color="primary"
           variant="tonal"
           :loading="syncing"
-          :disabled="!selectedAccountId"
+          :disabled="!selectedAccountId || selectedAccountId === -1"
           prepend-icon="bx-refresh"
           @click="syncFromCF"
         >
@@ -254,40 +257,46 @@ function exportCSV() {
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
       <VTable v-if="sortedRecords.length" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
           <colgroup>
-            <col style="width: 250px" />
+            <col style="width: 200px" />
             <col style="width: 100px" />
-            <col style="width: 450px" />
-            <col />
+            <col style="width: 250px" />
+            <col style="width: 350px" />
+            <col style="width: 80px" />
+            <col style="width: 80px" />
+            <col style="width: 190px" />
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 250px !important; max-width: 250px !important; overflow: hidden;">
+              <th style="width: 200px !important; max-width: 200px !important; overflow: hidden;">
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('domain')">
-                  Domain <VIcon size="16" :icon="domainSortKey === 'domain' ? (domainSortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
+                  Domain <VIcon size="14" :icon="domainSortKey === 'domain' ? (domainSortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
                 </span>
               </th>
               <th style="width: 100px; max-width: 100px; overflow: hidden;">
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('type')">
-                  Type <VIcon size="16" :icon="sortKey === 'type' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
+                  Type <VIcon size="14" :icon="sortKey === 'type' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
                 </span>
               </th>
-              <th style="width: 450px !important; max-width: 450px !important; overflow: hidden;">
+              <th style="width: 250px !important; max-width: 250px !important; overflow: hidden;">
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('name')">
-                  Name <VIcon size="16" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
+                  Name <VIcon size="14" :icon="sortKey === 'name' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
                 </span>
               </th>
-              <th>
+              <th style="width: 350px !important; max-width: 350px !important; overflow: hidden;">
                 <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('content')">
-                  Content <VIcon size="16" :icon="sortKey === 'content' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
+                  Content <VIcon size="14" :icon="sortKey === 'content' ? (sortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down') : 'bx-sort-alt-2'" class="text-disabled" />
                 </span>
               </th>
+              <th style="width: 80px; text-align: center;">Proxied</th>
+              <th style="width: 80px; text-align: center;">TTL</th>
+              <th style="width: 190px;">Synced</th>
             </tr>
           </thead>
           <tbody>
             <template v-for="domain in pagedDomainKeys" :key="domain">
               <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-                <td style="width: 250px !important; max-width: 250px !important; padding: 0 !important;">
-                  <div class="d-flex align-center" style="width: 250px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
+                <td style="width: 200px !important; max-width: 200px !important; padding: 0 !important;">
+                  <div class="d-flex align-center" style="width: 200px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 12px 16px;">
                     <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                     <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
                     <span class="font-weight-bold text-body-1">{{ domain }}</span>
@@ -295,15 +304,21 @@ function exportCSV() {
                   </div>
                 </td>
                 <td style="width: 100px; max-width: 100px;"></td>
-                <td style="width: 450px !important; max-width: 450px !important;"></td>
-                <td></td>
+                <td style="width: 250px !important; max-width: 250px !important;"></td>
+                <td style="width: 350px !important; max-width: 350px !important;"></td>
+                <td style="width: 80px;"></td>
+                <td style="width: 80px; text-align: center;"></td>
+                <td style="width: 190px;"></td>
               </tr>
               <template v-if="expandedDomains[domain]">
                 <tr v-for="r in (groupedRecords[domain] || [])" :key="r.record_id">
-                  <td style="width: 250px !important; max-width: 250px !important;"></td>
-                <td style="width: 100px !important; max-width: 100px !important;"><div style="width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip></div></td>
-                  <td style="width: 450px !important; max-width: 450px !important; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><code style="display: block; width: 450px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" class="text-caption">{{ r.name }}</code></td>
-                  <td style="word-break: break-all;"><code class="text-caption">{{ r.content }}</code></td>
+                  <td style="width: 200px !important; max-width: 200px !important;"></td>
+                  <td style="width: 100px !important; max-width: 100px !important;"><div style="width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip></div></td>
+                  <td style="width: 250px !important; max-width: 250px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><code style="display: block; width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" class="text-caption">{{ r.name }}</code></td>
+                  <td style="width: 350px !important; max-width: 350px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><code class="text-caption">{{ r.content }}</code></td>
+                  <td style="width: 80px; text-align: center;"><VChip size="x-small" :color="r.proxied ? 'success' : 'grey'" variant="tonal">{{ r.proxied ? 'Yes' : 'No' }}</VChip></td>
+                  <td style="width: 80px; text-align: center;"><span class="text-caption">{{ r.ttl === 1 ? 'Auto' : r.ttl }}</span></td>
+                  <td style="width: 190px;"><span class="text-caption">{{ r.synced_at ? new Date(r.synced_at).toLocaleString() : '-' }}</span></td>
                 </tr>
               </template>
             </template>

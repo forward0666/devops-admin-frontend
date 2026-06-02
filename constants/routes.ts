@@ -30,6 +30,7 @@ export const DEVOPS = {
   CF_SECURITY: '/devops/cloudflare/security',
   CF_SSL: '/devops/cloudflare/ssl',
   CF_ZONE: '/devops/cloudflare/zone',
+  CF_DOMAIN: '/devops/cloudflare/domain',
   TG_INDEX: '/devops/telegram',
   TG_BLACKLIST: '/devops/telegram/blacklist',
   TG_CHATS: '/devops/telegram/chats',
@@ -42,6 +43,7 @@ export const DEVOPS = {
   TOOLS_PURGE_CACHE: '/devops/tools/purgecache',
   TOOLS_SECURITY: '/devops/tools/security',
   TOOLS_WHITELIST: '/devops/tools/whitelist',
+  TOOLS_MONITOR: '/devops/tools/monitor',
 } as const
 
 // ─── User Console ─────────────────────────────────────
