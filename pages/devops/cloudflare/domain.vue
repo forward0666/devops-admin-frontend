@@ -292,7 +292,7 @@ onMounted(async () => {
           <col style="width: 80px" />
           <col style="width: 170px" />
           <col style="width: 150px" />
-          <col style="width: 100px" />
+          <col style="width: 50px" />
           <col style="width: 200px" />
           <col style="width: 140px" />
           <col style="width: 140px" />
@@ -300,12 +300,12 @@ onMounted(async () => {
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
-            <th style="width: 100px !important; max-width: 100px !important; overflow: hidden;">
+            <th style="width: 50px !important; max-width: 50px !important; overflow: hidden;">
               <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('domain')">
                 Zone <VIcon size="14" :icon="domainSortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down'" class="text-disabled" />
               </span>
             </th>
-            <th style="width: 100px; max-width: 100px; overflow: hidden; text-align: center;">Type</th>
+            <th style="width: 50px; max-width: 50px; overflow: hidden; text-align: center;">Type</th>
             <th style="width: 170px !important; max-width: 170px !important; overflow: hidden;">Name</th>
             <th style="width: 150px !important; max-width: 150px !important; overflow: hidden;">Content</th>
             <th style="width: 20px; text-align: center;">Proxied</th>
@@ -329,7 +329,7 @@ onMounted(async () => {
             </tr>
             <template v-if="expandedDomains[domain]">
               <tr v-for="r in (groupedRecords[domain] || [])" :key="r.record_id">
-                <td style="width: 100px !important; max-width: 100px !important;"></td>
+                <td style="width: 50px !important; max-width: 50px !important;"></td>
                 <td style="width: 90px !important; max-width: 90px !important;">
                   <div style="display: flex; justify-content: center; align-items: center;">
                     <VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip>
