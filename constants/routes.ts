@@ -39,11 +39,11 @@ export const DEVOPS = {
   TG_MENU: '/devops/telegram/menu',
   TG_STATUS: '/devops/telegram/status',
   TENCENT: '/devops/tencent',
-  TOOLS_DOMAIN: '/devops/tools/domain',
-  TOOLS_PURGE_CACHE: '/devops/tools/purgecache',
-  TOOLS_SECURITY: '/devops/tools/security',
-  TOOLS_WHITELIST: '/devops/tools/whitelist',
-  TOOLS_MONITOR: '/devops/tools/monitor',
+  TOOL_DOMAIN: '/devops/tool/domain',
+  TOOL_PURGE_CACHE: '/devops/tool/purgecache',
+  TOOL_SECURITY: '/devops/tool/security',
+  TOOL_WHITELIST: '/devops/tool/whitelist',
+  TOOL_MONITOR: '/devops/tool/monitor',
 } as const
 
 // ─── User Console ─────────────────────────────────────

@@ -1,5 +1,5 @@
-import { ADMIN } from '~/constants/routes'
 <script setup lang="ts">
+import { ADMIN } from '~/constants/routes'
 const route = useRoute()
 const userStore = useUserStore()
 const departmentStore = useDepartmentStore()

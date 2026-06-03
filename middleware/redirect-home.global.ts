@@ -14,4 +14,16 @@ export default defineNuxtRouteMiddleware((to) => {
   if (!adminRoles.includes(loginRole || '') && to.path.startsWith('/admin')) {
     return navigateTo(USER.DASHBOARD)
   }
+
+  // Sync consoleRole with current route path
+  const authStore = useAuthStore()
+  if (authStore._ready) {
+    if (to.path.startsWith('/admin') && authStore.consoleRole !== 'admin') {
+      authStore.setConsoleRole('admin')
+    } else if (to.path.startsWith('/devops') && authStore.consoleRole !== 'devops') {
+      authStore.setConsoleRole('devops')
+    } else if (to.path.startsWith('/user') && authStore.consoleRole !== 'user') {
+      authStore.setConsoleRole('user')
+    }
+  }
 })

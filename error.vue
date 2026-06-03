@@ -35,7 +35,11 @@ const errToShow = computed(() => {
   }
 })
 
-const handleError = () => clearError({ redirect: '/' })
+const handleError = () => {
+  const authStore = useAuthStore()
+  const home = authStore.isAuthenticated ? authStore.homeRoute : '/'
+  clearError({ redirect: home })
+}
 </script>
 
 <template>

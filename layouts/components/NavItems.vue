@@ -91,7 +91,7 @@ const isProjectActive = (projectId: number) => {
           title: 'User',
           icon: 'bx-user',
         }"
-        :open="currentRoute?.path?.includes(ADMIN.SYSTEM_USER_LIST)"
+        :open="currentRoute?.path?.startsWith('/admin/system/user')"
       >
         <VerticalNavLink :item="{ title: 'List', to: ADMIN.SYSTEM_USER_LIST }" />
         <VerticalNavLink :item="{ title: 'View', to: ADMIN.SYSTEM_USER_VIEW }" />
@@ -218,14 +218,14 @@ const isProjectActive = (projectId: number) => {
 
       <VerticalNavGroup
         :item="{
-          title: 'Tools',
+          title: 'Tool',
           icon: 'bx-wrench',
         }"
       >
-        <VerticalNavLink :item="{ title: 'Purge Cache', to: DEVOPS.TOOLS_PURGE_CACHE }" />
-        <VerticalNavLink :item="{ title: 'Security Rules', to: DEVOPS.TOOLS_SECURITY }" />
-        <VerticalNavLink :item="{ title: 'WhiteList IP', to: DEVOPS.TOOLS_WHITELIST }" />
-        <VerticalNavLink :item="{ title: 'Monitor', to: DEVOPS.TOOLS_MONITOR }" />
+        <VerticalNavLink :item="{ title: 'Purge Cache', to: DEVOPS.TOOL_PURGE_CACHE }" />
+        <VerticalNavLink :item="{ title: 'Security Rules', to: DEVOPS.TOOL_SECURITY }" />
+        <VerticalNavLink :item="{ title: 'WhiteList IP', to: DEVOPS.TOOL_WHITELIST }" />
+        <VerticalNavLink :item="{ title: 'Monitor', to: DEVOPS.TOOL_MONITOR }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
