@@ -48,3 +48,10 @@ public/mockServiceWorker.js
 # Env files
 .env*
 !.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
