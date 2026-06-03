@@ -35,13 +35,14 @@ export default defineComponent({
       )
 
       // 👉 Navbar
-      const navbar = h(
+      const navbar = slots.navbar?.({
+          toggleVerticalOverlayNavActive: toggleIsOverlayNavActive,
+        })
+      const navbarEl = navbar ? h(
         'header',
         { class: ['layout-navbar navbar-blur', 'd-flex', 'align-center'] },
-        slots.navbar?.({
-          toggleVerticalOverlayNavActive: toggleIsOverlayNavActive,
-        }),
-      )
+        navbar,
+      ) : null
 
       const main = h(
         'main',
@@ -87,7 +88,7 @@ export default defineComponent({
             'div',
             { class: 'layout-content-wrapper' },
             [
-              navbar,
+              navbarEl,
               main,
               footer,
             ],
