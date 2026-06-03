@@ -42,15 +42,13 @@ const newBot = ref({
   botName: '',
   botUsername: '',
   token: '',
-  botType: 'IP_WHITE_LIST',
+  botType: 'GENERAL',
   secretToken: '',
 })
 
 const botTypes = [
   { title: 'General', value: 'GENERAL' },
-  { title: 'IP White List', value: 'IP_WHITE_LIST' },
-  { title: 'Customer Service', value: 'CUSTOMER_SERVICE' },
-  { title: 'Tool', value: 'TOOL' },
+  { title: 'Alert', value: 'ALERT' },
 ]
 
 const headers = [
@@ -81,7 +79,7 @@ async function handleAddBot() {
   try {
     await telegramBotService.addBot(newBot.value)
     showAddDialog.value = false
-    newBot.value = { botName: '', botUsername: '', token: '', botType: 'IP_WHITE_LIST', secretToken: '' }
+    newBot.value = { botName: '', botUsername: '', token: '', botType: 'GENERAL', secretToken: '' }
     await loadBots()
     snackbar.value = { show: true, text: 'Bot registered successfully', color: 'success' }
   } catch (e: any) {

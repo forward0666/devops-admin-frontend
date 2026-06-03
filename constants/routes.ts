@@ -44,6 +44,7 @@ export const DEVOPS = {
   TOOL_SECURITY: '/devops/tool/security',
   TOOL_WHITELIST: '/devops/tool/whitelist',
   TOOL_MONITOR: '/devops/tool/monitor',
+  TOOL_TASK: '/devops/tool/task',
 } as const
 
 // ─── User Console ─────────────────────────────────────

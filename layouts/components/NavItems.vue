@@ -226,6 +226,7 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'Security Rules', to: DEVOPS.TOOL_SECURITY }" />
         <VerticalNavLink :item="{ title: 'WhiteList IP', to: DEVOPS.TOOL_WHITELIST }" />
         <VerticalNavLink :item="{ title: 'Monitor', to: DEVOPS.TOOL_MONITOR }" />
+        <VerticalNavLink :item="{ title: 'Task', to: DEVOPS.TOOL_TASK }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
