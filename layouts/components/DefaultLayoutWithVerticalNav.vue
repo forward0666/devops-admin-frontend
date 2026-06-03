@@ -18,13 +18,6 @@ watch(isNavCollapsed, (val) => {
 
 <template>
   <VerticalNavLayout :collapsed="isNavCollapsed">
-    <!-- 👉 navbar -->
-    <template #navbar>
-    </template>
-
-    <template #vertical-nav-header>
-    </template>
-
     <template #vertical-nav-content>
         <NavItems :key="consoleRole" />
     </template>
