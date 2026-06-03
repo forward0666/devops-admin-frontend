@@ -45,9 +45,8 @@ const statusCodeStats = computed(() => {
     total: { count: 0, label: 'Total', icon: 'bx-globe', color: 'primary', filter: '' },
     up: { count: 0, label: 'Up (200)', icon: 'bx-check-circle', color: 'success', filter: 'up' },
     s403: { count: 0, label: '403', icon: 'bx-shield-x', color: 'error', filter: '403' },
-    s404: { count: 0, label: '404', icon: 'bx-error', color: 'warning', filter: '404' },
-    s502: { count: 0, label: '502', icon: 'bx-server', color: 'error', filter: '502' },
-    s503: { count: 0, label: '503', icon: 'bx-cloud', color: 'error', filter: '503' },
+    s4xx: { count: 0, label: '4xx', icon: 'bx-error', color: 'warning', filter: '4xx' },
+    s5xx: { count: 0, label: '5xx', icon: 'bx-server', color: 'error', filter: '5xx' },
     down: { count: 0, label: 'Down', icon: 'bx-x-circle', color: 'error', filter: 'down' },
     noData: { count: 0, label: 'No Data', icon: 'bx-minus-circle', color: 'grey', filter: 'noData' },
     pub: { count: 0, label: 'Public', icon: 'bx-globe', color: 'info', filter: 'public' },
@@ -59,12 +58,10 @@ const statusCodeStats = computed(() => {
       stats.up.count++
     } else if (r.last_status_code === 403) {
       stats.s403.count++
-    } else if (r.last_status_code === 404) {
-      stats.s404.count++
-    } else if (r.last_status_code === 502) {
-      stats.s502.count++
-    } else if (r.last_status_code === 503) {
-      stats.s503.count++
+    } else if (r.last_status_code >= 400 && r.last_status_code < 500) {
+      stats.s4xx.count++
+    } else if (r.last_status_code >= 500) {
+      stats.s5xx.count++
     } else if (r.last_status === 'down' || r.last_status === 'error') {
       stats.down.count++
     } else {
@@ -76,7 +73,7 @@ const statusCodeStats = computed(() => {
       stats.pub.count++
     }
   }
-  return [stats.total, stats.pub, stats.priv, stats.up, stats.s403, stats.s404, stats.s502, stats.s503, stats.down, stats.noData]
+  return [stats.total, stats.pub, stats.priv, stats.up, stats.s403, stats.s4xx, stats.s5xx, stats.down, stats.noData]
 })
 
 const filteredRecords = computed(() => {
@@ -89,11 +86,10 @@ const filteredRecords = computed(() => {
     const f = statusFilter.value
     if (f === 'up') records = records.filter(r => r.last_status_code === 200)
     else if (f === '403') records = records.filter(r => r.last_status_code === 403)
-    else if (f === '404') records = records.filter(r => r.last_status_code === 404)
-    else if (f === '502') records = records.filter(r => r.last_status_code === 502)
-    else if (f === '503') records = records.filter(r => r.last_status_code === 503)
-    else if (f === 'down') records = records.filter(r => r.last_status === 'down' || r.last_status === 'error')
-    else if (f === 'noData') records = records.filter(r => !r.last_status_code && !r.last_status)
+    else if (f === '4xx') records = records.filter(r => r.last_status_code >= 400 && r.last_status_code < 500 && r.last_status_code !== 403)
+    else if (f === '5xx') records = records.filter(r => r.last_status_code >= 500)
+    else if (f === 'down') records = records.filter(r => (r.last_status === 'down' || r.last_status === 'error') && !r.last_status_code)
+    else if (f === 'noData') records = records.filter(r => r.last_status_code !== 200 && r.last_status_code !== 403 && !(r.last_status_code >= 400 && r.last_status_code < 500) && !(r.last_status_code >= 500) && r.last_status !== 'down' && r.last_status !== 'error')
     else if (f === 'public') records = records.filter(r => r.is_public !== false)
     else if (f === 'private') records = records.filter(r => r.is_public === false)
   }
