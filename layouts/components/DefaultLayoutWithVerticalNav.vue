@@ -19,10 +19,7 @@ watch(isNavCollapsed, (val) => {
 <template>
   <VerticalNavLayout :collapsed="isNavCollapsed">
     <!-- 👉 navbar -->
-    <template #navbar="{ toggleVerticalOverlayNavActive }">
-      <div class="d-flex h-100 align-center">
-        <VSpacer />
-      </div>
+    <template #navbar>
     </template>
 
     <template #vertical-nav-header>
