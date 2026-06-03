@@ -1,5 +1,5 @@
-import { ADMIN } from '~/constants/routes'
 <script setup lang="ts">
+import { ADMIN } from '~/constants/routes'
 import { projectService, projectMemberService, userService } from '~/services/api'
 
 const activeTab = ref('overview')

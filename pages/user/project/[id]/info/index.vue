@@ -1,6 +1,6 @@
-import { USER } from '~/constants/routes'
 <script lang="ts">definePageMeta({ middleware: ["user-project-guard"] })</script>
 <script setup lang="ts">
+import { USER } from '~/constants/routes'
 import { userConsoleProjectService as projectService } from '~/services/api'
 
 const route = useRoute()

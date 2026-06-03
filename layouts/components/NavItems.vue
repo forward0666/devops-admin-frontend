@@ -97,7 +97,7 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'View', to: ADMIN.SYSTEM_USER_VIEW }" />
       </VerticalNavGroup>
 
-      <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }" :open="currentRoute?.path?.includes(ADMIN.SYSTEM_DEPT_LIST)">
+      <VerticalNavGroup :item="{ title: 'Department', icon: 'bx-buildings' }" :open="currentRoute?.path?.startsWith('/admin/system/dept')">
         <VerticalNavLink :item="{ title: 'List', to: ADMIN.SYSTEM_DEPT_LIST }" />
         <VerticalNavLink :item="{ title: 'View', to: ADMIN.SYSTEM_DEPT_VIEW }" />
       </VerticalNavGroup>
@@ -107,7 +107,7 @@ const isProjectActive = (projectId: number) => {
           title: 'Project',
           icon: 'bx-folder',
         }"
-        :open="currentRoute?.path?.includes(ADMIN.PROJECT_LIST)"
+        :open="currentRoute?.path?.startsWith('/admin/project')"
       >
         <VerticalNavLink :item="{ title: 'List', to: ADMIN.PROJECT_LIST }" />
         <VerticalNavLink :item="{ title: 'View', to: ADMIN.PROJECT_VIEW }" />
