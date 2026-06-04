@@ -48,7 +48,7 @@ const statusCodeStats = computed(() => {
     s403: { count: 0, label: '403', icon: 'bx-shield-x', color: 'error', filter: '403' },
     s4xx: { count: 0, label: '4xx', icon: 'bx-error', color: 'warning', filter: '4xx' },
     s5xx: { count: 0, label: '5xx', icon: 'bx-server', color: 'error', filter: '5xx' },
-    down: { count: 0, label: 'Down', icon: 'bx-x-circle', color: 'error', filter: 'down' },
+    down: { count: 0, label: 'Timeout', icon: 'bx-time-five', color: 'error', filter: 'down' },
     noData: { count: 0, label: 'No Data', icon: 'bx-minus-circle', color: 'grey', filter: 'noData' },
     pub: { count: 0, label: 'Public', icon: 'bx-globe', color: 'info', filter: 'public' },
     priv: { count: 0, label: 'Private', icon: 'bx-lock', color: 'warning', filter: 'private' },
@@ -65,7 +65,7 @@ const statusCodeStats = computed(() => {
       stats.s4xx.count++
     } else if (r.last_status_code >= 500) {
       stats.s5xx.count++
-    } else if (r.last_status === 'down' || r.last_status === 'error') {
+    } else if (r.last_status === 'timeout' || r.last_status === 'error') {
       stats.down.count++
     } else {
       stats.noData.count++
@@ -92,8 +92,8 @@ const filteredRecords = computed(() => {
     else if (f === '403') records = records.filter(r => r.last_status_code === 403)
     else if (f === '4xx') records = records.filter(r => r.last_status_code >= 400 && r.last_status_code < 500 && r.last_status_code !== 403)
     else if (f === '5xx') records = records.filter(r => r.last_status_code >= 500)
-    else if (f === 'down') records = records.filter(r => (r.last_status === 'down' || r.last_status === 'error') && !r.last_status_code)
-    else if (f === 'noData') records = records.filter(r => r.last_status_code !== 200 && r.last_status_code !== 403 && !(r.last_status_code >= 400 && r.last_status_code < 500) && !(r.last_status_code >= 500) && r.last_status !== 'down' && r.last_status !== 'error')
+    else if (f === 'down') records = records.filter(r => (r.last_status === 'timeout' || r.last_status === 'error') && !r.last_status_code)
+    else if (f === 'noData') records = records.filter(r => r.last_status_code !== 200 && r.last_status_code !== 403 && !(r.last_status_code >= 400 && r.last_status_code < 500) && !(r.last_status_code >= 500) && r.last_status !== 'timeout' && r.last_status !== 'error')
     else if (f === 'public') records = records.filter(r => r.is_public !== false)
     else if (f === 'private') records = records.filter(r => r.is_public === false)
   }
