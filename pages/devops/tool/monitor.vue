@@ -24,7 +24,7 @@ const form = ref({
   accountId: null as number | null,
   domains: [] as string[],
   customDomains: '',
-  checkInterval: 5,
+  description: '',
   enabled: true,
 })
 
@@ -43,14 +43,7 @@ const loadingCfDomains = ref(false)
 const tencentDomains = ref<string[]>([])
 const loadingTencentDomains = ref(false)
 
-// Check interval options
-const intervalOptions = [
-  { title: '1 min', value: 1 },
-  { title: '5 min', value: 5 },
-  { title: '10 min', value: 10 },
-  { title: '30 min', value: 30 },
-  { title: '60 min', value: 60 },
-]
+
 
 // Computed
 const accountOptions = computed(() => [
@@ -111,7 +104,6 @@ async function fetchRules() {
       return {
         ...r,
         domains: domains || [],
-        checkInterval: r.check_interval ?? r.checkInterval ?? 5,
         accountId: r.account_id ?? r.accountId,
         customDomains: r.custom_domains ?? r.customDomains ?? '',
         lastCheck: r.last_check ?? r.lastCheck,
@@ -132,8 +124,7 @@ function openCreate() {
     accountId: null,
     domains: [],
     customDomains: '',
-    checkInterval: 5,
-    enabled: true,
+    description: '',
   }
   dialog.value = true
 }
@@ -146,8 +137,11 @@ function openEdit(rule: any) {
     accountId: rule.accountId || rule.account_id || null,
     domains: Array.isArray(rule.domains) ? [...rule.domains] : [],
     customDomains: rule.customDomains || rule.custom_domains || '',
-    checkInterval: rule.checkInterval || rule.check_interval || 5,
+    description: rule.description || '',
     enabled: !!rule.enabled,
+  }
+  if (form.value.source === 'cloudflare' && form.value.accountId) {
+    fetchCfDomains()
   }
   dialog.value = true
 }
@@ -176,7 +170,7 @@ async function save() {
       accountId: form.value.accountId,
       domains: form.value.domains,
       customDomains: form.value.customDomains,
-      checkInterval: form.value.checkInterval,
+      description: form.value.description,
       enabled: form.value.enabled,
     }
     if (editingId.value) {
@@ -252,8 +246,8 @@ onMounted(async () => {
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <div class="flex-grow-1">
-          <h4 class="text-h4 mb-1">Domain Monitor</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Create monitoring rules for your domains</p>
+          <h4 class="text-h4 mb-1">Monitor</h4>
+          <p class="text-body-2 text-medium-emphasis mb-0">Description</p>
         </div>
         <VBtn color="primary" @click="openCreate">
           <VIcon icon="bx-plus" class="me-1" /> Add Rule
@@ -269,8 +263,7 @@ onMounted(async () => {
           <col style="width: 200px" />
           <col style="width: 120px" />
           <col style="width: 250px" />
-          <col style="width: 120px" />
-          <col style="width: 100px" />
+          <col style="width: 200px" />
           <col style="width: 130px" />
         </colgroup>
         <thead>
@@ -278,8 +271,7 @@ onMounted(async () => {
             <th style="width: 200px">Name</th>
             <th style="width: 120px">Source</th>
             <th style="width: 250px">Domain</th>
-            <th style="width: 120px">Interval</th>
-            <th style="width: 100px; text-align: center;">Status</th>
+            <th style="width: 200px">Description</th>
             <th style="width: 130px; text-align: center;">Action</th>
           </tr>
         </thead>
@@ -292,7 +284,7 @@ onMounted(async () => {
                 :color="rule.source === 'cloudflare' ? 'primary' : rule.source === 'tencent' ? 'success' : 'warning'"
                 variant="tonal"
               >
-                {{ rule.source === 'cloudflare' ? 'CF' : rule.source === 'tencent' ? 'Tencent' : 'Custom' }}
+                {{ rule.source }}
               </VChip>
             </td>
             <td>
@@ -306,12 +298,7 @@ onMounted(async () => {
                 <span class="text-caption text-medium-emphasis">-</span>
               </template>
             </td>
-            <td class="text-caption">{{ rule.checkInterval }} min</td>
-            <td style="text-align: center;">
-              <VChip size="x-small" :color="rule.enabled ? 'success' : 'grey'" variant="tonal">
-                {{ rule.enabled ? 'Active' : 'Paused' }}
-              </VChip>
-            </td>
+            <td class="text-caption text-medium-emphasis">{{ rule.description || '-' }}</td>
             <td style="text-align: center;">
               <VBtn icon size="x-small" variant="text" color="success" @click="triggerCheck(rule.id)" :loading="checkingIds.includes(rule.id)">
                 <VIcon icon="bx-play" size="16" />
@@ -361,7 +348,7 @@ onMounted(async () => {
             <VSelect
               v-model="form.accountId"
               :items="accountOptions"
-              label="CF Account"
+              label="Cloudflare Account"
               density="compact"
               class="mb-3"
               :loading="loadingAccounts"
@@ -409,21 +396,13 @@ onMounted(async () => {
             />
           </template>
 
-          <!-- Interval -->
-          <VSelect
-            v-model="form.checkInterval"
-            :items="intervalOptions"
-            label="Check Interval"
+          <!-- Description -->
+          <VTextarea
+            v-model="form.description"
+            label="Description"
             density="compact"
-            class="mb-3"
-          />
-
-          <!-- Enabled -->
-          <VSwitch
-            v-model="form.enabled"
-            label="Enabled"
-            color="primary"
-            density="compact"
+            rows="2"
+            hide-details
           />
         </VCardText>
         <VCardActions>

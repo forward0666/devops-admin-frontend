@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import apiClient from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
 const GATEWAY = '/task'
+const MONITOR_GATEWAY = '/monitor'
 const tasks = ref<any[]>([])
 const loading = ref(false)
 const dialog = ref(false)
@@ -15,7 +16,7 @@ const saving = ref(false)
 // Form
 const form = ref({
   name: '',
-  type: 'heartbeat' as string,
+  type: '' as string,
   cron: '*/5 * * * *',
   enabled: true,
   description: '',
@@ -24,12 +25,11 @@ const form = ref({
 
 // Task type options
 const typeOptions = [
-  { title: 'Heartbeat', value: 'heartbeat', color: 'success' },
-  { title: 'SSL Check', value: 'ssl_check', color: 'warning' },
-  { title: 'Domain DNS', value: 'domain_dns', color: 'info' },
-  { title: 'Certificate Renew', value: 'cert_renew', color: 'error' },
-  { title: 'Sync Data', value: 'sync_data', color: 'primary' },
-  { title: 'Custom', value: 'custom', color: 'secondary' },
+  { title: 'Check Domain', value: 'check_domain', color: 'warning' },
+  { title: 'Sync Cloudflare Zone', value: 'sync_zone', color: 'info' },
+  { title: 'Sync Cloudflare DNS', value: 'sync_dns', color: 'primary' },
+  { title: 'Sync Cloudflare Security', value: 'sync_security', color: 'error' },
+  { title: 'Sync Cloudflare Cache', value: 'sync_cache', color: 'success' },
 ]
 
 // Cron preset options
@@ -70,6 +70,21 @@ const cronDisplay = (cron: string) => {
 }
 
 const isCustomCron = computed(() => form.value.cron === 'custom')
+const isCheckDomain = computed(() => form.value.type === 'check_domain')
+const isSyncZone = computed(() => ['sync_zone', 'sync_dns', 'sync_security', 'sync_cache'].includes(form.value.type))
+const monitorRules = ref<any[]>([])
+const selectedRuleIds = ref<number[]>([])
+const cfAccounts = ref<any[]>([])
+const selectedAccountIds = ref<string[]>(['all'])
+
+// When 'all' is selected, clear others; when empty, default to 'all'
+watch(selectedAccountIds, (val) => {
+  if (val.includes('all') && val.length > 1) {
+    selectedAccountIds.value = ['all']
+  } else if (val.length === 0) {
+    selectedAccountIds.value = ['all']
+  }
+})
 
 // Methods
 function resetForm() {
@@ -82,6 +97,8 @@ function resetForm() {
     config: {},
   }
   customCron.value = ''
+  selectedRuleIds.value = []
+  selectedAccountIds.value = ['all']
 }
 
 function openCreateDialog() {
@@ -100,11 +117,31 @@ function openEditDialog(task: any) {
     description: task.description || '',
     config: task.config || {},
   }
+  selectedRuleIds.value = task.config?.rule_ids || []
+  selectedAccountIds.value = task.config?.account_ids || ['all']
   if (!cronPresetOptions.find(o => o.value === task.cron)) {
     form.value.cron = 'custom'
     customCron.value = task.cron
   }
   dialog.value = true
+}
+
+async function fetchCfAccounts() {
+  try {
+    const { data } = await apiClient.get('/cloudflare/accounts')
+    cfAccounts.value = data.data || data || []
+  } catch (e) {
+    console.error('Failed to fetch CF accounts', e)
+  }
+}
+
+async function fetchMonitorRules() {
+  try {
+    const { data } = await apiClient.get(`${MONITOR_GATEWAY}/rules`)
+    monitorRules.value = (data.data || data || []).filter((r: any) => r.enabled)
+  } catch (e) {
+    console.error('Failed to fetch monitor rules', e)
+  }
 }
 
 async function fetchTasks() {
@@ -129,9 +166,17 @@ async function saveTask() {
     snackbar.value = { show: true, text: 'Cron expression is required', color: 'error' }
     return
   }
+  if (isSyncZone.value && selectedAccountIds.value.length === 0) {
+    snackbar.value = { show: true, text: 'Select at least one account', color: 'error' }
+    return
+  }
+  if (isCheckDomain.value && selectedRuleIds.value.length === 0) {
+    snackbar.value = { show: true, text: 'Select at least one monitor rule', color: 'error' }
+    return
+  }
   saving.value = true
   try {
-    const payload = { ...form.value, cron }
+    const payload = { ...form.value, cron, config: { rule_ids: selectedRuleIds.value, account_ids: selectedAccountIds.value } }
     if (editingId.value) {
       await apiClient.put(`${GATEWAY}/tasks/${editingId.value}`, payload)
       snackbar.value = { show: true, text: 'Task updated', color: 'success' }
@@ -177,7 +222,11 @@ async function runTaskNow(task: any) {
   }
 }
 
-onMounted(fetchTasks)
+onMounted(() => {
+  fetchTasks()
+  fetchMonitorRules()
+  fetchCfAccounts()
+})
 </script>
 
 <template>
@@ -214,7 +263,6 @@ onMounted(fetchTasks)
       <VTable hover density="compact" class="text-no-wrap sticky-table">
         <thead>
           <tr>
-            <th style="width: 40px;"></th>
             <th>Name</th>
             <th>Type</th>
             <th>Cron</th>
@@ -226,15 +274,6 @@ onMounted(fetchTasks)
         </thead>
         <tbody>
           <tr v-for="item in tasks" :key="item.id">
-            <td class="ps-4">
-              <VSwitch
-                :model-value="item.enabled"
-                density="compact"
-                hide-details
-                color="success"
-                @update:model-value="toggleTask(item)"
-              />
-            </td>
             <td>
               <div class="text-body-1 font-weight-medium">{{ item.name }}</div>
             </td>
@@ -293,7 +332,6 @@ onMounted(fetchTasks)
     <VDialog v-model="dialog" max-width="550">
       <VCard>
         <VCardTitle class="d-flex align-center">
-          <VIcon :icon="editingId ? 'bx-edit' : 'bx-plus'" class="me-2" />
           {{ editingId ? 'Edit Task' : 'Add Task' }}
         </VCardTitle>
         <VDivider />
@@ -319,6 +357,34 @@ onMounted(fetchTasks)
             hint="Example: 0 */2 * * * (every 2 hours)"
           />
           <VTextarea v-model="form.description" label="Description" rows="2" class="mb-4" variant="outlined" hide-details />
+          <VSelect
+            v-if="isCheckDomain"
+            v-model="selectedRuleIds"
+            :items="monitorRules"
+            item-title="name"
+            item-value="id"
+            label="Monitor Rules"
+            class="mb-4"
+            variant="outlined"
+            multiple
+            chips
+            hint="Select monitor rules to check (required)"
+            persistent-hint
+          />
+          <VSelect
+            v-if="isSyncZone"
+            v-model="selectedAccountIds"
+            :items="[{ id: 'all', name: 'All' }, ...cfAccounts]"
+            item-title="name"
+            item-value="id"
+            label="Cloudflare Accounts"
+            class="mb-4"
+            variant="outlined"
+            multiple
+            chips
+            hint="Select accounts to sync (required)"
+            persistent-hint
+          />
           <VSwitch v-model="form.enabled" label="Enabled" color="success" hide-details />
         </VCardText>
         <VCardActions class="justify-end">
