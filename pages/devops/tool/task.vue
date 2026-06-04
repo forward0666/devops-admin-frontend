@@ -90,7 +90,7 @@ watch(selectedAccountIds, (val) => {
 function resetForm() {
   form.value = {
     name: '',
-    type: 'heartbeat',
+    type: '',
     cron: '*/5 * * * *',
     enabled: true,
     description: '',

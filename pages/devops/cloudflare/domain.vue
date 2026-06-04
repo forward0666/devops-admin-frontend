@@ -10,7 +10,7 @@ const route = useRoute()
 const router = useRouter()
 const selectedAccountId = ref<number | null>(route.query.account ? Number(route.query.account) : -1)
 const domainFilter = ref(route.query.search as string || '')
-const statusFilter = ref('')
+const statusFilter = ref(route.query.status as string || '')
 const dnsRecords = ref<any[]>([])
 const accounts = ref<any[]>([])
 const loadingAccounts = ref(false)
@@ -44,6 +44,7 @@ const statusCodeStats = computed(() => {
   const stats: Record<string, { count: number, label: string, icon: string, color: string, filter: string }> = {
     total: { count: 0, label: 'Total', icon: 'bx-globe', color: 'primary', filter: '' },
     up: { count: 0, label: 'Up (200)', icon: 'bx-check-circle', color: 'success', filter: 'up' },
+    s3xx: { count: 0, label: '3xx', icon: 'bx-link-external', color: 'info', filter: '3xx' },
     s403: { count: 0, label: '403', icon: 'bx-shield-x', color: 'error', filter: '403' },
     s4xx: { count: 0, label: '4xx', icon: 'bx-error', color: 'warning', filter: '4xx' },
     s5xx: { count: 0, label: '5xx', icon: 'bx-server', color: 'error', filter: '5xx' },
@@ -56,6 +57,8 @@ const statusCodeStats = computed(() => {
     stats.total.count++
     if (r.last_status_code === 200) {
       stats.up.count++
+    } else if (r.last_status_code >= 300 && r.last_status_code < 400) {
+      stats.s3xx.count++
     } else if (r.last_status_code === 403) {
       stats.s403.count++
     } else if (r.last_status_code >= 400 && r.last_status_code < 500) {
@@ -73,7 +76,7 @@ const statusCodeStats = computed(() => {
       stats.pub.count++
     }
   }
-  return [stats.total, stats.pub, stats.priv, stats.up, stats.s403, stats.s4xx, stats.s5xx, stats.down, stats.noData]
+  return [stats.total, stats.pub, stats.priv, stats.up, stats.s3xx, stats.s403, stats.s4xx, stats.s5xx, stats.down, stats.noData]
 })
 
 const filteredRecords = computed(() => {
@@ -85,6 +88,7 @@ const filteredRecords = computed(() => {
   if (statusFilter.value) {
     const f = statusFilter.value
     if (f === 'up') records = records.filter(r => r.last_status_code === 200)
+    else if (f === '3xx') records = records.filter(r => r.last_status_code >= 300 && r.last_status_code < 400)
     else if (f === '403') records = records.filter(r => r.last_status_code === 403)
     else if (f === '4xx') records = records.filter(r => r.last_status_code >= 400 && r.last_status_code < 500 && r.last_status_code !== 403)
     else if (f === '5xx') records = records.filter(r => r.last_status_code >= 500)
@@ -242,6 +246,14 @@ async function togglePublic(record: any, value: boolean) {
   }
 }
 
+async function updateRemark(record: any) {
+  try {
+    await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record.id || record._id}`, { remark: record.remark || '' })
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to update remark', color: 'error' }
+  }
+}
+
 function exportCSV() {
   if (!sortedRecords.value.length) return
   const headers = ['zone_name', 'type', 'name', 'content', 'proxied', 'account_name']
@@ -320,8 +332,8 @@ onMounted(async () => {
 
     <!-- Status Code Stats -->
     <div class="d-flex flex-wrap gap-2 mb-4" style="overflow: hidden;">
-      <VCard v-for="stat in statusCodeStats" :key="stat.label" :style="{ minWidth: '90px', flex: '1 1 0', cursor: 'pointer', border: statusFilter === stat.filter ? '2px solid rgb(var(--v-theme-primary))' : 'none' }" @click="statusFilter = statusFilter === stat.filter ? '' : stat.filter">
-        <VCardText class="d-flex align-center gap-1 py-2 px-3">
+      <VCard v-for="stat in statusCodeStats" :key="stat.label" :style="{ minWidth: '90px', flex: '1 1 0', cursor: 'pointer', border: statusFilter === stat.filter ? '2px solid rgb(var(--v-theme-primary))' : 'none' }" @click="statusFilter = statusFilter === stat.filter ? '' : stat.filter; router.replace({ query: { ...route.query, status: statusFilter === stat.filter ? stat.filter : undefined } })">
+        <VCardText class="d-flex align-center py-2 px-3" style="gap: 20px;">
           <VIcon :icon="stat.icon" :color="stat.color" size="18" />
           <div>
             <div class="text-body-1 font-weight-bold">{{ stat.count }}</div>
@@ -335,41 +347,28 @@ onMounted(async () => {
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loadingRecords" indeterminate color="primary" />
       <VTable v-if="sortedRecords.length" class="sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
-        <colgroup>
-          <col style="width: 50px" />
-          <col style="width: 100px" />
-          <col style="width: 220px" />
-          <col style="width: 160px" />
-          <col style="width: 80px" />
-          <col style="width: 200px" />
-          <col style="width: 140px" />
-          <col style="width: 140px" />
-          <col style="width: 150px" />
-          <col style="width: 80px" />
-        </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
-            <th style="width: 50px !important; max-width: 50px !important; overflow: hidden;">
-              <span class="cursor-pointer d-inline-flex align-center gap-1" @click="toggleSort('domain')">
-                Zone <VIcon size="14" :icon="domainSortOrder === 'asc' ? 'bx-sort-up' : 'bx-sort-down'" class="text-disabled" />
-              </span>
+            <th>
+              Zone
             </th>
-            <th style="width: 100px; max-width: 100px; overflow: hidden; text-align: center;">Type</th>
-            <th style="width: 220px !important; max-width: 220px !important; overflow: hidden;">Name</th>
-            <th style="width: 160px !important; max-width: 160px !important; overflow: hidden;">Content</th>
-            <th style="width: 20px; text-align: center;">Proxied</th>
-            <th style="width: 200px;">Last Status</th>
-            <th style="width: 140px;">Resolved IP</th>
-            <th style="width: 140px;">Probe IP</th>
-            <th style="width: 150px;">Probe Time</th>
-            <th style="width: 80px; text-align: center;">Private</th>
+            <th style="text-align: center;">Type</th>
+            <th>Name</th>
+            <th>Content</th>
+            <th style="text-align: center;">Proxied</th>
+            <th>Status</th>
+            <th>Resolved IP</th>
+            <th>Probe IP</th>
+            <th>Probe Time</th>
+            <th style="text-align: center;">Private</th>
+            <th>Remark</th>
           </tr>
         </thead>
         <tbody>
           <template v-for="domain in pagedDomainKeys" :key="domain">
             <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-              <td colspan="10" style="padding: 0 !important;">
-                <div class="d-flex align-center" style="padding: 12px 16px;">
+              <td colspan="11" style="padding: 0 !important;">
+                <div class="d-flex align-center" style="padding: 12px 5px;">
                   <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                   <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
                   <span class="font-weight-bold text-body-1">{{ domain }}</span>
@@ -379,24 +378,22 @@ onMounted(async () => {
             </tr>
             <template v-if="expandedDomains[domain]">
               <tr v-for="r in (groupedRecords[domain] || [])" :key="r.record_id">
-                <td style="width: 50px !important; max-width: 50px !important;"></td>
-                <td style="width: 100px !important; max-width: 100px !important;">
-                  <div style="display: flex; justify-content: center; align-items: center;">
-                    <VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip>
-                  </div>
+                <td></td>
+                <td style="text-align: center;">
+                  <VChip size="x-small" :color="typeColors[r.type] || 'grey'" variant="tonal">{{ r.type }}</VChip>
                 </td>
-                <td style="width: 220px !important; max-width: 220px !important; text-align: left; word-break: break-all; ">
-                  <code style="display: block; width: 220px; word-break: break-all; " class="text-caption">{{ r.name }}</code>
+                <td style="word-break: break-all;">
+                  <code style="word-break: break-all;" class="text-caption">{{ r.name }}</code>
                 </td>
-                <td style="width: 160px !important; max-width: 160px !important; word-break: break-all;">
+                <td style="word-break: break-all;">
                   <code class="text-caption">{{ r.content }}</code>
                 </td>
-                <td style="width: 20px; text-align: center;">
+                <td style="text-align: center;">
                   <VChip size="x-small" :color="r.proxied ? 'success' : 'grey'" variant="tonal">{{ r.proxied ? 'Yes' : 'No' }}</VChip>
                 </td>
-                <td style="width: 200px;">
+                <td>
                   <template v-if="r.last_status_code">
-                    <VChip size="x-small" :color="r.last_status_code === 200 ? 'success' : (r.last_status_code >= 500 || r.last_status_code === 403) ? 'error' : 'warning'" variant="tonal">{{ r.last_status_code }}</VChip>
+                    <VChip size="x-small" :color="r.last_status_code >= 300 && r.last_status_code < 400 ? 'info' : r.last_status_code === 200 ? 'success' : (r.last_status_code >= 500 || r.last_status_code === 403) ? 'error' : 'warning'" variant="tonal">{{ r.last_status_code }}</VChip>
                     <span v-if="r.last_response_time_ms" class="text-caption text-medium-emphasis ms-1">{{ r.last_response_time_ms }}ms</span>
                   </template>
                   <template v-else-if="r.last_status">
@@ -407,19 +404,19 @@ onMounted(async () => {
                   </template>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
-                <td style="width: 140px;">
+                <td>
                   <span v-if="r.last_resolved_ip" class="text-caption">{{ r.last_resolved_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
-                <td style="width: 140px;">
+                <td>
                   <span v-if="r.last_probe_ip && r.last_probe_ip !== 'fail'" class="text-caption">{{ r.last_probe_ip }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
-                <td style="width: 150px;">
+                <td>
                   <span v-if="r.last_checked_at" class="text-caption">{{ new Date(r.last_checked_at + 'Z').toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</span>
                   <span v-else class="text-caption text-disabled">-</span>
                 </td>
-                <td style="width: 80px; text-align: center;">
+                <td style="text-align: center;">
                   <VSwitch
                     :model-value="!r.is_public"
                     @update:model-value="togglePublic(r, !$event)"
@@ -427,6 +424,17 @@ onMounted(async () => {
                     density="compact"
                     hide-details
                     style="display: inline-flex;"
+                  />
+                </td>
+                <td>
+                  <VTextField
+                    v-model="r.remark"
+                    density="compact"
+                    variant="plain"
+                    hide-details
+                    placeholder="-"
+                    @blur="updateRemark(r)"
+                    style="font-size: 12px;"
                   />
                 </td>
               </tr>
@@ -449,6 +457,34 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
 }
+.sticky-table :deep(table) {
+  table-layout: fixed;
+  width: 100%;
+}
+.sticky-table :deep(th),
+.sticky-table :deep(td) {
+  padding: 2px 8px !important;
+}
+.sticky-table :deep(th:nth-child(1)),
+.sticky-table :deep(td:nth-child(1)) { width: 60px; }
+.sticky-table :deep(th:nth-child(2)),
+.sticky-table :deep(td:nth-child(2)) { width: 80px; }
+.sticky-table :deep(th:nth-child(3)),
+.sticky-table :deep(td:nth-child(3)) { width: 200px; }
+.sticky-table :deep(th:nth-child(4)),
+.sticky-table :deep(td:nth-child(4)) { width: 130px; }
+.sticky-table :deep(th:nth-child(5)),
+.sticky-table :deep(td:nth-child(5)) { width: 80px; }
+.sticky-table :deep(th:nth-child(6)),
+.sticky-table :deep(td:nth-child(6)) { width: 100px; }
+.sticky-table :deep(th:nth-child(7)),
+.sticky-table :deep(td:nth-child(7)) { width: 110px; }
+.sticky-table :deep(th:nth-child(8)),
+.sticky-table :deep(td:nth-child(8)) { width: 110px; }
+.sticky-table :deep(th:nth-child(9)),
+.sticky-table :deep(td:nth-child(9)) { width: 100px; }
+.sticky-table :deep(th:nth-child(10)),
+.sticky-table :deep(td:nth-child(10)) { width: 80px; }
 .sticky-table :deep(.v-table__wrapper) {
   flex: 1;
   min-height: 0;
