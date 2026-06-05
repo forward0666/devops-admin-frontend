@@ -336,6 +336,7 @@ async function saveWhitelist() {
 .sticky-table {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 .sticky-table :deep(table) {
   table-layout: fixed;
