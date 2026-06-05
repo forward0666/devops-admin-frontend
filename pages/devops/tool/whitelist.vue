@@ -264,6 +264,7 @@ async function saveWhitelist() {
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th>Project</th>
+              <th>ENV</th>
               <th>Rule Name</th>
               <th>Username</th>
               <th>IP</th>
@@ -275,6 +276,7 @@ async function saveWhitelist() {
           <tbody>
             <tr v-for="w in filteredWhitelists" :key="w.id">
               <td class="text-body-2">{{ projects.find(p => p.id === w.projectId)?.name || '-' }}</td>
+              <td><VChip size="x-small" color="primary" variant="tonal">{{ (w.env || '-').toUpperCase() }}</VChip></td>
               <td>{{ w.ruleName || '-' }}</td>
               <td>{{ w.username || '-' }}</td>
               <td><code class="text-caption">{{ w.ip || '-' }}</code></td>
@@ -349,16 +351,18 @@ async function saveWhitelist() {
 .sticky-table :deep(th:nth-child(1)),
 .sticky-table :deep(td:nth-child(1)) { width: 50px; }
 .sticky-table :deep(th:nth-child(2)),
-.sticky-table :deep(td:nth-child(2)) { width: 150px; }
+.sticky-table :deep(td:nth-child(2)) { width: 70px; }
 .sticky-table :deep(th:nth-child(3)),
-.sticky-table :deep(td:nth-child(3)) { width: 120px; }
+.sticky-table :deep(td:nth-child(3)) { width: 150px; }
 .sticky-table :deep(th:nth-child(4)),
-.sticky-table :deep(td:nth-child(4)) { width: 140px; }
+.sticky-table :deep(td:nth-child(4)) { width: 120px; }
 .sticky-table :deep(th:nth-child(5)),
-.sticky-table :deep(td:nth-child(5)) { width: 120px; }
+.sticky-table :deep(td:nth-child(5)) { width: 140px; }
 .sticky-table :deep(th:nth-child(6)),
-.sticky-table :deep(td:nth-child(6)) { width: 160px; }
+.sticky-table :deep(td:nth-child(6)) { width: 120px; }
 .sticky-table :deep(th:nth-child(7)),
-.sticky-table :deep(td:nth-child(7)) { width: 140px; }
+.sticky-table :deep(td:nth-child(7)) { width: 160px; }
+.sticky-table :deep(th:nth-child(8)),
+.sticky-table :deep(td:nth-child(8)) { width: 140px; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
