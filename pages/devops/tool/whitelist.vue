@@ -251,13 +251,13 @@ async function saveWhitelist() {
         <VSelect v-model="selectedEnv" :items="envOptions" label="Environment" density="compact" style="max-width: 160px" hide-details clearable />
         <VTextField v-model="search" prepend-inner-icon="bx-search" placeholder="Filter by rule, user, IP..." density="compact" hide-details clearable style="max-width: 260px" />
         <VSpacer />
+        <VBtn size="small" color="primary" @click="openWhitelistCreate" prepend-icon="bx-plus">Add Whitelist</VBtn>
       </VCardText>
     </VCard>
 
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VCardTitle class="pt-2 px-6 pb-0 text-body-1 d-flex align-center">
         <VSpacer />
-        <VBtn size="small" color="primary" @click="openWhitelistCreate" prepend-icon="bx-plus">Add Whitelist</VBtn>
       </VCardTitle>
       <div class="card-scroll">
         <VTable v-if="filteredWhitelists.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
