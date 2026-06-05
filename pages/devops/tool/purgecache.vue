@@ -251,7 +251,11 @@ async function purgeAll() {
 
     <!-- Rules Table -->
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-        <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
+      <VCardTitle class="pt-2 px-6 pb-0 text-body-1 d-flex align-center">
+        <VSpacer />
+      </VCardTitle>
+      <div class="card-scroll">
+        <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th>Project</th>
@@ -281,6 +285,7 @@ async function purgeAll() {
           <p>No cache rules yet. Click "Add Rule" to create one.</p>
           <p class="text-caption mt-1">Select a project first to enable purge.</p>
         </VCardText>
+      </div>
     </VCard>
 
     <!-- Add/Edit Dialog -->
@@ -347,4 +352,5 @@ async function purgeAll() {
 .sticky-table :deep(td:nth-child(4)) { width: 280px; }
 .sticky-table :deep(th:nth-child(5)),
 .sticky-table :deep(td:nth-child(5)) { width: 180px; }
+.card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
