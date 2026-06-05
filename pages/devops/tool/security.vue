@@ -241,7 +241,7 @@ function toggleView(ruleId: string) {
               <th>Project</th>
               <th>Env</th>
               <th>Name</th>
-              <th style="padding-left: 12px;">Action</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -250,7 +250,7 @@ function toggleView(ruleId: string) {
                 <td class="text-body-2">{{ projects.find(p => p.id === r.projectId)?.name || '-' }}</td>
                 <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
                 <td>{{ r.name || '-' }}</td>
-                <td style="padding-left: 12px; white-space: nowrap;">
+                <td>
                   <VBtn size="x-small" variant="tonal" :color="viewedRules.has(r.id) ? 'warning' : 'success'" class="me-1" @click="toggleView(r.id)">{{ viewedRules.has(r.id) ? 'Hide' : 'View' }}</VBtn>
                   <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(r)">Edit</VBtn>
                   <VBtn size="x-small" variant="tonal" color="error" @click="deleteRule(r)">Delete</VBtn>

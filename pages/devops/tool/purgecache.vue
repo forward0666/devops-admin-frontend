@@ -259,7 +259,7 @@ async function purgeAll() {
               <th>Env</th>
               <th>Name</th>
               <th>URL</th>
-              <th style="text-align: center;">Action</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -269,7 +269,7 @@ async function purgeAll() {
               <td class="font-weight-medium">{{ r.name }}</td>
               <td><code class="text-caption">{{ r.url }}</code></td>
 
-              <td class="text-center">
+              <td>
                 <VBtn size="x-small" variant="tonal" color="warning" :loading="purging === `rule-${r.id}`" :disabled="!selectedProject" class="me-1" @click="purgeCache(r)">Purge</VBtn>
                 <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(r)">Edit</VBtn>
                 <VBtn size="x-small" variant="tonal" color="error" @click="deleteRule(r)">Delete</VBtn>
