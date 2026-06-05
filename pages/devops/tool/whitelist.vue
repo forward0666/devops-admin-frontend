@@ -339,6 +339,10 @@ async function saveWhitelist() {
   table-layout: fixed;
   width: 100%;
 }
+.sticky-table :deep(th),
+.sticky-table :deep(td) {
+  padding: 2px 8px !important;
+}
 .sticky-table :deep(th:nth-child(1)),
 .sticky-table :deep(td:nth-child(1)) { width: 50px; }
 .sticky-table :deep(th:nth-child(2)),

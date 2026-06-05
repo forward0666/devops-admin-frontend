@@ -317,6 +317,10 @@ async function purgeAll() {
   table-layout: fixed;
   width: 100%;
 }
+.sticky-table :deep(th),
+.sticky-table :deep(td) {
+  padding: 2px 8px !important;
+}
 .sticky-table :deep(.v-table__wrapper) {
   flex: 1;
   min-height: 0;

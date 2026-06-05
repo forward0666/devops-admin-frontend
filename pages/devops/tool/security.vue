@@ -322,6 +322,10 @@ function toggleView(ruleId: string) {
 
 <style scoped>
 .sticky-table table { table-layout: fixed !important; }
+.sticky-table :deep(th),
+.sticky-table :deep(td) {
+  padding: 2px 8px !important;
+}
 .sticky-table :deep(tbody td) { overflow: hidden !important; max-width: 0 !important; }
 .sticky-table :deep(th:nth-child(1)),
 .sticky-table :deep(td:nth-child(1)) { width: 50px; }
