@@ -30,7 +30,10 @@ watch([selectedProject, selectedEnv], ([p, e]) => {
   navigateTo({ query }, { replace: true })
 })
 
-const projectOptions = computed(() => projects.value.map(p => ({ title: p.name, value: p.id })))
+const projectOptions = computed(() => [
+  { title: 'All', value: -1 },
+  ...projects.value.map(p => ({ title: p.name, value: p.id })),
+])
 const envOptions = computed(() => {
   const envs = [...new Set(domains.value.map(d => d.env).filter(Boolean))]
   return envs.map(e => ({ title: e.toUpperCase(), value: e }))
@@ -46,16 +49,27 @@ const filteredDomains = computed(() => {
 async function fetchData() {
   loading.value = true
   try {
-    const [projectData, domainData] = await Promise.all([
-      projectService.list(),
-      selectedProject.value ? domainService.list(String(selectedProject.value)) : Promise.resolve([]),
-    ])
+    const projectData = await projectService.list()
     projects.value = projectData || []
-    domains.value = domainData || []
 
-    if (selectedProject.value) {
+    if (selectedProject.value === -1) {
+      // All projects: fetch domains and rules from each
+      const [domainResults, ruleResults] = await Promise.all([
+        Promise.all(projects.value.map((p: any) => domainService.list(String(p.id)).catch(() => []))),
+        Promise.all(projects.value.map((p: any) => cacheRuleService.list(p.id, selectedEnv.value || undefined).catch(() => []))),
+      ])
+      const allDomains: any[] = []
+      domainResults.forEach(d => allDomains.push(...(d || [])))
+      domains.value = allDomains
+      const allRules: any[] = []
+      ruleResults.forEach(r => allRules.push(...(r || [])))
+      rules.value = allRules
+    } else if (selectedProject.value) {
+      const domainData = await domainService.list(String(selectedProject.value))
+      domains.value = domainData || []
       rules.value = await cacheRuleService.list(selectedProject.value, selectedEnv.value || undefined) || []
     } else {
+      domains.value = []
       rules.value = []
     }
   } catch (e) {
@@ -66,7 +80,7 @@ async function fetchData() {
 }
 
 onMounted(fetchData)
-watch(selectedProject, fetchData)
+watch(selectedProject, () => { fetchData(); fetchRules() })
 watch(selectedEnv, fetchRules)
 
 // --- CRUD Dialog ---
@@ -77,8 +91,8 @@ const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 function openCreate() {
-  if (!selectedProject.value) {
-    snackbar.value = { show: true, text: 'Please select a project first', color: 'warning' }
+  if (!selectedProject.value || selectedProject.value === -1) {
+    snackbar.value = { show: true, text: 'Please select a specific project first', color: 'warning' }
     return
   }
   editingId.value = null
@@ -95,7 +109,16 @@ function openEdit(rule: any) {
 async function fetchRules() {
   if (!selectedProject.value) { rules.value = []; return }
   try {
-    rules.value = await cacheRuleService.list(selectedProject.value, selectedEnv.value || undefined) || []
+    if (selectedProject.value === -1) {
+      const results = await Promise.all(
+        projects.value.map((p: any) => cacheRuleService.list(p.id, selectedEnv.value || undefined).catch(() => []))
+      )
+      const allRules: any[] = []
+      results.forEach(r => allRules.push(...(r || [])))
+      rules.value = allRules
+    } else {
+      rules.value = await cacheRuleService.list(selectedProject.value, selectedEnv.value || undefined) || []
+    }
   } catch (e) {
     console.error('Failed to fetch rules', e)
   }
@@ -137,7 +160,7 @@ async function deleteRule(rule: any) {
 const purging = ref<string | null>(null)
 
 async function purgeCache(rule: any) {
-  if (!selectedProject.value) return
+  if (!selectedProject.value || selectedProject.value === -1) return
   const targetDomains = filteredDomains.value.filter((d: any) => d.type === 'web')
   if (!targetDomains.length) {
     snackbar.value = { show: true, text: 'No web domains found for current project/env', color: 'warning' }
@@ -172,7 +195,7 @@ async function purgeCache(rule: any) {
 }
 
 async function purgeAll() {
-  if (!selectedProject.value) return
+  if (!selectedProject.value || selectedProject.value === -1) return
   const targetDomains = filteredDomains.value.filter((d: any) => d.type === 'web')
   if (!targetDomains.length) {
     snackbar.value = { show: true, text: 'No web domains found for current project/env', color: 'warning' }
@@ -189,13 +212,16 @@ async function purgeAll() {
     const result = data?.data
     const succeeded: string[] = result?.succeeded || []
     const failed: { domain: string; reason: string }[] = result?.failed || []
+    const total = result?.total || 0
     if (failed.length === 0) {
-      snackbar.value = { show: true, text: `Purged ALL ${succeeded.length} domains`, color: 'success' }
+      snackbar.value = { show: true, text: `Purged ${succeeded.length}/${total}: ${succeeded.join(', ')}`, color: 'success' }
     } else if (succeeded.length === 0) {
-      const names = failed.map(f => f.domain).slice(0, 5).join(', ')
-      snackbar.value = { show: true, text: `All failed (${failed.length}): ${names}${failed.length > 5 ? '...' : ''}`, color: 'error' }
+      const names = failed.map(f => f.domain).join(', ')
+      snackbar.value = { show: true, text: `All failed (${failed.length}): ${names}`, color: 'error' }
     } else {
-      snackbar.value = { show: true, text: `✅ ${succeeded.length} ok, ❌ ${failed.length} failed`, color: 'warning' }
+      const okNames = succeeded.join(', ')
+      const failNames = failed.map(f => f.domain).join(', ')
+      snackbar.value = { show: true, text: `✅ ${succeeded.length}: ${okNames} | ❌ ${failed.length}: ${failNames}`, color: 'warning' }
     }
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Purge all failed', color: 'error' }
@@ -218,7 +244,7 @@ async function purgeAll() {
           <VChip size="small" color="info" variant="tonal">Rules: {{ rules.length }}</VChip>
         </div>
         <VSpacer />
-        <VBtn color="error" variant="tonal" :loading="purging === 'all'" @click="purgeAll" prepend-icon="bx-trash" class="me-2">Purge All</VBtn>
+        <VBtn color="error" variant="tonal" :loading="purging === 'all'" :disabled="!selectedProject || selectedProject === -1" @click="purgeAll" prepend-icon="bx-trash" class="me-2">Purge All</VBtn>
         <VBtn color="primary" @click="openCreate" prepend-icon="bx-plus">Add Rule</VBtn>
       </VCardText>
     </VCard>
@@ -229,6 +255,7 @@ async function purgeAll() {
 
         <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <colgroup>
+            <col style="width: 120px" />
             <col style="width: 100px" />
             <col style="width: 160px" />
             <col style="width: 280px" />
@@ -236,6 +263,7 @@ async function purgeAll() {
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
+              <th>Project</th>
               <th>Env</th>
               <th>Name</th>
               <th>URL</th>
@@ -244,6 +272,7 @@ async function purgeAll() {
           </thead>
           <tbody>
             <tr v-for="r in rules" :key="r.id">
+              <td class="text-body-2">{{ projects.find(p => p.id === r.projectId)?.name || '-' }}</td>
               <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
               <td class="font-weight-medium">{{ r.name }}</td>
               <td><code class="text-caption">{{ r.url }}</code></td>
