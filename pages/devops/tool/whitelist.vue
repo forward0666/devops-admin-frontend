@@ -256,7 +256,6 @@ async function saveWhitelist() {
 
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VCardTitle class="pt-2 px-6 pb-0 text-body-1 d-flex align-center">
-        WhiteList IP
         <VSpacer />
         <VBtn size="small" color="primary" @click="openWhitelistCreate" prepend-icon="bx-plus">Add Whitelist</VBtn>
       </VCardTitle>
