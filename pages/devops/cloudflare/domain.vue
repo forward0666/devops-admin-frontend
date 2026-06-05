@@ -52,6 +52,7 @@ const statusCodeStats = computed(() => {
     noData: { count: 0, label: 'No Data', icon: 'bx-minus-circle', color: 'grey', filter: 'noData' },
     pub: { count: 0, label: 'Public', icon: 'bx-globe', color: 'info', filter: 'public' },
     priv: { count: 0, label: 'Private', icon: 'bx-lock', color: 'warning', filter: 'private' },
+    ignored: { count: 0, label: 'Ignored', icon: 'bx-hide', color: 'grey', filter: 'ignored' },
   }
   for (const r of dnsRecords.value) {
     stats.total.count++
@@ -75,6 +76,9 @@ const statusCodeStats = computed(() => {
     } else {
       stats.pub.count++
     }
+    if (r.is_ignored) {
+      stats.ignored.count++
+    }
   }
   return [stats.total, stats.pub, stats.priv, stats.up, stats.s3xx, stats.s403, stats.s4xx, stats.s5xx, stats.down, stats.noData]
 })
@@ -96,6 +100,7 @@ const filteredRecords = computed(() => {
     else if (f === 'noData') records = records.filter(r => r.last_status_code !== 200 && r.last_status_code !== 403 && !(r.last_status_code >= 400 && r.last_status_code < 500) && !(r.last_status_code >= 500) && r.last_status !== 'timeout' && r.last_status !== 'error')
     else if (f === 'public') records = records.filter(r => r.is_public !== false)
     else if (f === 'private') records = records.filter(r => r.is_public === false)
+    else if (f === 'ignored') records = records.filter(r => r.is_ignored)
   }
   return records
 })
@@ -246,6 +251,16 @@ async function togglePublic(record: any, value: boolean) {
   }
 }
 
+async function toggleIgnore(record: any, value: boolean) {
+  try {
+    await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record.id || record._id}`, { is_ignored: value })
+    record.is_ignored = value
+    snackbar.value = { show: true, text: value ? 'Ignored' : 'Unignored', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to update', color: 'error' }
+  }
+}
+
 async function updateRemark(record: any) {
   try {
     await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record.id || record._id}`, { remark: record.remark || '' })
@@ -361,6 +376,7 @@ onMounted(async () => {
             <th>Probe IP</th>
             <th>Probe Time</th>
             <th style="text-align: center;">Private</th>
+            <th style="text-align: center;">Ignore</th>
             <th>Remark</th>
           </tr>
         </thead>
@@ -424,6 +440,15 @@ onMounted(async () => {
                     density="compact"
                     hide-details
                     style="display: inline-flex;"
+                  />
+                </td>
+                <td style="text-align: center;">
+                  <VBtn
+                    :icon="r.is_ignored ? 'bx-show' : 'bx-hide'"
+                    :color="r.is_ignored ? 'grey' : 'default'"
+                    size="x-small"
+                    variant="text"
+                    @click="toggleIgnore(r, !r.is_ignored)"
                   />
                 </td>
                 <td>
