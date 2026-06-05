@@ -328,6 +328,7 @@ function toggleView(ruleId: string) {
 .sticky-table :deep(th),
 .sticky-table :deep(td) {
   padding: 2px 8px !important;
+  font-size: 13px;
 }
 .sticky-table :deep(th:nth-child(1)),
 .sticky-table :deep(td:nth-child(1)),
