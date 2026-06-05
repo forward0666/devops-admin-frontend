@@ -251,7 +251,7 @@ async function saveWhitelist() {
         <VSelect v-model="selectedEnv" :items="envOptions" label="Environment" density="compact" style="max-width: 160px" hide-details clearable />
         <VTextField v-model="search" prepend-inner-icon="bx-search" placeholder="Filter by rule, user, IP..." density="compact" hide-details clearable style="max-width: 260px" />
         <VSpacer />
-        <VBtn size="small" color="primary" @click="openWhitelistCreate" prepend-icon="bx-plus">Add Whitelist</VBtn>
+        <VBtn color="primary" @click="openWhitelistCreate" prepend-icon="bx-plus">Add Whitelist</VBtn>
       </VCardText>
     </VCard>
 

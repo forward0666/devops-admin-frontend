@@ -229,7 +229,7 @@ function toggleView(ruleId: string) {
         <VSelect v-model="selectedProject" :items="projectOptions" label="Project" density="compact" style="max-width: 200px" hide-details clearable />
         <VSelect v-model="selectedEnv" :items="envOptions" label="Environment" density="compact" style="max-width: 160px" hide-details clearable />
         <VSpacer />
-        <VBtn size="small" color="primary" @click="openCreate" prepend-icon="bx-plus">Add Rule</VBtn>
+        <VBtn color="primary" @click="openCreate" prepend-icon="bx-plus">Add Rule</VBtn>
       </VCardText>
     </VCard>
 
