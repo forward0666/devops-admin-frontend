@@ -251,9 +251,6 @@ async function purgeAll() {
 
     <!-- Rules Table -->
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-      <VCardTitle class="pt-2 px-6 pb-0 text-body-1 d-flex align-center">
-        <VSpacer />
-      </VCardTitle>
       <div class="card-scroll">
         <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
           <thead>
