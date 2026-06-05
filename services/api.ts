@@ -346,6 +346,9 @@ export const userConsoleDomainService = {
   bulkUpdate(data: any) {
     return request<any>({ method: 'post', url: '/user/domain/bulkUpdate', data })
   },
+  bulkDelete(data: { projectId: string; ids: string[] }) {
+    return request<any>({ method: 'post', url: '/user/domain/bulkDelete', data })
+  },
 }
 
 export const userConsoleMiddlewareService = {

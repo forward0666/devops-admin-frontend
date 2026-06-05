@@ -337,7 +337,7 @@ onMounted(async () => {
         >
           Sync
         </VBtn>
-        <VBtn icon="bx-download" size="small" variant="text" title="Export CSV" :disabled="!sortedRecords.length" @click="exportCSV" />
+        <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!sortedRecords.length" @click="exportCSV">Export</VBtn>
         <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" />
         <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
         <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
@@ -383,7 +383,7 @@ onMounted(async () => {
         <tbody>
           <template v-for="domain in pagedDomainKeys" :key="domain">
             <tr class="cursor-pointer" @click="toggleDomain(domain)" style="background: rgb(var(--v-theme-on-surface), 0.04);">
-              <td colspan="11" style="padding: 0 !important;">
+              <td colspan="12" style="padding: 0 !important;">
                 <div class="d-flex align-center" style="padding: 12px 5px;">
                   <VIcon :icon="expandedDomains[domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="18" class="me-2 text-medium-emphasis" />
                   <VIcon icon="bx-globe" size="18" class="me-2 text-medium-emphasis" />
@@ -446,7 +446,7 @@ onMounted(async () => {
                   <VSwitch
                     :model-value="r.is_ignored"
                     @update:model-value="toggleIgnore(r, $event)"
-                    color="grey"
+                    :color="r.is_ignored ? 'warning' : 'grey'"
                     density="compact"
                     hide-details
                     style="display: inline-flex;"
@@ -511,6 +511,10 @@ onMounted(async () => {
 .sticky-table :deep(td:nth-child(9)) { width: 100px; }
 .sticky-table :deep(th:nth-child(10)),
 .sticky-table :deep(td:nth-child(10)) { width: 80px; }
+.sticky-table :deep(th:nth-child(11)),
+.sticky-table :deep(td:nth-child(11)) { width: 80px; }
+.sticky-table :deep(th:nth-child(12)),
+.sticky-table :deep(td:nth-child(12)) { width: 150px; }
 .sticky-table :deep(.v-table__wrapper) {
   flex: 1;
   min-height: 0;

@@ -206,6 +206,26 @@ async function bulkUpdate() {
   }
 }
 
+// Bulk delete
+const isBulkDeleteDialogVisible = ref(false)
+const bulkDeleting = ref(false)
+
+async function bulkDelete() {
+  if (!selectedDomains.value.length) return
+  bulkDeleting.value = true
+  try {
+    await userConsoleDomainService.bulkDelete({ projectId: projectId.value, ids: selectedDomains.value })
+    snackbar.value = { show: true, text: `已删除 ${selectedDomains.value.length} 条记录`, color: 'success' }
+    selectedDomains.value = []
+    isBulkDeleteDialogVisible.value = false
+    await fetchDomains()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || '删除失败', color: 'error' }
+  } finally {
+    bulkDeleting.value = false
+  }
+}
+
 async function addDomain() {
   addFormRef.value?.validate().then(async ({ valid }: any) => {
     if (!valid) return
@@ -301,7 +321,7 @@ async function confirmImport() {
 
 // Export
 function exportDomains() {
-  const data = domains.value.map(d => ({ domain: d.domain, env: d.env, type: d.type, remark: d.remark }))
+  const data = domains.value.map(d => ({ domain: d.domain, env: d.env, type: d.type, remark: d.remark, cdn: d.cdn }))
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -331,6 +351,7 @@ function exportDomains() {
         <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
         <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
         <VBtn prepend-icon="bx-edit" variant="tonal" color="warning" size="small" :disabled="!canManage || !selectedDomains.length" @click="isBulkEditDialogVisible = true">Edit ({{ selectedDomains.length }})</VBtn>
+        <VBtn prepend-icon="bx-trash" variant="tonal" color="error" size="small" :disabled="!canManage || !selectedDomains.length" @click="isBulkDeleteDialogVisible = true">Delete ({{ selectedDomains.length }})</VBtn>
       </VCardText>
     </VCard>
 
@@ -490,6 +511,18 @@ function exportDomains() {
         <VCardActions class="justify-end pa-4">
           <VBtn variant="tonal" @click="isBulkEditDialogVisible = false">Cancel</VBtn>
           <VBtn color="primary" :loading="bulkSaving" @click="bulkUpdate">Update</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Bulk Delete Dialog -->
+    <VDialog v-model="isBulkDeleteDialogVisible" max-width="400">
+      <VCard>
+        <VCardTitle>批量删除</VCardTitle>
+        <VCardText>确定要删除选中的 <strong>{{ selectedDomains.length }}</strong> 个域名吗？此操作不可撤销。</VCardText>
+        <VCardActions class="justify-end">
+          <VBtn variant="tonal" @click="isBulkDeleteDialogVisible = false">Cancel</VBtn>
+          <VBtn color="error" :loading="bulkDeleting" @click="bulkDelete">Delete</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

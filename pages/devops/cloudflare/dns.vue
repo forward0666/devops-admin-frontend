@@ -245,7 +245,7 @@ function exportCSV() {
         >
           Sync
         </VBtn>
-        <VBtn icon="bx-download" size="small" variant="text" :disabled="!selectedAccountId" title="Export CSV" @click="exportCSV" class="ms-1" />
+        <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!selectedAccountId" @click="exportCSV" class="ms-1">Export</VBtn>
         <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
         <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
         <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />
