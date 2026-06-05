@@ -354,7 +354,7 @@ function toggleView(ruleId: string) {
 .sticky-table :deep(th:nth-child(2)),
 .sticky-table :deep(td:nth-child(2)) { width: 70px; }
 .sticky-table :deep(th:nth-child(3)),
-.sticky-table :deep(td:nth-child(3)) { width: auto; }
+.sticky-table :deep(td:nth-child(3)) { width: 160px; }
 .sticky-table :deep(th:nth-child(4)),
 .sticky-table :deep(td:nth-child(4)) { width: 180px; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
