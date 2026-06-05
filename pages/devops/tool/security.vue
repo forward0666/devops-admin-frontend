@@ -29,7 +29,10 @@ watch([selectedProject, selectedEnv], ([p, e]) => {
   navigateTo({ query }, { replace: true })
 })
 
-const projectOptions = computed(() => projects.value.map(p => ({ title: p.name, value: p.id })))
+const projectOptions = computed(() => [
+  { title: 'All', value: -1 },
+  ...projects.value.map(p => ({ title: p.name, value: p.id })),
+])
 const envOptions = computed(() => {
   const envs = [...new Set(domains.value.map(d => d.env).filter(Boolean))]
   return envs.map(e => ({ title: e.toUpperCase(), value: e }))
@@ -38,14 +41,32 @@ const envOptions = computed(() => {
 async function fetchData() {
   loading.value = true
   try {
-    const [projectData, domainData] = await Promise.all([
-      projectService.list(),
-      selectedProject.value ? domainService.list(String(selectedProject.value)) : Promise.resolve([]),
-    ])
+    const projectData = await projectService.list()
     projects.value = projectData || []
-    domains.value = domainData || []
-    if (selectedProject.value) await fetchRules()
-    else rules.value = []
+
+    if (selectedProject.value === -1) {
+      const [domainResults, ruleResults] = await Promise.all([
+        Promise.all(projects.value.map((p: any) => domainService.list(String(p.id)).catch(() => []))),
+        Promise.all(projects.value.map((p: any) => {
+          const params: any = { projectId: p.id }
+          if (selectedEnv.value) params.env = selectedEnv.value
+          return apiClient.get(`${CF_GATEWAY}/securityRules`, { params }).then(r => r.data?.data || []).catch(() => [])
+        })),
+      ])
+      const allDomains: any[] = []
+      domainResults.forEach(d => allDomains.push(...(d || [])))
+      domains.value = allDomains
+      const allRules: any[] = []
+      ruleResults.forEach(r => allRules.push(...(r || [])))
+      rules.value = allRules
+    } else if (selectedProject.value) {
+      const domainData = await domainService.list(String(selectedProject.value))
+      domains.value = domainData || []
+      await fetchRules()
+    } else {
+      domains.value = []
+      rules.value = []
+    }
   } catch (e) {
     console.error('Failed to fetch', e)
   } finally {
@@ -60,10 +81,23 @@ watch(selectedEnv, fetchRules)
 async function fetchRules() {
   if (!selectedProject.value) { rules.value = []; return }
   try {
-    const params: any = { projectId: selectedProject.value }
-    if (selectedEnv.value) params.env = selectedEnv.value
-    const { data } = await apiClient.get(`${CF_GATEWAY}/securityRules`, { params })
-    rules.value = data?.data || []
+    if (selectedProject.value === -1) {
+      const results = await Promise.all(
+        projects.value.map((p: any) => {
+          const params: any = { projectId: p.id }
+          if (selectedEnv.value) params.env = selectedEnv.value
+          return apiClient.get(`${CF_GATEWAY}/securityRules`, { params }).then(r => r.data?.data || []).catch(() => [])
+        })
+      )
+      const allRules: any[] = []
+      results.forEach(r => allRules.push(...(r || [])))
+      rules.value = allRules
+    } else {
+      const params: any = { projectId: selectedProject.value }
+      if (selectedEnv.value) params.env = selectedEnv.value
+      const { data } = await apiClient.get(`${CF_GATEWAY}/securityRules`, { params })
+      rules.value = data?.data || []
+    }
   } catch (e) {
     console.error('Failed to fetch rules', e)
   }
@@ -77,8 +111,8 @@ const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 function openCreate() {
-  if (!selectedProject.value) {
-    snackbar.value = { show: true, text: 'Please select a project first', color: 'warning' }
+  if (!selectedProject.value || selectedProject.value === -1) {
+    snackbar.value = { show: true, text: 'Please select a specific project first', color: 'warning' }
     return
   }
   editingId.value = null
@@ -207,12 +241,14 @@ function toggleView(ruleId: string) {
       <div class="card-scroll">
         <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
           <colgroup>
+            <col style="width: 50px" />
             <col style="width: 80px" />
             <col />
             <col style="width: 180px" />
           </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
+              <th>Project</th>
               <th>Env</th>
               <th>Name</th>
               <th style="padding-left: 12px;">Action</th>
@@ -221,6 +257,7 @@ function toggleView(ruleId: string) {
           <tbody>
             <template v-for="r in rules" :key="r.id">
               <tr>
+                <td class="text-body-2">{{ projects.find(p => p.id === r.projectId)?.name || '-' }}</td>
                 <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
                 <td>{{ r.name || '-' }}</td>
                 <td style="padding-left: 12px; white-space: nowrap;">
@@ -230,7 +267,7 @@ function toggleView(ruleId: string) {
                 </td>
               </tr>
               <tr v-if="viewedRules.has(r.id)">
-                <td colspan="3" style="padding: 0 !important;">
+                <td colspan="4" style="padding: 0 !important;">
                   <div style="padding: 8px 16px 12px 50px;">
                     <table style="width: 100%; border-collapse: collapse;">
                       <thead>

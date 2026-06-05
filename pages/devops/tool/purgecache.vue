@@ -253,9 +253,9 @@ async function purgeAll() {
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VCardTitle class="pt-4 px-6">Cache Rules</VCardTitle>
 
-        <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
+        <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%; table-layout: fixed;">
           <colgroup>
-            <col style="width: 120px" />
+            <col style="width: 50px" />
             <col style="width: 100px" />
             <col style="width: 160px" />
             <col style="width: 280px" />
