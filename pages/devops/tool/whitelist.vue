@@ -261,16 +261,7 @@ async function saveWhitelist() {
         <VBtn size="small" color="primary" @click="openWhitelistCreate" prepend-icon="bx-plus">Add Whitelist</VBtn>
       </VCardTitle>
       <div class="card-scroll">
-        <VTable v-if="filteredWhitelists.length > 0" class="text-no-wrap" hover density="compact" style="width: 100%; table-layout: fixed;">
-          <colgroup>
-            <col style="width: 50px" />
-            <col style="width: 150px" />
-            <col style="width: 120px" />
-            <col style="width: 140px" />
-            <col style="width: 120px" />
-            <col style="width: 160px" />
-            <col style="width: 140px" />
-          </colgroup>
+        <VTable v-if="filteredWhitelists.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th>Project</th>
@@ -344,5 +335,23 @@ async function saveWhitelist() {
 </template>
 
 <style scoped>
+.sticky-table :deep(table) {
+  table-layout: fixed;
+  width: 100%;
+}
+.sticky-table :deep(th:nth-child(1)),
+.sticky-table :deep(td:nth-child(1)) { width: 50px; }
+.sticky-table :deep(th:nth-child(2)),
+.sticky-table :deep(td:nth-child(2)) { width: 150px; }
+.sticky-table :deep(th:nth-child(3)),
+.sticky-table :deep(td:nth-child(3)) { width: 120px; }
+.sticky-table :deep(th:nth-child(4)),
+.sticky-table :deep(td:nth-child(4)) { width: 140px; }
+.sticky-table :deep(th:nth-child(5)),
+.sticky-table :deep(td:nth-child(5)) { width: 120px; }
+.sticky-table :deep(th:nth-child(6)),
+.sticky-table :deep(td:nth-child(6)) { width: 160px; }
+.sticky-table :deep(th:nth-child(7)),
+.sticky-table :deep(td:nth-child(7)) { width: 140px; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>

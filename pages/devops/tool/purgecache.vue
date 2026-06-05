@@ -253,14 +253,7 @@ async function purgeAll() {
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VCardTitle class="pt-4 px-6">Cache Rules</VCardTitle>
 
-        <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%; table-layout: fixed;">
-          <colgroup>
-            <col style="width: 50px" />
-            <col style="width: 100px" />
-            <col style="width: 160px" />
-            <col style="width: 280px" />
-            <col style="width: 180px" />
-          </colgroup>
+        <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th>Project</th>
@@ -320,6 +313,10 @@ async function purgeAll() {
   flex-direction: column;
   width: 100%;
 }
+.sticky-table :deep(table) {
+  table-layout: fixed;
+  width: 100%;
+}
 .sticky-table :deep(.v-table__wrapper) {
   flex: 1;
   min-height: 0;
@@ -331,4 +328,14 @@ async function purgeAll() {
   z-index: 10;
   background: rgb(var(--v-theme-surface));
 }
+.sticky-table :deep(th:nth-child(1)),
+.sticky-table :deep(td:nth-child(1)) { width: 50px; }
+.sticky-table :deep(th:nth-child(2)),
+.sticky-table :deep(td:nth-child(2)) { width: 80px; }
+.sticky-table :deep(th:nth-child(3)),
+.sticky-table :deep(td:nth-child(3)) { width: 160px; }
+.sticky-table :deep(th:nth-child(4)),
+.sticky-table :deep(td:nth-child(4)) { width: 280px; }
+.sticky-table :deep(th:nth-child(5)),
+.sticky-table :deep(td:nth-child(5)) { width: 180px; }
 </style>

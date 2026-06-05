@@ -240,12 +240,6 @@ function toggleView(ruleId: string) {
       </VCardTitle>
       <div class="card-scroll">
         <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
-          <colgroup>
-            <col style="width: 50px" />
-            <col style="width: 80px" />
-            <col />
-            <col style="width: 180px" />
-          </colgroup>
           <thead>
             <tr class="text-caption text-medium-emphasis">
               <th>Project</th>
@@ -329,5 +323,13 @@ function toggleView(ruleId: string) {
 <style scoped>
 .sticky-table table { table-layout: fixed !important; }
 .sticky-table :deep(tbody td) { overflow: hidden !important; max-width: 0 !important; }
+.sticky-table :deep(th:nth-child(1)),
+.sticky-table :deep(td:nth-child(1)) { width: 50px; }
+.sticky-table :deep(th:nth-child(2)),
+.sticky-table :deep(td:nth-child(2)) { width: 80px; }
+.sticky-table :deep(th:nth-child(3)),
+.sticky-table :deep(td:nth-child(3)) { width: auto; }
+.sticky-table :deep(th:nth-child(4)),
+.sticky-table :deep(td:nth-child(4)) { width: 180px; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
