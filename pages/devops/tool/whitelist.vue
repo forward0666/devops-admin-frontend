@@ -353,7 +353,7 @@ async function saveWhitelist() {
 .sticky-table :deep(th:nth-child(1)),
 .sticky-table :deep(td:nth-child(1)) { width: 50px; }
 .sticky-table :deep(th:nth-child(2)),
-.sticky-table :deep(td:nth-child(2)) { width: 50px; }
+.sticky-table :deep(td:nth-child(2)) { width: 70px; }
 .sticky-table :deep(th:nth-child(3)),
 .sticky-table :deep(td:nth-child(3)) { width: 150px; }
 .sticky-table :deep(th:nth-child(4)),
