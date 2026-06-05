@@ -336,6 +336,10 @@ async function saveWhitelist() {
 </template>
 
 <style scoped>
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+}
 .sticky-table :deep(table) {
   table-layout: fixed;
   width: 100%;
@@ -349,6 +353,17 @@ async function saveWhitelist() {
 .sticky-table :deep(th:nth-child(2)),
 .sticky-table :deep(td:nth-child(2)) {
   text-align: center;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
 }
 .sticky-table :deep(tbody td) { overflow: hidden !important; max-width: 0 !important; }
 .sticky-table :deep(th:nth-child(1)),
