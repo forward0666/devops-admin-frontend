@@ -345,7 +345,9 @@ async function saveWhitelist() {
   padding: 2px 8px !important;
 }
 .sticky-table :deep(th:nth-child(1)),
-.sticky-table :deep(td:nth-child(1)) {
+.sticky-table :deep(td:nth-child(1)),
+.sticky-table :deep(th:nth-child(2)),
+.sticky-table :deep(td:nth-child(2)) {
   text-align: center;
 }
 .sticky-table :deep(th:nth-child(1)),
