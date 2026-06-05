@@ -375,8 +375,8 @@ onMounted(async () => {
             <th>Resolved IP</th>
             <th>Probe IP</th>
             <th>Probe Time</th>
-            <th style="text-align: center;">Private</th>
-            <th style="text-align: center;">Ignore</th>
+            <th style="text-align: center; width: 70px;">Private</th>
+            <th style="text-align: center; width: 70px;">Ignore</th>
             <th>Remark</th>
           </tr>
         </thead>
