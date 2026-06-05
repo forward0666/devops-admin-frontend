@@ -338,6 +338,7 @@ async function purgeAll() {
   z-index: 10;
   background: rgb(var(--v-theme-surface));
 }
+.sticky-table :deep(tbody td) { overflow: hidden !important; max-width: 0 !important; }
 .sticky-table :deep(th:nth-child(1)),
 .sticky-table :deep(td:nth-child(1)) { width: 50px; }
 .sticky-table :deep(th:nth-child(2)),
