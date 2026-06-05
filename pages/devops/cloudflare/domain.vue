@@ -443,12 +443,13 @@ onMounted(async () => {
                   />
                 </td>
                 <td style="text-align: center;">
-                  <VBtn
-                    :icon="r.is_ignored ? 'bx-show' : 'bx-hide'"
-                    :color="r.is_ignored ? 'grey' : 'default'"
-                    size="x-small"
-                    variant="text"
-                    @click="toggleIgnore(r, !r.is_ignored)"
+                  <VSwitch
+                    :model-value="r.is_ignored"
+                    @update:model-value="toggleIgnore(r, $event)"
+                    color="grey"
+                    density="compact"
+                    hide-details
+                    style="display: inline-flex;"
                   />
                 </td>
                 <td>
