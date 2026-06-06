@@ -343,7 +343,7 @@ async function purgeAll() {
 .sticky-table :deep(th:nth-child(2)),
 .sticky-table :deep(td:nth-child(2)) { width: 70px; }
 .sticky-table :deep(th:nth-child(3)),
-.sticky-table :deep(td:nth-child(3)) { width: 150px; }
+.sticky-table :deep(td:nth-child(3)) { width: 150px !important; }
 .sticky-table :deep(th:nth-child(4)),
 .sticky-table :deep(td:nth-child(4)) { width: 300px; }
 .sticky-table :deep(th:nth-child(5)),
