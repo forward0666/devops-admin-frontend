@@ -344,10 +344,10 @@ async function purgeAll() {
 .sticky-table :deep(th:nth-child(2)),
 .sticky-table :deep(td:nth-child(2)) { width: 70px; }
 .sticky-table :deep(th:nth-child(3)),
-.sticky-table :deep(td:nth-child(3)) { width: 160px; }
+.sticky-table :deep(td:nth-child(3)) { width: 150px; }
 .sticky-table :deep(th:nth-child(4)),
-.sticky-table :deep(td:nth-child(4)) { width: 280px; }
+.sticky-table :deep(td:nth-child(4)) { width: 300px; }
 .sticky-table :deep(th:nth-child(5)),
-.sticky-table :deep(td:nth-child(5)) { width: 180px; }
+.sticky-table :deep(td:nth-child(5)) { width: 140px; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
