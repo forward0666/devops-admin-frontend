@@ -17,7 +17,10 @@ const syncingZone = ref<string | null>(null)
 const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
-const accountOptions = computed(() => accounts.value.map((a: any) => ({ title: a.name, value: a.id })))
+const accountOptions = computed(() => [
+  { title: 'All', value: -1 },
+  ...accounts.value.map((a: any) => ({ title: a.name, value: a.id })),
+])
 
 const zones = ref<any[]>([])
 const loadingZones = ref(false)
@@ -43,8 +46,19 @@ async function fetchZones() {
   if (!selectedAccountId.value) return
   loadingZones.value = true
   try {
-    const { data } = await apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: selectedAccountId.value } })
-    zones.value = data.data || []
+    if (selectedAccountId.value === -1) {
+      const results = await Promise.all(
+        accounts.value.map((a: any) =>
+          apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: a.id } }).then(r => r.data?.data || []).catch(() => [])
+        )
+      )
+      const allZones: any[] = []
+      results.forEach(z => allZones.push(...(z || [])))
+      zones.value = allZones
+    } else {
+      const { data } = await apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: selectedAccountId.value } })
+      zones.value = data.data || []
+    }
     await fetchAllSsl()
   } catch (e: any) {
     console.error('Failed to fetch zones', e)
@@ -54,7 +68,7 @@ async function fetchZones() {
 }
 
 async function fetchAllSsl() {
-  if (!selectedAccountId.value) return
+  if (!selectedAccountId.value || selectedAccountId.value === -1) return
   try {
     const { data } = await apiClient.get(`${CF_GATEWAY}/ssl`, { params: { account_id: selectedAccountId.value } })
     const map: Record<string, any> = {}
@@ -189,7 +203,7 @@ const pagedZones = computed(() => {
 
 onMounted(async () => {
   await fetchAccounts()
-  if (!selectedAccountId.value && accounts.value.length > 0) selectedAccountId.value = accounts.value[0].id
+  if (!selectedAccountId.value && accounts.value.length > 0) selectedAccountId.value = -1
   if (selectedAccountId.value) fetchZones()
 })
 
@@ -213,7 +227,7 @@ const sslModeInfo: Record<string, string> = {
           <VChip v-for="(count, mode) in modeCounts" :key="mode" size="small" :color="sslModeColors[mode] || 'grey'" variant="tonal">{{ sslModeLabels[mode] || mode }}: {{ count }}</VChip>
         </div>
         <VSpacer />
-        <VBtn color="primary" variant="tonal" :loading="syncing" :disabled="!selectedAccountId" prepend-icon="bx-refresh" @click="syncAll">Sync</VBtn>
+        <VBtn color="primary" variant="tonal" :loading="syncing" :disabled="!selectedAccountId || selectedAccountId === -1" prepend-icon="bx-refresh" @click="syncAll">Sync</VBtn>
         <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
         <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
         <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />

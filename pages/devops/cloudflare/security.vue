@@ -19,7 +19,10 @@ const syncingAll = ref(false)
 const loadingRules = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
-const accountOptions = computed(() => accounts.value.map((a: any) => ({ title: a.name, value: a.id })))
+const accountOptions = computed(() => [
+  { title: 'All', value: -1 },
+  ...accounts.value.map((a: any) => ({ title: a.name, value: a.id })),
+])
 
 // All zones from MongoDB (synced via zone page)
 const zones = ref<any[]>([])
@@ -45,10 +48,20 @@ async function fetchZones() {
   if (!selectedAccountId.value) return
   loadingZones.value = true
   try {
-    // Load rules FIRST so filteredZones can sort by priority immediately
     await fetchAllRules()
-    const { data } = await apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: selectedAccountId.value } })
-    zones.value = data.data || []
+    if (selectedAccountId.value === -1) {
+      const results = await Promise.all(
+        accounts.value.map((a: any) =>
+          apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: a.id } }).then(r => r.data?.data || []).catch(() => [])
+        )
+      )
+      const allZones: any[] = []
+      results.forEach(z => allZones.push(...(z || [])))
+      zones.value = allZones
+    } else {
+      const { data } = await apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: selectedAccountId.value } })
+      zones.value = data.data || []
+    }
   } catch (e: any) {
     console.error('Failed to fetch zones', e)
   } finally {
@@ -57,7 +70,7 @@ async function fetchZones() {
 }
 
 async function fetchAllRules() {
-  if (!selectedAccountId.value) return
+  if (!selectedAccountId.value || selectedAccountId.value === -1) return
   try {
     const { data } = await apiClient.get(`${CF_GATEWAY}/security`, {
       params: { account_id: selectedAccountId.value },
@@ -148,7 +161,7 @@ async function fetchRules(zoneId: string) {
 onMounted(async () => {
   await fetchAccounts()
   if (!selectedAccountId.value && accounts.value.length > 0) {
-    selectedAccountId.value = accounts.value[0].id
+    selectedAccountId.value = -1
   }
   if (selectedAccountId.value) fetchZones()
 })
@@ -272,7 +285,7 @@ function exportCSV() {
           color="primary"
           variant="tonal"
           :loading="syncingAll"
-          :disabled="!selectedAccountId"
+          :disabled="!selectedAccountId || selectedAccountId === -1"
           prepend-icon="bx-refresh"
           @click="syncAll"
         >

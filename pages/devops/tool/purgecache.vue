@@ -86,6 +86,7 @@ watch(selectedEnv, fetchRules)
 // --- CRUD Dialog ---
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
+const editingProjectId = ref<number | null>(null)
 const form = ref({ name: '', url: '', env: '' })
 const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
@@ -102,6 +103,7 @@ function openCreate() {
 
 function openEdit(rule: any) {
   editingId.value = rule.id
+  editingProjectId.value = rule.projectId
   form.value = { name: rule.name, url: rule.url, env: rule.env || '' }
   dialog.value = true
 }
@@ -128,7 +130,7 @@ async function save() {
   if (!form.value.name.trim() || !form.value.url.trim() || !selectedProject.value) return
   saving.value = true
   try {
-    const payload = { ...form.value, projectId: selectedProject.value }
+    const payload = { ...form.value, projectId: editingId.value ? editingProjectId.value : selectedProject.value }
     if (editingId.value) {
       await cacheRuleService.update(editingId.value, payload)
       snackbar.value = { show: true, text: 'Rule updated', color: 'success' }
@@ -255,10 +257,10 @@ async function purgeAll() {
         <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th>Project</th>
-              <th>Env</th>
-              <th>Name</th>
-              <th>URL</th>
+              <th style="width: 50px;">Project</th>
+              <th style="width: 50px;">Env</th>
+              <th style="width: 100px;">Name</th>
+              <th style="width: 300px;">URL</th>
               <th style="width: 140px;">Action</th>
             </tr>
           </thead>
@@ -313,9 +315,9 @@ async function purgeAll() {
   flex-direction: column;
   width: 100%;
 }
-.sticky-table :deep(table) {
-  table-layout: fixed;
-  width: 100%;
+.sticky-table :deep(.v-table__wrapper) table {
+  table-layout: fixed !important;
+  width: 100% !important;
 }
 .sticky-table :deep(th),
 .sticky-table :deep(td) {
@@ -339,16 +341,15 @@ async function purgeAll() {
   z-index: 10;
   background: rgb(var(--v-theme-surface));
 }
-.sticky-table :deep(tbody td) { overflow: hidden !important; max-width: 0 !important; }
-.sticky-table :deep(th:nth-child(1)),
-.sticky-table :deep(td:nth-child(1)) { width: 50px; }
-.sticky-table :deep(th:nth-child(2)),
-.sticky-table :deep(td:nth-child(2)) { width: 50px; max-width: 50px; min-width: 0; overflow: hidden; }
-.sticky-table :deep(th:nth-child(3)),
-.sticky-table :deep(td:nth-child(3)) { width: 60px; }
-.sticky-table :deep(th:nth-child(4)),
-.sticky-table :deep(td:nth-child(4)) { width: 120px; }
-.sticky-table :deep(th:nth-child(5)),
-.sticky-table :deep(td:nth-child(5)) { width: 140px; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(1),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(2),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(3),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(4),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 300px !important; min-width: 300px !important; max-width: 300px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(5),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 140px !important; min-width: 140px !important; max-width: 140px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>

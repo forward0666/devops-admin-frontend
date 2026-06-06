@@ -16,6 +16,7 @@ const selectedProject = ref<number | null>(savedProject ? Number(savedProject) :
 const selectedEnv = ref<string | null>(savedEnv || (route.query.env as string) || null)
 const loading = ref(false)
 
+// Persist filters
 watch([selectedProject, selectedEnv], ([p, e]) => {
   if (process.client) {
     if (p !== null) localStorage.setItem('cf-project-id', String(p))
@@ -38,167 +39,6 @@ const envOptions = computed(() => {
   return envs.map(e => ({ title: e.toUpperCase(), value: e }))
 })
 
-async function fetchData() {
-  loading.value = true
-  try {
-    const projectData = await projectService.list()
-    projects.value = projectData || []
-
-    if (selectedProject.value === -1) {
-      const [domainResults, ruleResults] = await Promise.all([
-        Promise.all(projects.value.map((p: any) => domainService.list(String(p.id)).catch(() => []))),
-        Promise.all(projects.value.map((p: any) => {
-          const params: any = { projectId: p.id }
-          if (selectedEnv.value) params.env = selectedEnv.value
-          return apiClient.get(`${CF_GATEWAY}/securityRules`, { params }).then(r => r.data?.data || []).catch(() => [])
-        })),
-      ])
-      const allDomains: any[] = []
-      domainResults.forEach(d => allDomains.push(...(d || [])))
-      domains.value = allDomains
-      const allRules: any[] = []
-      ruleResults.forEach(r => allRules.push(...(r || [])))
-      rules.value = allRules
-    } else if (selectedProject.value) {
-      const domainData = await domainService.list(String(selectedProject.value))
-      domains.value = domainData || []
-      await fetchRules()
-    } else {
-      domains.value = []
-      rules.value = []
-    }
-  } catch (e) {
-    console.error('Failed to fetch', e)
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(fetchData)
-watch(selectedProject, fetchData)
-watch(selectedEnv, fetchRules)
-
-async function fetchRules() {
-  if (!selectedProject.value) { rules.value = []; return }
-  try {
-    if (selectedProject.value === -1) {
-      const results = await Promise.all(
-        projects.value.map((p: any) => {
-          const params: any = { projectId: p.id }
-          if (selectedEnv.value) params.env = selectedEnv.value
-          return apiClient.get(`${CF_GATEWAY}/securityRules`, { params }).then(r => r.data?.data || []).catch(() => [])
-        })
-      )
-      const allRules: any[] = []
-      results.forEach(r => allRules.push(...(r || [])))
-      rules.value = allRules
-    } else {
-      const params: any = { projectId: selectedProject.value }
-      if (selectedEnv.value) params.env = selectedEnv.value
-      const { data } = await apiClient.get(`${CF_GATEWAY}/securityRules`, { params })
-      rules.value = data?.data || []
-    }
-  } catch (e) {
-    console.error('Failed to fetch rules', e)
-  }
-}
-
-// --- CRUD Dialog ---
-const dialog = ref(false)
-const editingId = ref<string | null>(null)
-const form = ref({ name: '', env: '', entries: [{ zone: '', zoneId: '', ruleId: '' }] as { zone: string; zoneId: string; ruleId: string }[] })
-const saving = ref(false)
-const snackbar = ref({ show: false, text: '', color: 'success' })
-
-function openCreate() {
-  if (!selectedProject.value || selectedProject.value === -1) {
-    snackbar.value = { show: true, text: 'Please select a specific project first', color: 'warning' }
-    return
-  }
-  editingId.value = null
-  form.value = { name: '', env: selectedEnv.value || '', entries: [{ zone: '', zoneId: '', ruleId: '' }] }
-  dialog.value = true
-}
-
-function openEdit(rule: any) {
-  editingId.value = rule.id
-  let entries: { zone: string; zoneId: string; ruleId: string }[] = []
-  if (Array.isArray(rule.entries) && rule.entries.length > 0) {
-    entries = rule.entries.map((e: any) => ({ zone: e.zone || '', zoneId: e.zoneId || '', ruleId: e.ruleId || '' }))
-  } else {
-    const zones = Array.isArray(rule.zones) ? rule.zones : (rule.zone ? [rule.zone] : [])
-    const ruleIds = Array.isArray(rule.ruleIds) ? rule.ruleIds : (rule.ruleId ? [rule.ruleId] : [])
-    const zoneIds = Array.isArray(rule.zoneIds) ? rule.zoneIds : (rule.zoneId ? [rule.zoneId] : [])
-    const maxLen = Math.max(zones.length, ruleIds.length, zoneIds.length, 1)
-    for (let i = 0; i < maxLen; i++) {
-      entries.push({ zone: zones[i] || '', zoneId: zoneIds[i] || '', ruleId: ruleIds[i] || '' })
-    }
-  }
-  form.value = { name: rule.name || '', env: rule.env || '', entries }
-  dialog.value = true
-}
-
-function addEntry() { form.value.entries.push({ zone: '', zoneId: '', ruleId: '' }) }
-function removeEntry(idx: number) { if (form.value.entries.length > 1) form.value.entries.splice(idx, 1) }
-
-async function save() {
-  if (!form.value.name.trim() || !selectedProject.value) return
-  // 检查同规则内 entry 重复
-  const ruleIds = form.value.entries.map(e => e.ruleId.trim()).filter(Boolean)
-  const uniqueIds = new Set(ruleIds)
-  if (ruleIds.length !== uniqueIds.size) {
-    const dupes = ruleIds.filter((id, i) => ruleIds.indexOf(id) !== i)
-    snackbar.value = { show: true, text: `当前规则内有重复 Rule ID: ${[...new Set(dupes)].join(', ')}`, color: 'error' }
-    return
-  }
-  // 跨规则校验，提示具体哪条规则已占用
-  if (ruleIds.length > 0) {
-    const existingIds = new Map<string, string>()
-    for (const r of rules.value) {
-      if (editingId.value && r.id === editingId.value) continue
-      for (const e of getEntries(r)) { if (e.ruleId) existingIds.set(e.ruleId.trim(), r.name) }
-    }
-    const conflicts = ruleIds.filter(rid => existingIds.has(rid)).map(rid => `${rid} (${existingIds.get(rid)})`)
-    if (conflicts.length > 0) {
-      snackbar.value = { show: true, text: `Rule ID 已被使用: ${conflicts.join(', ')}`, color: 'error' }
-      return
-    }
-  }
-  saving.value = true
-  try {
-    const payload: any = {
-      projectId: selectedProject.value,
-      name: form.value.name,
-      env: form.value.env,
-      entries: form.value.entries.filter(e => e.zone || e.zoneId || e.ruleId),
-    }
-    if (editingId.value) {
-      await apiClient.put(`${CF_GATEWAY}/securityRules/${editingId.value}`, payload)
-      snackbar.value = { show: true, text: 'Rule updated', color: 'success' }
-    } else {
-      await apiClient.post(`${CF_GATEWAY}/securityRules`, payload)
-      snackbar.value = { show: true, text: 'Rule created', color: 'success' }
-    }
-    dialog.value = false
-    await fetchRules()
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Failed', color: 'error' }
-  } finally {
-    saving.value = false
-  }
-}
-
-async function deleteRule(rule: any) {
-  if (!confirm(`Delete this rule?`)) return
-  try {
-    await apiClient.delete(`${CF_GATEWAY}/securityRules/${rule.id}`, { params: { projectId: selectedProject.value } })
-    snackbar.value = { show: true, text: 'Rule deleted', color: 'success' }
-    await fetchRules()
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Failed to delete', color: 'error' }
-  }
-}
-
 function getEntries(rule: any): { zone: string; zoneId: string; ruleId: string }[] {
   if (Array.isArray(rule.entries) && rule.entries.length > 0) return rule.entries
   const zones = Array.isArray(rule.zones) ? rule.zones : (rule.zone ? [rule.zone] : [])
@@ -220,81 +60,215 @@ function toggleView(ruleId: string) {
   viewedRules.value = s
 }
 
+// --- Fetch ---
+async function fetchData() {
+  loading.value = true
+  try {
+    const projectData = await projectService.list()
+    projects.value = projectData || []
+
+    if (selectedProject.value === -1) {
+      // All projects: fetch domains and rules from each
+      const [domainResults, ruleResults] = await Promise.all([
+        Promise.all(projects.value.map((p: any) => domainService.list(String(p.id)).catch(() => []))),
+        Promise.all(projects.value.map((p: any) => {
+          const params: any = { projectId: p.id }
+          if (selectedEnv.value) params.env = selectedEnv.value
+          return apiClient.get(`${CF_GATEWAY}/securityRules`, { params }).then(r => r.data?.data || []).catch(() => [])
+        })),
+      ])
+      const allDomains: any[] = []
+      domainResults.forEach(d => allDomains.push(...(d || [])))
+      domains.value = allDomains
+      const allRules: any[] = []
+      ruleResults.forEach(r => allRules.push(...(r || [])))
+      rules.value = allRules
+    } else if (selectedProject.value) {
+      const domainData = await domainService.list(String(selectedProject.value))
+      domains.value = domainData || []
+      const secParams: any = { projectId: selectedProject.value }
+      if (selectedEnv.value) secParams.env = selectedEnv.value
+      const { data: secData } = await apiClient.get(`${CF_GATEWAY}/securityRules`, { params: secParams })
+      rules.value = secData?.data || []
+    } else {
+      domains.value = []
+      rules.value = []
+    }
+  } catch (e) {
+    console.error('Failed to fetch', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchData)
+watch(selectedProject, () => { fetchData(); fetchRules() })
+watch(selectedEnv, fetchRules)
+
+// --- CRUD Dialog ---
+const dialog = ref(false)
+const editingId = ref<string | null>(null)
+const editingProjectId = ref<number | null>(null)
+const form = ref({ name: '', description: '', env: '', entries: [{ zone: '', zoneId: '', ruleId: '' }] as { zone: string; zoneId: string; ruleId: string }[] })
+const saving = ref(false)
+const snackbar = ref({ show: false, text: '', color: 'success' })
+
+function addEntry() { form.value.entries.push({ zone: '', zoneId: '', ruleId: '' }) }
+function removeEntry(idx: number) { if (form.value.entries.length > 1) form.value.entries.splice(idx, 1) }
+
+function openCreate() {
+  if (!selectedProject.value || selectedProject.value === -1) {
+    snackbar.value = { show: true, text: 'Please select a specific project first', color: 'warning' }
+    return
+  }
+  editingId.value = null
+  form.value = { name: '', description: '', env: selectedEnv.value || '', entries: [{ zone: '', zoneId: '', ruleId: '' }] }
+  dialog.value = true
+}
+
+function openEdit(rule: any) {
+  editingId.value = rule.id
+  editingProjectId.value = rule.projectId
+  let entries: { zone: string; zoneId: string; ruleId: string }[] = []
+  if (Array.isArray(rule.entries) && rule.entries.length > 0) {
+    entries = rule.entries.map((e: any) => ({ zone: e.zone || '', zoneId: e.zoneId || '', ruleId: e.ruleId || '' }))
+  } else {
+    const zones = Array.isArray(rule.zones) ? rule.zones : (rule.zone ? [rule.zone] : [])
+    const ruleIds = Array.isArray(rule.ruleIds) ? rule.ruleIds : (rule.ruleId ? [rule.ruleId] : [])
+    const zoneIds = Array.isArray(rule.zoneIds) ? rule.zoneIds : (rule.zoneId ? [rule.zoneId] : [])
+    const maxLen = Math.max(zones.length, ruleIds.length, zoneIds.length, 1)
+    for (let i = 0; i < maxLen; i++) {
+      entries.push({ zone: zones[i] || '', zoneId: zoneIds[i] || '', ruleId: ruleIds[i] || '' })
+    }
+  }
+  form.value = { name: rule.name || '', description: rule.description || '', env: rule.env || '', entries }
+  dialog.value = true
+}
+
+async function fetchRules() {
+  if (!selectedProject.value) { rules.value = []; return }
+  try {
+    if (selectedProject.value === -1) {
+      const results = await Promise.all(
+        projects.value.map((p: any) => {
+          const params: any = { projectId: p.id }
+          if (selectedEnv.value) params.env = selectedEnv.value
+          return apiClient.get(`${CF_GATEWAY}/securityRules`, { params }).then(r => r.data?.data || []).catch(() => [])
+        })
+      )
+      const allRules: any[] = []
+      results.forEach(r => allRules.push(...(r || [])))
+      rules.value = allRules
+    } else {
+      const fetchParams: any = { projectId: selectedProject.value }
+      if (selectedEnv.value) fetchParams.env = selectedEnv.value
+      const { data: fetchData } = await apiClient.get(`${CF_GATEWAY}/securityRules`, { params: fetchParams })
+      rules.value = fetchData?.data || []
+    }
+  } catch (e) {
+    console.error('Failed to fetch rules', e)
+  }
+}
+
+async function save() {
+  if (!form.value.name.trim() || !selectedProject.value) return
+  saving.value = true
+  try {
+    const payload: any = {
+      projectId: editingId.value ? editingProjectId.value : selectedProject.value,
+      name: form.value.name,
+      description: form.value.description,
+      env: form.value.env,
+      entries: form.value.entries.filter(e => e.zone || e.zoneId || e.ruleId),
+    }
+    if (editingId.value) {
+      await apiClient.put(`${CF_GATEWAY}/securityRules/${editingId.value}`, payload)
+      snackbar.value = { show: true, text: 'Rule updated', color: 'success' }
+    } else {
+      await apiClient.post(`${CF_GATEWAY}/securityRules`, payload)
+      snackbar.value = { show: true, text: 'Rule created', color: 'success' }
+    }
+    dialog.value = false
+    await fetchRules()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed', color: 'error' }
+  } finally {
+    saving.value = false
+  }
+}
+
+async function deleteRule(rule: any) {
+  if (!confirm(`Delete "${rule.name}"?`)) return
+  try {
+    await apiClient.delete(`${CF_GATEWAY}/securityRules/${rule.id}`, { params: { projectId: selectedProject.value } })
+    snackbar.value = { show: true, text: 'Rule deleted', color: 'success' }
+    await fetchRules()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.message || 'Failed to delete', color: 'error' }
+  }
+}
+
+
+
 </script>
 
 <template>
   <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <!-- Filters -->
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <VSelect v-model="selectedProject" :items="projectOptions" label="Project" density="compact" style="max-width: 200px" hide-details clearable />
         <VSelect v-model="selectedEnv" :items="envOptions" label="Environment" density="compact" style="max-width: 160px" hide-details clearable />
+        <div class="d-flex align-center flex-wrap gap-4">
+          <VChip size="small" color="info" variant="tonal">Rules: {{ rules.length }}</VChip>
+        </div>
         <VSpacer />
         <VBtn color="primary" @click="openCreate" prepend-icon="bx-plus">Add Rule</VBtn>
       </VCardText>
     </VCard>
 
+    <!-- Rules Table -->
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <div class="card-scroll">
         <VTable v-if="rules.length > 0" class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th>Project</th>
-              <th>Env</th>
-              <th>Name</th>
-              <th>Action</th>
+              <th style="width: 50px;">Project</th>
+              <th style="width: 50px;">Env</th>
+              <th style="width: 100px;">Name</th>
+              <th style="width: 300px;">Description</th>
+              <th style="width: 140px;">Action</th>
             </tr>
           </thead>
           <tbody>
-            <template v-for="r in rules" :key="r.id">
-              <tr>
-                <td class="text-body-2">{{ projects.find(p => p.id === r.projectId)?.name || '-' }}</td>
-                <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
-                <td>{{ r.name || '-' }}</td>
-                <td>
-                  <VBtn size="x-small" variant="tonal" :color="viewedRules.has(r.id) ? 'warning' : 'success'" class="me-1" @click="toggleView(r.id)">{{ viewedRules.has(r.id) ? 'Hide' : 'View' }}</VBtn>
-                  <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(r)">Edit</VBtn>
-                  <VBtn size="x-small" variant="tonal" color="error" @click="deleteRule(r)">Delete</VBtn>
-                </td>
-              </tr>
-              <tr v-if="viewedRules.has(r.id)">
-                <td colspan="4" style="padding: 0 !important;">
-                  <div style="padding: 8px 16px 12px 50px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                      <thead>
-                        <tr class="text-caption text-medium-emphasis">
-                          <th style="text-align: left; padding: 4px 12px; width: 120px;">Zone</th>
-                          <th style="text-align: left; padding: 4px 12px; width: 280px;">Zone ID</th>
-                          <th style="text-align: left; padding: 4px 12px;">Rule ID</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="(entry, eidx) in getEntries(r)" :key="eidx">
-                          <td style="padding: 4px 12px;"><code class="text-caption">{{ entry.zone || '-' }}</code></td>
-                          <td style="padding: 4px 12px;"><code class="text-caption">{{ entry.zoneId || '-' }}</code></td>
-                          <td style="padding: 4px 12px;"><code class="text-caption">{{ entry.ruleId || '-' }}</code></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </td>
-              </tr>
-            </template>
+            <tr v-for="r in rules" :key="r.id">
+              <td class="text-body-2">{{ projects.find(p => p.id === r.projectId)?.name || '-' }}</td>
+              <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
+              <td>{{ r.name }}</td>
+              <td><code class="text-caption">{{ r.description || '-' }}</code></td>
+
+              <td>
+                <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(r)">Edit</VBtn>
+                <VBtn size="x-small" variant="tonal" color="error" @click="deleteRule(r)">Delete</VBtn>
+              </td>
+            </tr>
           </tbody>
-        </VTable>
-        <VCardText v-else class="text-center py-8 text-medium-emphasis">
+      </VTable>
+      <VCardText v-else class="text-center py-8 text-medium-emphasis">
           <VIcon icon="bx-shield" size="48" class="mb-2" />
           <p>No rules yet.</p>
         </VCardText>
       </div>
     </VCard>
 
-    <!-- Add Rule Dialog -->
+    <!-- Add/Edit Dialog -->
     <VDialog v-model="dialog" max-width="800">
       <VCard>
         <VCardTitle>{{ editingId ? 'Edit Rule' : 'Add Rule' }}</VCardTitle>
         <VCardText class="pt-2">
           <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" hide-details class="mb-3" clearable />
-          <VTextField v-model="form.name" label="Name" density="compact" hide-details class="mb-4" placeholder="白名单规则" />
+          <VTextField v-model="form.name" label="Name" density="compact" hide-details class="mb-3" placeholder="白名单规则" />
+          <VTextField v-model="form.description" label="Description" density="compact" hide-details class="mb-4" placeholder="规则描述" />
           <div class="text-caption text-medium-emphasis mb-2 font-weight-bold">Rules</div>
           <div v-for="(entry, idx) in form.entries" :key="idx" class="d-flex align-center gap-2 mb-2">
             <VTextField v-model="entry.zone" label="Zone" density="compact" hide-details placeholder="example.com" style="flex: 1" />
@@ -322,9 +296,9 @@ function toggleView(ruleId: string) {
   flex-direction: column;
   width: 100%;
 }
-.sticky-table :deep(table) {
-  table-layout: fixed;
-  width: 100%;
+.sticky-table :deep(.v-table__wrapper) table {
+  table-layout: fixed !important;
+  width: 100% !important;
 }
 .sticky-table :deep(th),
 .sticky-table :deep(td) {
@@ -348,15 +322,15 @@ function toggleView(ruleId: string) {
   z-index: 10;
   background: rgb(var(--v-theme-surface));
 }
-.sticky-table :deep(tbody td) { overflow: hidden !important; max-width: 0 !important; }
-.sticky-table :deep(th:nth-child(1)),
-.sticky-table :deep(th:nth-child(1)),
-.sticky-table :deep(td:nth-child(1)) { width: 50px; }
-.sticky-table :deep(th:nth-child(2)),
-.sticky-table :deep(td:nth-child(2)) { width: 70px; }
-.sticky-table :deep(th:nth-child(3)),
-.sticky-table :deep(td:nth-child(3)) { width: 160px; }
-.sticky-table :deep(th:nth-child(4)),
-.sticky-table :deep(td:nth-child(4)) { width: 180px; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(1),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(2),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(3),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(4),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 300px !important; min-width: 300px !important; max-width: 300px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(5),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 140px !important; min-width: 140px !important; max-width: 140px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>

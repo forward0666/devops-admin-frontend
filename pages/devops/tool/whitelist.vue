@@ -168,7 +168,7 @@ async function deleteWhitelist(w: any) {
 
 // --- Edit Whitelist ---
 const editDialog = ref(false)
-const editForm = ref({ id: '', ruleId: '', oldIp: '', newIp: '', username: '' })
+const editForm = ref({ id: '', ruleId: '', oldIp: '', newIp: '', username: '', projectId: null as number | null })
 const editSaving = ref(false)
 
 function openEdit(w: any) {
@@ -178,6 +178,7 @@ function openEdit(w: any) {
     oldIp: w.ip || '',
     newIp: w.ip || '',
     username: w.username || '',
+    projectId: w.projectId || selectedProject.value,
   }
   editDialog.value = true
 }
@@ -188,7 +189,7 @@ async function saveEdit() {
   try {
     const payload: any = {
       id: editForm.value.id,
-      projectId: selectedProject.value,
+      projectId: editForm.value.projectId || selectedProject.value,
       ruleId: editForm.value.ruleId,
       oldIp: editForm.value.oldIp,
       newIp: editForm.value.newIp,
@@ -267,7 +268,7 @@ async function saveWhitelist() {
               <th>IP</th>
               <th>Operator</th>
               <th>Created</th>
-              <th style="width: 140px;">Action</th>
+              <th style="width: 100px;">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -278,8 +279,8 @@ async function saveWhitelist() {
               <td>{{ w.username || '-' }}</td>
               <td><code class="text-caption">{{ w.ip || '-' }}</code></td>
               <td>{{ w.operator || '-' }}</td>
-              <td class="text-caption text-medium-emphasis">{{ w.createdAt ? new Date(w.createdAt).toLocaleString() : '-' }}</td>
-              <td>
+              <td class="text-caption text-medium-emphasis">{{ w.createdAt ? new Date(w.createdAt).toLocaleString('zh-CN', { hour12: false }) : '-' }}</td>
+              <td style="text-align: right;">
                 <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(w)">Edit</VBtn>
                 <VBtn size="x-small" variant="tonal" color="error" @click="deleteWhitelist(w)">Remove</VBtn>
               </td>
@@ -372,14 +373,14 @@ async function saveWhitelist() {
 .sticky-table :deep(th:nth-child(3)),
 .sticky-table :deep(td:nth-child(3)) { width: 150px; }
 .sticky-table :deep(th:nth-child(4)),
-.sticky-table :deep(td:nth-child(4)) { width: 120px; }
+.sticky-table :deep(td:nth-child(4)) { width: 100px; }
 .sticky-table :deep(th:nth-child(5)),
-.sticky-table :deep(td:nth-child(5)) { width: 140px; }
+.sticky-table :deep(td:nth-child(5)) { width: 210px; }
 .sticky-table :deep(th:nth-child(6)),
-.sticky-table :deep(td:nth-child(6)) { width: 120px; }
+.sticky-table :deep(td:nth-child(6)) { width: 170px; }
 .sticky-table :deep(th:nth-child(7)),
-.sticky-table :deep(td:nth-child(7)) { width: 160px; }
+.sticky-table :deep(td:nth-child(7)) { width: 120px; }
 .sticky-table :deep(th:nth-child(8)),
-.sticky-table :deep(td:nth-child(8)) { width: 140px; }
+.sticky-table :deep(td:nth-child(8)) { width: 100px; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
