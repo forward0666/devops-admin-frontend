@@ -162,8 +162,11 @@ async function deleteRule(rule: any) {
 const purging = ref<string | null>(null)
 
 async function purgeCache(rule: any) {
-  if (!selectedProject.value || selectedProject.value === -1) return
-  const targetDomains = filteredDomains.value.filter((d: any) => d.type === 'web')
+  if (!selectedProject.value) return
+  const targetDomains = (selectedProject.value === -1
+    ? domains.value.filter((d: any) => d.projectId === rule.projectId)
+    : filteredDomains.value
+  ).filter((d: any) => d.type === 'web')
   if (!targetDomains.length) {
     snackbar.value = { show: true, text: 'No web domains found for current project/env', color: 'warning' }
     return
