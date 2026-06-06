@@ -341,6 +341,8 @@ async function purgeAll() {
 .sticky-table :deep(td:nth-child(2)) { width: 70px; text-align: center; }
 .sticky-table :deep(th:nth-child(3)),
 .sticky-table :deep(td:nth-child(3)) { width: 150px !important; }
+.sticky-table :deep(th:nth-child(4)),
+.sticky-table :deep(td:nth-child(4)) { overflow: hidden; text-overflow: ellipsis; }
 .sticky-table :deep(th:nth-child(5)),
 .sticky-table :deep(td:nth-child(5)) { width: 140px; white-space: nowrap; overflow: hidden; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
