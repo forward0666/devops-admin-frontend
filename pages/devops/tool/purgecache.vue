@@ -322,11 +322,9 @@ async function purgeAll() {
   padding: 2px 8px !important;
   font-size: 13px;
 }
-.sticky-table :deep(th:nth-child(1)),
-.sticky-table :deep(td:nth-child(1)),
-.sticky-table :deep(th:nth-child(2)),
-.sticky-table :deep(td:nth-child(2)) {
-  text-align: center;
+.sticky-table :deep(th:nth-child(5)),
+.sticky-table :deep(td:nth-child(5)) {
+  text-align: right;
 }
 .sticky-table :deep(.v-table__wrapper) {
   flex: 1;
