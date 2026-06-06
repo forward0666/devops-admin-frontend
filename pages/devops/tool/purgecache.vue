@@ -322,7 +322,12 @@ async function purgeAll() {
   padding: 2px 8px !important;
   font-size: 13px;
 }
-
+.sticky-table :deep(th:nth-child(1)),
+.sticky-table :deep(td:nth-child(1)),
+.sticky-table :deep(th:nth-child(2)),
+.sticky-table :deep(td:nth-child(2)) {
+  text-align: center;
+}
 .sticky-table :deep(.v-table__wrapper) {
   flex: 1;
   min-height: 0;
@@ -336,14 +341,14 @@ async function purgeAll() {
 }
 .sticky-table :deep(tbody td) { overflow: hidden !important; max-width: 0 !important; }
 .sticky-table :deep(th:nth-child(1)),
-.sticky-table :deep(td:nth-child(1)) { width: 70px; text-align: center; }
+.sticky-table :deep(td:nth-child(1)) { width: 70px; }
 .sticky-table :deep(th:nth-child(2)),
-.sticky-table :deep(td:nth-child(2)) { width: 70px; text-align: center; }
+.sticky-table :deep(td:nth-child(2)) { width: 70px; }
 .sticky-table :deep(th:nth-child(3)),
-.sticky-table :deep(td:nth-child(3)) { width: 150px !important; }
+.sticky-table :deep(td:nth-child(3)) { width: 150px; }
 .sticky-table :deep(th:nth-child(4)),
-.sticky-table :deep(td:nth-child(4)) { overflow: hidden; text-overflow: ellipsis; }
+.sticky-table :deep(td:nth-child(4)) { width: 120px; }
 .sticky-table :deep(th:nth-child(5)),
-.sticky-table :deep(td:nth-child(5)) { width: 140px; overflow: hidden; }
+.sticky-table :deep(td:nth-child(5)) { width: 140px; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
