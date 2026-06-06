@@ -341,7 +341,7 @@ async function purgeAll() {
 }
 .sticky-table :deep(tbody td) { overflow: hidden !important; max-width: 0 !important; }
 .sticky-table :deep(th:nth-child(1)),
-.sticky-table :deep(td:nth-child(1)) { width: 60px; }
+.sticky-table :deep(td:nth-child(1)) { width: 50px; }
 .sticky-table :deep(th:nth-child(2)),
 .sticky-table :deep(td:nth-child(2)) { width: 70px; }
 .sticky-table :deep(th:nth-child(3)),
