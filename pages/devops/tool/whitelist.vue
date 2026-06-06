@@ -279,7 +279,7 @@ async function saveWhitelist() {
               <td>{{ w.username || '-' }}</td>
               <td><code class="text-caption">{{ w.ip || '-' }}</code></td>
               <td>{{ w.operator || '-' }}</td>
-              <td class="text-caption text-medium-emphasis">{{ w.createdAt ? new Date(w.createdAt).toLocaleString('zh-CN', { hour12: false }) : '-' }}</td>
+              <td class="text-caption text-medium-emphasis">{{ w.createdAt ? new Date(w.createdAt + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}</td>
               <td style="text-align: right;">
                 <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(w)">Edit</VBtn>
                 <VBtn size="x-small" variant="tonal" color="error" @click="deleteWhitelist(w)">Remove</VBtn>

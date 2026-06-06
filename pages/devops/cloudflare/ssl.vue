@@ -269,8 +269,8 @@ const sslModeInfo: Record<string, string> = {
                 <td style="width: 140px; max-width: 140px;">
                   <VChip v-if="sslMap[z.zone_id]" size="x-small" :color="sslModeColors[sslMap[z.zone_id].ssl_mode] || 'grey'" variant="tonal">{{ sslModeLabels[sslMap[z.zone_id].ssl_mode] || sslMap[z.zone_id].ssl_mode }}</VChip>
                 </td>
-                <td style="width: 180px; max-width: 180px;" class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.modified_on ? new Date(sslMap[z.zone_id].modified_on).toLocaleString() : '-' }}</td>
-                <td class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.synced_at ? new Date(sslMap[z.zone_id].synced_at).toLocaleString() : '-' }}</td>
+                <td style="width: 180px; max-width: 180px;" class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.modified_on ? new Date(sslMap[z.zone_id].modified_on + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}</td>
+                <td class="text-caption text-medium-emphasis">{{ sslMap[z.zone_id]?.synced_at ? new Date(sslMap[z.zone_id].synced_at + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}</td>
               </tr>
           </template>
         </tbody>

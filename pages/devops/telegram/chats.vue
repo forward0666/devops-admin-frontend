@@ -176,7 +176,7 @@ onMounted(async () => {
         </template>
         <template #item.createdAt="{ item }">
           <span class="text-medium-emphasis">
-            {{ item.createdAt ? new Date(item.createdAt).toLocaleString() : '-' }}
+            {{ item.createdAt ? new Date(item.createdAt + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}
           </span>
         </template>
         <template #item.action="{ item }">

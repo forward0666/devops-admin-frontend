@@ -257,7 +257,7 @@ onMounted(() => { loadBots() })
 
         <template #item.createdAt="{ item }">
           <span class="text-medium-emphasis">
-            {{ item.createdAt ? new Date(item.createdAt).toLocaleString() : '-' }}
+            {{ item.createdAt ? new Date(item.createdAt + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : '-' }}
           </span>
         </template>
 
@@ -395,10 +395,10 @@ onMounted(() => { loadBots() })
                       </span>
                     </template>
                   </VListItem>
-                  <VListItem v-if="webhookInfo.last_error_date" title="Last Error" :subtitle="`[${new Date(webhookInfo.last_error_date * 1000).toLocaleString()}] ${webhookInfo.last_error_message || ''}`" prepend-icon="bx-error" />
+                  <VListItem v-if="webhookInfo.last_error_date" title="Last Error" :subtitle="`[${new Date(webhookInfo.last_error_date * 1000).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })}] ${webhookInfo.last_error_message || ''}`" prepend-icon="bx-error" />
                   <VListItem v-if="webhookInfo.last_error_message && !webhookInfo.last_error_date" title="Last Error Message" :subtitle="webhookInfo.last_error_message" prepend-icon="bx-error" />
                   <VListItem v-if="webhookInfo.allowed_updates" title="Allowed Updates" :subtitle="webhookInfo.allowed_updates.join(', ')" prepend-icon="bx-filter" />
-                  <VListItem v-if="webhookInfo.date_of_last_update" title="Last Update" :subtitle="new Date(webhookInfo.date_of_last_update * 1000).toLocaleString()" prepend-icon="bx-time-five" />
+                  <VListItem v-if="webhookInfo.date_of_last_update" title="Last Update" :subtitle="new Date(webhookInfo.date_of_last_update * 1000).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })" prepend-icon="bx-time-five" />
                 </VList>
                 <VBtn variant="outlined" color="primary" class="mt-4" @click="showSetWebhookDialog = true">
                   <VIcon start icon="bx-cog" />Set Webhook
