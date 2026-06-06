@@ -259,7 +259,7 @@ async function purgeAll() {
               <th>Env</th>
               <th>Name</th>
               <th>URL</th>
-              <th>Action</th>
+              <th style="width: 140px;">Action</th>
             </tr>
           </thead>
           <tbody>
