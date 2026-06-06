@@ -266,7 +266,7 @@ async function purgeAll() {
             <tr v-for="r in rules" :key="r.id">
               <td class="text-body-2">{{ projects.find(p => p.id === r.projectId)?.name || '-' }}</td>
               <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
-              <td class="font-weight-medium">{{ r.name }}</td>
+              <td>{{ r.name }}</td>
               <td><code class="text-caption">{{ r.url }}</code></td>
 
               <td>
