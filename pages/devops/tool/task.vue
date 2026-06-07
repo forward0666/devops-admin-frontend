@@ -6,6 +6,7 @@ definePageMeta({ layout: 'default' })
 
 const GATEWAY = '/task'
 const MONITOR_GATEWAY = '/monitor'
+const CF_GATEWAY = '/cloudflare'
 const tasks = ref<any[]>([])
 const loading = ref(false)
 const dialog = ref(false)
@@ -31,6 +32,7 @@ const typeOptions = [
   { title: 'Sync Cloudflare DNS', value: 'sync_dns', color: 'primary' },
   { title: 'Sync Cloudflare Security', value: 'sync_security', color: 'error' },
   { title: 'Sync Cloudflare Cache', value: 'sync_cache', color: 'success' },
+  { title: 'Sync Rule (Push)', value: 'sync_rule', color: 'secondary' },
 ]
 
 // Cron preset options
@@ -73,10 +75,13 @@ const cronDisplay = (cron: string) => {
 const isCustomCron = computed(() => form.value.cron === 'custom')
 const isCheckDomain = computed(() => form.value.type === 'check_domain')
 const isSyncZone = computed(() => ['sync_zone', 'sync_dns', 'sync_security', 'sync_cache'].includes(form.value.type))
+const isSyncRule = computed(() => form.value.type === 'sync_rule')
 const monitorRules = ref<any[]>([])
 const selectedRuleIds = ref<number[]>([])
 const cfAccounts = ref<any[]>([])
 const selectedAccountIds = ref<string[]>(['all'])
+const syncRules = ref<any[]>([])
+const selectedSyncRuleIds = ref<number[]>([])
 
 // When 'all' is selected, clear others; when empty, default to 'all'
 watch(selectedAccountIds, (val) => {
@@ -100,6 +105,7 @@ function resetForm() {
   customCron.value = ''
   selectedRuleIds.value = []
   selectedAccountIds.value = ['all']
+  selectedSyncRuleIds.value = []
 }
 
 function openCreateDialog() {
@@ -114,12 +120,13 @@ function openEditDialog(task: any) {
     name: task.name,
     type: task.type,
     cron: task.cron,
-    enabled: task.enabled,
+    enabled: !!task.enabled,
     description: task.description || '',
     config: task.config || {},
   }
   selectedRuleIds.value = task.config?.rule_ids || []
   selectedAccountIds.value = task.config?.account_ids || ['all']
+  selectedSyncRuleIds.value = task.config?.sync_rule_ids || []
   if (!cronPresetOptions.find(o => o.value === task.cron)) {
     form.value.cron = 'custom'
     customCron.value = task.cron
@@ -129,7 +136,7 @@ function openEditDialog(task: any) {
 
 async function fetchCfAccounts() {
   try {
-    const { data } = await apiClient.get('/cloudflare/accounts')
+    const { data } = await apiClient.get('/cloudflare/accounts', { params: { platform: 'cloudflare' } })
     cfAccounts.value = data.data || data || []
   } catch (e) {
     console.error('Failed to fetch CF accounts', e)
@@ -142,6 +149,19 @@ async function fetchMonitorRules() {
     monitorRules.value = (data.data || data || []).filter((r: any) => r.enabled)
   } catch (e) {
     console.error('Failed to fetch monitor rules', e)
+  }
+}
+
+async function fetchSyncRules() {
+  try {
+    const resp = await apiClient.get(`${CF_GATEWAY}/syncRules`, { params: { account_id: -1, platform: 'cloudflare' }, timeout: 200000 })
+    const rows = resp?.data?.data || resp?.data || []
+    syncRules.value = Array.isArray(rows) ? rows.map((r: any) => ({
+      id: r.id,
+      name: r.description || r.name || `Rule #${r.id}`,
+    })) : []
+  } catch (e) {
+    console.error('Failed to fetch sync rules', e)
   }
 }
 
@@ -175,9 +195,13 @@ async function saveTask() {
     snackbar.value = { show: true, text: 'Select at least one monitor rule', color: 'error' }
     return
   }
+  if (isSyncRule.value && selectedSyncRuleIds.value.length === 0) {
+    snackbar.value = { show: true, text: 'Select at least one sync rule', color: 'error' }
+    return
+  }
   saving.value = true
   try {
-    const payload = { ...form.value, cron, config: { rule_ids: selectedRuleIds.value, account_ids: selectedAccountIds.value } }
+    const payload = { ...form.value, cron, config: { rule_ids: selectedRuleIds.value, account_ids: selectedAccountIds.value, sync_rule_ids: selectedSyncRuleIds.value } }
     if (editingId.value) {
       await apiClient.put(`${GATEWAY}/tasks/${editingId.value}`, payload)
       snackbar.value = { show: true, text: 'Task updated', color: 'success' }
@@ -216,7 +240,7 @@ async function toggleTask(task: any) {
 
 async function runTaskNow(task: any) {
   try {
-    await apiClient.post(`${GATEWAY}/tasks/${task.id}/run`)
+    await apiClient.post(`${GATEWAY}/tasks/${task.id}/run`, null, { timeout: 200000 })
     snackbar.value = { show: true, text: `Task "${task.name}" triggered`, color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Failed to trigger', color: 'error' }
@@ -227,6 +251,7 @@ onMounted(() => {
   fetchTasks()
   fetchMonitorRules()
   fetchCfAccounts()
+  fetchSyncRules()
 })
 </script>
 
@@ -269,7 +294,7 @@ onMounted(() => {
             <th>Cron</th>
             <th>Description</th>
             <th>Status</th>
-            <th>Created</th>
+            <th>Last Run</th>
             <th style="width: 120px;">Action</th>
           </tr>
         </thead>
@@ -293,7 +318,13 @@ onMounted(() => {
                 {{ item.enabled ? 'Active' : 'Disabled' }}
               </VChip>
             </td>
-            <td class="text-body-2">{{ item.createdAt || '-' }}</td>
+            <td>
+              <div v-if="item.last_run_at" class="text-caption">
+                <div>{{ new Date(item.last_run_at).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</div>
+                <VChip size="x-small" :color="item.last_status === 'success' ? 'success' : 'error'" variant="tonal" class="mt-1">{{ item.last_status || '-' }}</VChip>
+              </div>
+              <span v-else class="text-caption text-medium-emphasis">Never</span>
+            </td>
             <td>
               <VTooltip text="Run Now">
                 <template #activator="{ props }">
@@ -384,6 +415,20 @@ onMounted(() => {
             multiple
             chips
             hint="Select accounts to sync (required)"
+            persistent-hint
+          />
+          <VSelect
+            v-if="isSyncRule"
+            v-model="selectedSyncRuleIds"
+            :items="syncRules"
+            item-title="name"
+            item-value="id"
+            label="Sync Rules"
+            class="mb-4"
+            variant="outlined"
+            multiple
+            chips
+            hint="Select sync rules to push (required)"
             persistent-hint
           />
           <VSwitch v-model="form.enabled" label="Enabled" color="success" hide-details />

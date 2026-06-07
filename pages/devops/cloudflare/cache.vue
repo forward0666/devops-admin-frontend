@@ -107,7 +107,7 @@ async function syncZone(zoneId: string) {
     const { data } = await apiClient.post(
       `${CF_GATEWAY}/zones/${zoneId}/cache/sync`,
       {},
-      { params: { account_id: selectedAccountId.value, zone_id: zoneId }, headers: { 'X-Cf-Token': token } },
+      { params: { account_id: selectedAccountId.value, zone_id: zoneId }, headers: { 'X-Cf-Token': token }, timeout: 200000 },
     )
     snackbar.value = { show: true, text: `Synced ${data.data?.synced || 0} cache rules`, color: 'success' }
     await fetchRules(zoneId)
@@ -129,7 +129,7 @@ async function syncAll() {
         const { data } = await apiClient.post(
           `${CF_GATEWAY}/zones/${z.zone_id}/cache/sync`,
           {},
-          { params: { account_id: selectedAccountId.value, zone_id: z.zone_id }, headers: { 'X-Cf-Token': token } },
+          { params: { account_id: selectedAccountId.value, zone_id: z.zone_id }, headers: { 'X-Cf-Token': token }, timeout: 200000 },
         )
         totalSynced += data.data?.synced || 0
       } catch (e: any) {

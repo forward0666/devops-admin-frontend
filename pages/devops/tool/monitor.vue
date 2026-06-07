@@ -264,6 +264,7 @@ onMounted(async () => {
           <col style="width: 120px" />
           <col style="width: 250px" />
           <col style="width: 200px" />
+          <col style="width: 180px" />
           <col style="width: 130px" />
         </colgroup>
         <thead>
@@ -272,6 +273,7 @@ onMounted(async () => {
             <th style="width: 120px">Source</th>
             <th style="width: 250px">Domain</th>
             <th style="width: 200px">Description</th>
+            <th style="width: 180px">Last Check</th>
             <th style="width: 130px; text-align: center;">Action</th>
           </tr>
         </thead>
@@ -299,6 +301,13 @@ onMounted(async () => {
               </template>
             </td>
             <td class="text-caption text-medium-emphasis">{{ rule.description || '-' }}</td>
+            <td>
+              <div v-if="rule.last_check" class="text-caption">
+                <div>{{ new Date(rule.last_check).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</div>
+                <VChip size="x-small" :color="rule.status === 'ok' ? 'success' : rule.status === 'error' ? 'error' : 'grey'" variant="tonal" class="mt-1">{{ rule.status || '-' }}</VChip>
+              </div>
+              <span v-else class="text-caption text-medium-emphasis">Never</span>
+            </td>
             <td style="text-align: center;">
               <VBtn icon size="x-small" variant="text" color="success" @click="triggerCheck(rule.id)" :loading="checkingIds.includes(rule.id)">
                 <VIcon icon="bx-play" size="16" />

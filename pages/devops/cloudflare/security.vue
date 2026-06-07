@@ -103,7 +103,7 @@ async function syncZone(zoneId: string) {
       {
         params: { account_id: selectedAccountId.value, zone_id: zoneId },
         headers: { 'X-Cf-Token': token },
-        timeout: 60000,
+        timeout: 200000,
       },
     )
     snackbar.value = { show: true, text: `Synced ${data.data?.synced || 0} rules`, color: 'success' }
@@ -129,7 +129,7 @@ async function syncAll() {
           {
             params: { account_id: selectedAccountId.value, zone_id: z.zone_id },
             headers: { 'X-Cf-Token': token },
-            timeout: 60000,
+            timeout: 200000,
           },
         )
         totalSynced += data.data?.synced || 0

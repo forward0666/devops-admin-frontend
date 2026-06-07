@@ -211,8 +211,11 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'Zone', to: DEVOPS.CF_ZONE }" />
         <VerticalNavLink :item="{ title: 'DNS', to: DEVOPS.CF_DNS }" />
         <VerticalNavLink :item="{ title: 'Security', to: DEVOPS.CF_SECURITY }" />
+        <VerticalNavLink :item="{ title: 'Rate Limit', to: DEVOPS.CF_RATELIMIT }" />
         <VerticalNavLink :item="{ title: 'SSL', to: DEVOPS.CF_SSL }" />
         <VerticalNavLink :item="{ title: 'Cache', to: DEVOPS.CF_CACHE }" />
+        <VerticalNavLink :item="{ title: 'DDoS', to: DEVOPS.CF_DDOS }" />
+        <VerticalNavLink :item="{ title: 'Managed', to: DEVOPS.CF_MANAGED }" />
         <VerticalNavLink :item="{ title: 'Domain', to: DEVOPS.CF_DOMAIN }" />
       </VerticalNavGroup>
 
@@ -224,6 +227,7 @@ const isProjectActive = (projectId: number) => {
       >
         <VerticalNavLink :item="{ title: 'Purge Cache', to: DEVOPS.TOOL_PURGE_CACHE }" />
         <VerticalNavLink :item="{ title: 'Security Rules', to: DEVOPS.TOOL_SECURITY }" />
+        <VerticalNavLink :item="{ title: 'Sync Rule', to: DEVOPS.TOOL_SYNC_RULE }" />
         <VerticalNavLink :item="{ title: 'WhiteList IP', to: DEVOPS.TOOL_WHITELIST }" />
         <VerticalNavLink :item="{ title: 'Monitor', to: DEVOPS.TOOL_MONITOR }" />
         <VerticalNavLink :item="{ title: 'Task', to: DEVOPS.TOOL_TASK }" />

@@ -76,7 +76,7 @@ async function syncFromCF() {
       {
         params: { account_id: selectedAccountId.value },
         headers: { 'X-Cf-Token': token },
-        timeout: 60000,
+        timeout: 200000,
       },
     )
     snackbar.value = { show: true, text: `Synced ${data.data?.synced || 0} DNS records`, color: 'success' }
