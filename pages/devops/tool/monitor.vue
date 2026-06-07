@@ -303,7 +303,7 @@ onMounted(async () => {
             <td class="text-caption text-medium-emphasis">{{ rule.description || '-' }}</td>
             <td>
               <div v-if="rule.last_check" class="text-caption">
-                <div>{{ new Date(rule.last_check).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</div>
+                <div>{{ new Date(rule.last_check + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</div>
                 <VChip size="x-small" :color="rule.status === 'ok' ? 'success' : rule.status === 'error' ? 'error' : 'grey'" variant="tonal" class="mt-1">{{ rule.status || '-' }}</VChip>
               </div>
               <span v-else class="text-caption text-medium-emphasis">Never</span>

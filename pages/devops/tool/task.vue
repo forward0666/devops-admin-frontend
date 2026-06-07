@@ -320,7 +320,7 @@ onMounted(() => {
             </td>
             <td>
               <div v-if="item.last_run_at" class="text-caption">
-                <div>{{ new Date(item.last_run_at).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</div>
+                <div>{{ new Date(item.last_run_at + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</div>
                 <VChip size="x-small" :color="item.last_status === 'success' ? 'success' : 'error'" variant="tonal" class="mt-1">{{ item.last_status || '-' }}</VChip>
               </div>
               <span v-else class="text-caption text-medium-emphasis">Never</span>

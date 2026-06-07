@@ -277,7 +277,7 @@ function getRuleTypes(rule: any): string[] {
             <td>
               <VChip v-for="rt in getRuleTypes(r)" :key="rt" size="x-small" :color="ruleTypeColors[rt] || 'grey'" variant="tonal" class="me-1 mb-1">{{ rt }}</VChip>
             </td>
-            <td class="text-caption text-medium-emphasis">{{ r.last_synced_at ? new Date(r.last_synced_at).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : 'Never' }}</td>
+            <td class="text-caption text-medium-emphasis">{{ r.last_synced_at ? new Date(r.last_synced_at + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) : 'Never' }}</td>
             <td style="text-align: center;">
               <VBtn icon size="x-small" variant="text" color="warning" :loading="syncingId === r.id" @click="doSync(r)">
                 <VIcon icon="bx-refresh" size="16" />
