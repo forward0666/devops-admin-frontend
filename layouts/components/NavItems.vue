@@ -207,7 +207,7 @@ const isProjectActive = (projectId: number) => {
           icon: 'bx-cloud',
         }"
       >
-        <VerticalNavLink :item="{ title: 'Account', to: DEVOPS.CF_INDEX }" />
+        <VerticalNavLink :item="{ title: 'Account', to: DEVOPS.CF_ACCOUNT }" />
         <VerticalNavLink :item="{ title: 'Zone', to: DEVOPS.CF_ZONE }" />
         <VerticalNavLink :item="{ title: 'DNS', to: DEVOPS.CF_DNS }" />
         <VerticalNavLink :item="{ title: 'Security', to: DEVOPS.CF_SECURITY }" />
@@ -226,10 +226,10 @@ const isProjectActive = (projectId: number) => {
         }"
       >
         <VerticalNavLink :item="{ title: 'Purge Cache', to: DEVOPS.TOOL_PURGE_CACHE }" />
-        <VerticalNavLink :item="{ title: 'WhiteList Rule', to: DEVOPS.TOOL_WHITELIST_RULE }" />
+        <VerticalNavLink :item="{ title: 'Security Rule', to: DEVOPS.TOOL_SECURITY }" />
         <VerticalNavLink :item="{ title: 'Sync Rule', to: DEVOPS.TOOL_SYNC_RULE }" />
         <VerticalNavLink :item="{ title: 'WhiteList IP', to: DEVOPS.TOOL_WHITELIST }" />
-        <VerticalNavLink :item="{ title: 'Monitor', to: DEVOPS.TOOL_MONITOR }" />
+        <VerticalNavLink :item="{ title: 'Monitor Rule', to: DEVOPS.TOOL_MONITOR }" />
         <VerticalNavLink :item="{ title: 'Task', to: DEVOPS.TOOL_TASK }" />
       </VerticalNavGroup>
 

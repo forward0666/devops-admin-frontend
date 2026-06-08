@@ -25,6 +25,7 @@ export const ADMIN = {
 export const DEVOPS = {
   DASHBOARD: '/devops/dashboard',
   CF_INDEX: '/devops/cloudflare',
+  CF_ACCOUNT: '/devops/cloudflare/account',
   CF_CACHE: '/devops/cloudflare/cache',
   CF_DNS: '/devops/cloudflare/dns',
   CF_SECURITY: '/devops/cloudflare/security',
@@ -45,9 +46,9 @@ export const DEVOPS = {
   TOOL_DOMAIN: '/devops/tool/domain',
   TOOL_PURGE_CACHE: '/devops/tool/purgecache',
   TOOL_SYNC_RULE: '/devops/tool/syncrule',
-  TOOL_WHITELIST_RULE: '/devops/tool/whitelistrule',
-  TOOL_WHITELIST: '/devops/tool/whitelist',
-  TOOL_MONITOR: '/devops/tool/monitor',
+  TOOL_SECURITY: '/devops/tool/securityrule',
+  TOOL_WHITELIST: '/devops/tool/whitelistip',
+  TOOL_MONITOR: '/devops/tool/monitorrule',
   TOOL_TASK: '/devops/tool/task',
 } as const
 

@@ -54,20 +54,6 @@ const techStack = [
       </VCol>
     </VRow>
 
-    <!-- Tech Stack -->
-    <VCard class="mt-8">
-      <VCardItem>
-        <VCardTitle>Tech Stack</VCardTitle>
-      </VCardItem>
-      <VDivider />
-      <VCardText class="d-flex flex-wrap ga-4 pa-6">
-        <VChip v-for="tech in techStack" :key="tech.name" variant="tonal" color="primary" size="large" label>
-          <VIcon :icon="tech.icon" start size="18" />
-          {{ tech.name }}
-        </VChip>
-      </VCardText>
-    </VCard>
-
     <!-- Footer -->
     <VCard class="mt-8" variant="tonal" color="secondary">
       <VCardText class="text-center py-6">
