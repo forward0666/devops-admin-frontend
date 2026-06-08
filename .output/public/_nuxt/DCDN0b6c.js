@@ -1,0 +1,1 @@
+import{p as t,c6 as e,a4 as s,v as n}from"./C8i7mc5V.js";function i(){const o=s(!1);return t(()=>{window.requestAnimationFrame(()=>{o.value=!0})}),{ssrBootStyles:n(()=>o.value?void 0:{transition:"none !important"}),isBooted:e(o)}}export{i as u};

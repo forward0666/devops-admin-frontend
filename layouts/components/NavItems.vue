@@ -235,6 +235,15 @@ const isProjectActive = (projectId: number) => {
 
       <VerticalNavGroup
         :item="{
+          title: 'Agent',
+          icon: 'bx-bot',
+        }"
+      >
+        <VerticalNavLink :item="{ title: 'Agent', to: DEVOPS.AGENT }" />
+      </VerticalNavGroup>
+
+      <VerticalNavGroup
+        :item="{
           title: 'Tencent',
           icon: 'bx-cloud',
         }"
