@@ -3,7 +3,7 @@ import type { ApiResponse } from '~/types/api'
 
 // 环境变量配置
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
-const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 10000
+const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 200000
 
 // 创建 axios 实例
 const apiClient = axios.create({
@@ -59,7 +59,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       const requestUrl = error.config?.url || ''
       // bot / cloudflare 路由的 401 不触发全局登出（使用独立的 Auth 密钥）
-      if (!requestUrl.startsWith('/bot/') && !requestUrl.startsWith('/cloudflare/') && !requestUrl.startsWith('/monitor/')) {
+      if (!requestUrl.startsWith('/bot/') && !requestUrl.startsWith('/cloudflare/') && !requestUrl.startsWith('/agent/') && !requestUrl.startsWith('/monitor/')) {
         localStorage.removeItem('auth_token')
         localStorage.removeItem('auth_user')
         localStorage.removeItem('auth')

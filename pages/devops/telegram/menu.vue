@@ -31,9 +31,9 @@ const form = ref({
 const mainMenus = computed(() => menus.value.filter((m: any) => m.menuLevel === 1))
 const subMenus = computed(() => {
   const mains = menus.value.filter((m: any) => m.menuLevel === 1)
-  const result: Record<string, any[]> = {}
+  const result: Record<number, any[]> = {}
   for (const main of mains) {
-    result[main.menuKey] = menus.value.filter((m: any) => m.parentId === main.id)
+    result[main.id] = menus.value.filter((m: any) => m.parentId === main.id && m.menuLevel === 2)
   }
   return result
 })
@@ -177,9 +177,9 @@ onMounted(() => { loadMenus() })
             </div>
 
             <!-- Sub Menus -->
-            <template v-if="subMenus[main.menuKey]?.length">
+            <template v-if="subMenus[main.id]?.length">
               <VDivider class="my-3" />
-              <VCard v-for="sub in subMenus[main.menuKey]" :key="sub.id" variant="outlined" class="mb-2 pa-3">
+              <VCard v-for="sub in subMenus[main.id]" :key="sub.id" variant="outlined" class="mb-2 pa-3">
                 <div class="d-flex align-center mb-1">
                   <VChip size="small" color="secondary" variant="tonal" class="me-2">Lv2</VChip>
                   <span class="text-subtitle-1">{{ sub.title || sub.menuKey }}</span>

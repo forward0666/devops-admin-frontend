@@ -331,7 +331,7 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
         <VCardText>
           <VTextField v-model="newGroup.chatId" label="Chat ID" placeholder="-1001234567890" density="comfortable" class="mb-3" variant="outlined" type="number" />
           <VTextField v-model="newGroup.chatTitle" label="Group Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="newGroup.chatType" label="Type" :items="['supergroup', 'group', 'forum']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="newGroup.chatType" label="Type" :items="['supergroup', 'forum']" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect
             v-model="newGroup.projectId"
             label="Bind Project (optional)"
@@ -354,7 +354,7 @@ const isExpanded = (chatId: number) => expandedGroups.value.includes(String(chat
         <VCardItem><VCardTitle>Edit Group</VCardTitle></VCardItem>
         <VCardText>
           <VTextField v-model="editingGroup!.chatTitle" label="Group Name" density="comfortable" class="mb-3" variant="outlined" />
-          <VSelect v-model="editingGroup!.chatType" label="Type" :items="['supergroup', 'group', 'forum']" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editingGroup!.chatType" label="Type" :items="['supergroup', 'forum']" density="comfortable" class="mb-3" variant="outlined" />
           <VSelect
             v-model="editingGroup!.projectId"
             label="Bind Project (optional)"

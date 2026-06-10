@@ -49,6 +49,7 @@ const newBot = ref({
 const botTypes = [
   { title: 'General', value: 'GENERAL' },
   { title: 'Alert', value: 'ALERT' },
+  { title: 'DevOps', value: 'DEVOPS' },
 ]
 
 const headers = [
@@ -98,7 +99,7 @@ function confirmDelete(bot: BotItem) {
 function openEditDialog(bot: BotItem) {
   selectedBot.value = bot
   // 后端返回小写 dbValue，前端用大写枚举名
-  const typeMap: Record<string, string> = { general: 'GENERAL', ip_white_list: 'IP_WHITE_LIST', customer_service: 'CUSTOMER_SERVICE', tool: 'TOOL' }
+  const typeMap: Record<string, string> = { general: 'GENERAL', alert: 'ALERT', devops: 'DEVOPS', ip_white_list: 'IP_WHITE_LIST', customer_service: 'CUSTOMER_SERVICE', tool: 'TOOL' }
   editBot.value = { botName: bot.botName, botUsername: bot.botUsername, token: '', botType: typeMap[bot.botType] || 'GENERAL', status: bot.status }
   showEditDialog.value = true
 }

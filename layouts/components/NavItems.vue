@@ -240,6 +240,9 @@ const isProjectActive = (projectId: number) => {
         }"
       >
         <VerticalNavLink :item="{ title: 'Agent', to: DEVOPS.AGENT }" />
+        <VerticalNavLink :item="{ title: 'Model', to: DEVOPS.AGENT_MODEL }" />
+        <VerticalNavLink :item="{ title: 'MCP', to: DEVOPS.AGENT_MCP }" />
+        <VerticalNavLink :item="{ title: 'Tool', to: DEVOPS.AGENT_TOOL }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
