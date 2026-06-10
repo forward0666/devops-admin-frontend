@@ -6,6 +6,7 @@ definePageMeta({ layout: 'default' })
 
 const BOT_TYPES = [
   { title: 'General', value: 'general' },
+  { title: 'DevOps', value: 'devops' },
   { title: 'IP White List', value: 'ip_white_list' },
   { title: 'Customer Service', value: 'customer_service' },
   { title: 'Tool', value: 'tool' },
@@ -34,6 +35,14 @@ const subMenus = computed(() => {
   const result: Record<number, any[]> = {}
   for (const main of mains) {
     result[main.id] = menus.value.filter((m: any) => m.parentId === main.id && m.menuLevel === 2)
+  }
+  return result
+})
+const thirdMenus = computed(() => {
+  const subs = menus.value.filter((m: any) => m.menuLevel === 2)
+  const result: Record<number, any[]> = {}
+  for (const sub of subs) {
+    result[sub.id] = menus.value.filter((m: any) => m.parentId === sub.id && m.menuLevel === 3)
   }
   return result
 })
@@ -193,6 +202,30 @@ onMounted(() => { loadMenus() })
                 <div class="text-caption text-medium-emphasis mt-1">
                   menuKey: {{ sub.menuKey }} · sortOrder: {{ sub.sortOrder }}
                 </div>
+
+                <!-- Lv3 Menus -->
+                <template v-if="thirdMenus[sub.id]?.length">
+                  <VDivider class="my-2" />
+                  <VCard v-for="third in thirdMenus[sub.id]" :key="third.id" variant="flat" color="grey-lighten-4" class="mb-2 pa-2">
+                    <div class="d-flex align-center mb-1">
+                      <VChip size="x-small" color="success" variant="tonal" class="me-2">Lv3</VChip>
+                      <span class="text-body-1">{{ third.title || third.menuKey }}</span>
+                      <VSpacer />
+                      <VBtn icon size="x-small" variant="text" color="primary" @click="openEditDialog(third)"><VIcon icon="bx-edit" /></VBtn>
+                      <VBtn icon size="x-small" variant="text" color="error" @click="deleteMenu(third.id)"><VIcon icon="bx-trash" /></VBtn>
+                    </div>
+                    <VAlert v-if="third.buttons" type="info" variant="tonal" density="compact">
+                      <pre class="text-caption ma-0" style="white-space: pre-wrap">{{ buttonsPreview(third.buttons) }}</pre>
+                    </VAlert>
+                    <div class="text-caption text-medium-emphasis">
+                      menuKey: {{ third.menuKey }} · sortOrder: {{ third.sortOrder }}
+                    </div>
+                  </VCard>
+                </template>
+
+                <VBtn size="x-small" variant="text" class="mt-1" @click="openCreateDialog(3, sub.id, bt.value)">
+                  <VIcon icon="bx-plus" size="x-small" class="me-1" /> Add Lv3 Menu
+                </VBtn>
               </VCard>
             </template>
 
@@ -213,12 +246,20 @@ onMounted(() => { loadMenus() })
           <VSelect v-model="form.botType" :items="BOT_TYPES" label="Bot Type" density="compact" class="mb-3" />
           <VTextField v-model="form.title" label="Title" density="compact" class="mb-3" />
           <VTextField v-model="form.menuKey" label="Menu Key (callback_data identifier)" density="compact" class="mb-3" :rules="[(v: string) => !!v && v.trim() !== '' || 'Required']" />
-          <VSelect v-model="form.menuLevel" :items="[{ title: 'Main Menu', value: 1 }, { title: 'Sub Menu', value: 2 }]" label="Level" density="compact" class="mb-3" />
+          <VSelect v-model="form.menuLevel" :items="[{ title: 'Main Menu (Lv1)', value: 1 }, { title: 'Sub Menu (Lv2)', value: 2 }, { title: 'Third Menu (Lv3)', value: 3 }]" label="Level" density="compact" class="mb-3" />
           <VSelect
             v-if="form.menuLevel === 2"
             v-model="form.parentId"
-            :items="mainMenus.filter((m: any) => m.botType === form.botType).map((m: any) => ({ title: `${m.title || m.menuKey} (${m.id})`, value: m.id }))"
-            label="Parent Menu"
+            :items="mainMenus.filter((m: any) => m.botType === form.botType).map((m: any) => ({ title: `Lv1: ${m.title || m.menuKey} (${m.id})`, value: m.id }))"
+            label="Parent Menu (Lv1)"
+            density="compact"
+            class="mb-3"
+          />
+          <VSelect
+            v-if="form.menuLevel === 3"
+            v-model="form.parentId"
+            :items="menus.filter((m: any) => m.menuLevel === 2 && m.botType === form.botType).map((m: any) => ({ title: `Lv2: ${m.title || m.menuKey} (${m.id})`, value: m.id }))"
+            label="Parent Menu (Lv2)"
             density="compact"
             class="mb-3"
           />
