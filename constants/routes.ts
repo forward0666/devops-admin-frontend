@@ -64,7 +64,7 @@ export const USER = {
   PROJECT_VIEW: '/user/project/view',
   PROJECT_PERMISSION: '/user/project/permission',
   TOOL: '/user/tool',
-  TOOL_IT: '/user/tool/it-tool',
+  TOOL_IT: '/user/tool/ittool',
 } as const
 
 /** 动态子路由：/user/project/:id/* */
