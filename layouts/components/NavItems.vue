@@ -270,6 +270,13 @@ const isProjectActive = (projectId: number) => {
           to: USER.PROFILE,
         }"
       />
+      <VerticalNavLink
+        :item="{
+          title: 'Dev Tools',
+          icon: 'bx-wrench',
+          to: USER.TOOL,
+        }"
+      />
 
       <VerticalNavGroup
         :item="{
