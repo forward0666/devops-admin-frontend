@@ -1,15 +1,13 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-const toolUrl = import.meta.env.VITE_IT_TOOLS_URL || '/user/tool/ittool/'
+if (import.meta.client) {
+  window.location.href = '/user/tool/ittool/'
+}
 </script>
 
 <template>
-  <div style="height: calc(100vh - 64px); overflow: hidden;">
-    <iframe
-      :src="toolUrl"
-      style="width: 100%; height: 100%; border: none;"
-      allow="clipboard-read; clipboard-write"
-    />
+  <div class="d-flex align-center justify-center" style="height: 100vh;">
+    <VProgressCircular indeterminate color="primary" />
   </div>
 </template>
