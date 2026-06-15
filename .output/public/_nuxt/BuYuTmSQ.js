@@ -1,0 +1,1 @@
+import{d as e,c as t,b as o,o as r,U as s}from"./BQJ9rcX3.js";const a={class:"d-flex align-center justify-center",style:{height:"100vh"}},_=e({__name:"ittool",setup(n){return window.location.href="/user/tool/ittool/",(c,i)=>(r(),t("div",a,[o(s,{indeterminate:"",color:"primary"})]))}});export{_ as default};
