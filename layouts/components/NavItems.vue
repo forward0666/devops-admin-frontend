@@ -270,13 +270,15 @@ const isProjectActive = (projectId: number) => {
           to: USER.PROFILE,
         }"
       />
-      <VerticalNavLink
+      <VerticalNavGroup
         :item="{
-          title: 'Dev Tools',
+          title: 'Tool',
           icon: 'bx-wrench',
-          to: USER.TOOL,
         }"
-      />
+        :open="currentRoute?.path?.startsWith('/user/tool')"
+      >
+        <VerticalNavLink :item="{ title: 'IT Tool', to: USER.TOOL_IT }" />
+      </VerticalNavGroup>
 
       <VerticalNavGroup
         :item="{

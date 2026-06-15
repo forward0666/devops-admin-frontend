@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-const toolUrl = import.meta.env.VITE_IT_TOOLS_URL || '/user/tool/index.html'
+const toolUrl = import.meta.env.VITE_IT_TOOLS_URL || '/user/tool/it-tools/index.html'
 </script>
 
 <template>
