@@ -5,12 +5,6 @@ import vuetify from 'vite-plugin-vuetify'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: false,
-  generate: {
-    routes: ['/'],
-  },
-  routeRules: {
-    '/user/tool/ittool/**': { proxy: process.env.IT_TOOLS_URL || 'http://localhost:5050/**' },
-  },
   app: {
     head: {
       title: 'DevOps Admin',
