@@ -3,7 +3,7 @@ import { userConsoleProfileService } from '~/services/api'
 import { LOGIN } from '~/constants/routes'
 const authStore = useAuthStore()
 const departmentStore = useDepartmentStore()
-const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'UI', 'Project Manager', 'Product Manager', 'QA Tester']
+const positionOptions = ['Backend Developer', 'Frontend Developer', 'UI', 'Project Manager', 'Product Manager', 'QA Tester']
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const activeTab = ref('account')
