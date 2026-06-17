@@ -102,6 +102,14 @@ export const authService = {
     })
   },
 
+  async ssoLogin(token: string) {
+    return request<any>({
+      method: 'post',
+      url: '/login/authSSO',
+      data: { token },
+    })
+  },
+
   async logout() {
     return request<void>({
       method: 'post',

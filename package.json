@@ -17,6 +17,7 @@
     "@vueuse/math": "^10.11.1",
     "apexcharts": "3.49.2",
     "axios": "^1.15.2",
+    "keycloak-js": "^26.2.4",
     "nuxt": "^3.21.2",
     "pinia": "^2.3.0",
     "prismjs": "^1.29.0",

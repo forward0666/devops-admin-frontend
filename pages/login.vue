@@ -4,7 +4,22 @@ import authV1BottomShape from '@images/svg/auth-v1-bottom-shape.svg?url'
 import authV1TopShape from '@images/svg/auth-v1-top-shape.svg?url'
 
 const authStore = useAuthStore()
+const { loginWithKeycloak } = useKeycloak()
 const { authService } = await import('~/services/api')
+const ssoLoading = ref(false)
+
+const handleSSOLogin = async () => {
+  ssoLoading.value = true
+  try {
+    await loginWithKeycloak()
+  }
+  catch (e: any) {
+    console.error('SSO login failed:', e)
+  }
+  finally {
+    ssoLoading.value = false
+  }
+}
 
 const form = ref({
   username: '',
@@ -245,12 +260,21 @@ const handleLogin = async () => {
                 <VDivider />
               </VCol>
 
-              <!-- auth providers -->
+              <!-- SSO Login -->
               <VCol
                 cols="12"
                 class="text-center"
               >
-                <!-- Social login placeholder -->
+                <VBtn
+                  block
+                  variant="outlined"
+                  color="primary"
+                  :loading="ssoLoading"
+                  prepend-icon="bx-lock-open"
+                  @click="handleSSOLogin"
+                >
+                  使用 SSO 登录
+                </VBtn>
               </VCol>
             </VRow>
           </VForm>

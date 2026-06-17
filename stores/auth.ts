@@ -105,6 +105,25 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
+     * SSO 登录（Keycloak 回调后调用）
+     */
+    setSSOToken(token: string, userInfo: { id: string; username: string; email?: string; fullName?: string; role?: string }) {
+      this.token = token
+      this.user = {
+        id: Number(userInfo.id) || 0,
+        username: userInfo.username,
+        role: (userInfo.role as UserRole) || 'user',
+        email: userInfo.email,
+        fullName: userInfo.fullName,
+      }
+      this.role = this.user.role
+      this.consoleRole = this.isAdmin ? 'admin' : 'user'
+      this.isAuthenticated = true
+      this._ready = true
+      this._persist()
+    },
+
+    /**
      * Mock 登录（后端不可用时的备用方案）
      */
     async mockLogin(username: string, password: string): Promise<boolean> {

@@ -115,6 +115,14 @@ export default defineNuxtConfig({
     ],
   },
 
+  runtimeConfig: {
+    public: {
+      keycloakUrl: 'https://keycloak.sdjk35.com',
+      keycloakRealm: 'master',
+      keycloakClientId: 'devops-admin',
+    },
+  },
+
   build: {
     transpile: ['vuetify'],
   },

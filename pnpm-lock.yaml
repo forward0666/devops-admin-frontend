@@ -30,6 +30,9 @@ importers:
       axios:
         specifier: ^1.15.2
         version: 1.15.2
+      keycloak-js:
+        specifier: ^26.2.4
+        version: 26.2.4
       nuxt:
         specifier: ^3.21.2
         version: 3.21.2(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@parcel/watcher@2.5.6)(@types/node@22.10.2)(@vue/compiler-sfc@3.5.35)(cac@6.7.14)(db0@0.3.4)(eslint@8.57.1)(ioredis@5.10.1)(lightningcss@1.32.0)(magicast@0.5.2)(meow@13.2.0)(optionator@0.9.4)(rolldown@1.0.2)(rollup-plugin-visualizer@7.0.1(rolldown@1.0.2)(rollup@4.60.2))(rollup@4.60.2)(sass@1.76.0)(stylelint@16.8.0(typescript@5.7.2))(terser@5.37.0)(tsx@4.19.2)(typescript@5.7.2)(vite@8.0.14(@types/node@22.10.2)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.76.0)(terser@5.37.0)(tsx@4.19.2)(yaml@2.9.0))(yaml@2.9.0)
@@ -4173,6 +4176,9 @@ packages:
   jsonc-eslint-parser@2.4.0:
     resolution: {integrity: sha512-WYDyuc/uFcGp6YtM2H0uKmUwieOuzeE/5YocFJLnLfclZ4inf3mRn8ZVy1s7Hxji7Jxm6Ss8gqpexD/GlKoGgg==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+
+  keycloak-js@26.2.4:
+    resolution: {integrity: sha512-PnXpR3ubETGOt0B/Qt2lxmPbkZr5bc3vlQsOqDoTPPQsZRp7JjhTKxlJ187uWh8qJhvBab6Gsjb06a8ayOPfuw==}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -10826,6 +10832,8 @@ snapshots:
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
       semver: 7.6.3
+
+  keycloak-js@26.2.4: {}
 
   keyv@4.5.4:
     dependencies:

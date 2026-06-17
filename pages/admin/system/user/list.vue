@@ -201,6 +201,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
             <th>Position</th>
             <th>Department</th>
             <th>Status</th>
+            <th>Source</th>
             <th>Lock</th>
             <th>Action</th>
           </tr>
@@ -232,6 +233,7 @@ const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'U
             <td><div class="text-body-1 text-high-emphasis">{{ item.position || '-' }}</div></td>
             <td><div class="text-body-1">{{ departmentStore.departments.find((d: any) => d.id === item.departmentId)?.name || '-' }}</div></td>
             <td><VChip variant="tonal" :color="resolveUserStatusVariant(item.active)" size="small" label>{{ item.active ? 'Active' : 'Inactive' }}</VChip></td>
+            <td><VChip variant="tonal" :color="item.source === 'keycloak' ? 'info' : 'default'" size="small" label>{{ item.source || 'local' }}</VChip></td>
             <td><VChip variant="tonal" :color="item.locked ? 'error' : 'success'" size="small" label>{{ item.locked ? 'Lock' : 'Unlock' }}</VChip></td>
             <td>
               <NuxtLink :to="`/admin/system/user/view?id=${item.id}`"><IconBtn><VIcon icon="bx-show" /></IconBtn></NuxtLink>
