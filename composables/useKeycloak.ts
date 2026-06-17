@@ -5,10 +5,16 @@ let keycloak: Keycloak | null = null
 
 function getKeycloakConfig() {
   const rc = useRuntimeConfig()
+  const url = rc.public.keycloakUrl as string
+  const realm = rc.public.keycloakRealm as string
+  const clientId = rc.public.keycloakClientId as string
+  if (!url || !realm || !clientId) {
+    console.warn('[Keycloak] Missing runtime config, using defaults')
+  }
   return {
-    url: rc.public.keycloakUrl as string,
-    realm: rc.public.keycloakRealm as string,
-    clientId: rc.public.keycloakClientId as string,
+    url: url || 'https://keycloak.sdjk35.com',
+    realm: realm || 'master',
+    clientId: clientId || 'devops-admin',
   }
 }
 
