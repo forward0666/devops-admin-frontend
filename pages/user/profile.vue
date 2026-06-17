@@ -23,6 +23,7 @@ const userData = reactive({
   tgUsername: '-',
   emailVerified: false,
   phoneVerified: false,
+  tgVerified: false,
 })
 
 async function loadProfile() {
@@ -39,6 +40,7 @@ async function loadProfile() {
     userData.phone = data.phone || '-'
     userData.position = data.position || '-'
     userData.tgUsername = data.tgUsername || '-'
+    userData.tgVerified = data.tgVerified || false
     userData.emailVerified = data.emailVerified || false
     userData.phoneVerified = data.phoneVerified || false
   } catch (e: any) {
@@ -51,7 +53,8 @@ async function loadProfile() {
     userData.department = user.value?.department || '-'
     userData.phone = user.value?.phone || '-'
     userData.position = user.value?.position || '-'
-    userData.tgUsername = user.value?.tgUsername || '-'  } finally {
+    userData.tgUsername = user.value?.tgUsername || '-'
+    userData.tgVerified = user.value?.tgVerified || false  } finally {
     profileLoading.value = false
   }
 }
@@ -136,7 +139,7 @@ async function resetVerification(type: string) {
   try {
     await userConsoleProfileService.resetVerification(type)
     if (type === 'email') userData.emailVerified = false
-    if (type === 'telegram') userData.tgUsername = '-'
+    if (type === 'telegram') userData.tgVerified = false
     snackbar.value = { show: true, text: 'Verification reset', color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e.message || 'Failed to reset', color: 'error' }
@@ -211,7 +214,7 @@ const resolveAvatarColor = (name: string) => {
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Phone</span><h6 class="text-h6">{{ userData.phone }}</h6></div>
                 </VCol>
                 <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Telegram</span><div class="d-flex align-center gap-2"><h6 class="text-h6">{{ userData.tgUsername !== '-' ? '@' + userData.tgUsername : '-' }}</h6><template v-if="userData.tgUsername && userData.tgUsername !== '-'"><VBtn size="x-small" color="success" variant="tonal" prepend-icon="bx-check-circle" disabled>Verified</VBtn><VBtn size="x-small" color="error" variant="tonal" @click="resetVerification('telegram')">Reset</VBtn></template><VBtn v-else size="x-small" color="primary" variant="tonal">Verify</VBtn></div></div>
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Telegram</span><div class="d-flex align-center gap-2"><h6 class="text-h6">{{ userData.tgUsername !== '-' ? '@' + userData.tgUsername : '-' }}</h6><template v-if="userData.tgVerified"><VBtn size="x-small" color="success" variant="tonal" prepend-icon="bx-check-circle" disabled>Verified</VBtn><VBtn size="x-small" color="error" variant="tonal" @click="resetVerification('telegram')">Reset</VBtn></template><VBtn v-else-if="userData.tgUsername && userData.tgUsername !== '-'" size="x-small" color="primary" variant="tonal">Verify</VBtn></div></div>
                 </VCol>
                 <VCol cols="12" md="6">
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Role</span><VChip variant="tonal" color="primary" size="small" label>{{ userData.role }}</VChip></div>
