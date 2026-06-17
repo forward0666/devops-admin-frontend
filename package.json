@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nuxt dev --host 0.0.0.0",
     "preview": "nuxt preview --host 0.0.0.0",
-    "build": "node --max-old-space-size=4096 node_modules/nuxt/bin/nuxt.mjs build",
+    "build": "node --max-old-space-size=4096 node_modules/nuxt/bin/nuxt.mjs generate",
     "lint": "eslint . -c .eslintrc.cjs --fix --ext .ts,.js,.cjs,.vue,.tsx,.jsx",
     "postinstall": "nuxt prepare",
     "generate": "nuxt generate"
