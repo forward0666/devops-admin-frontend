@@ -178,8 +178,9 @@ const resolveAvatarColor = (name: string) => {
 
 
 
-        <h5 class="text-h5 mb-4">Security</h5>
-        <div class="mt-6">
+        <h5 class="text-h5"><VIcon icon="bx-lock-alt" size="20" class="me-1" />Security</h5>
+        <VDivider class="my-4" />
+        <div>
           <VCard title="Change Password" class="change-password-card">
             <VForm @submit.prevent="changePassword">
               <VCardText class="pt-0">
