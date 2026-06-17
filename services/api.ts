@@ -335,6 +335,9 @@ export const userConsoleProfileService = {
   changePassword(data: any) {
     return request<void>({ method: 'put', url: '/user/password', data })
   },
+  resetVerification(type: string) {
+    return request<void>({ method: 'put', url: '/user/resetVerification', data: { type } })
+  },
 }
 
 export const userConsoleDomainService = {

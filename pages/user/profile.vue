@@ -132,6 +132,17 @@ async function changePassword() {
   }
 }
 
+async function resetVerification(type: string) {
+  try {
+    await userConsoleProfileService.resetVerification(type)
+    if (type === 'email') userData.emailVerified = false
+    if (type === 'telegram') userData.tgUsername = '-'
+    snackbar.value = { show: true, text: 'Verification reset', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e.message || 'Failed to reset', color: 'error' }
+  }
+}
+
 const resolveAvatarColor = (name: string) => {
   const colors = ['primary', 'secondary', 'success', 'info', 'warning', 'error']
   const code = name ? name.charCodeAt(0) : 0
@@ -194,13 +205,13 @@ const resolveAvatarColor = (name: string) => {
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Username</span><h6 class="text-h6">{{ userData.username }}</h6></div>
                 </VCol>
                 <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Email</span><div class="d-flex align-center gap-2"><h6 class="text-h6">{{ userData.email }}</h6><VBtn v-if="userData.emailVerified" size="x-small" color="success" variant="tonal" prepend-icon="bx-check-circle" disabled>Verified</VBtn><VBtn v-else size="x-small" color="primary" variant="tonal">Verify</VBtn><VBtn v-if="userData.emailVerified" size="x-small" color="error" variant="tonal">Reset</VBtn></div></div>
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Email</span><div class="d-flex align-center gap-2"><h6 class="text-h6">{{ userData.email }}</h6><template v-if="userData.emailVerified"><VBtn size="x-small" color="success" variant="tonal" prepend-icon="bx-check-circle" disabled>Verified</VBtn><VBtn size="x-small" color="error" variant="tonal" @click="resetVerification('email')">Reset</VBtn></template><VBtn v-else size="x-small" color="primary" variant="tonal">Verify</VBtn></div></div>
                 </VCol>
                 <VCol cols="12" md="6">
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Phone</span><h6 class="text-h6">{{ userData.phone }}</h6></div>
                 </VCol>
                 <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Telegram</span><div class="d-flex align-center gap-2"><h6 class="text-h6">{{ userData.tgUsername !== '-' ? '@' + userData.tgUsername : '-' }}</h6><VBtn size="x-small" color="success" variant="tonal" prepend-icon="bx-check-circle" disabled>Verified</VBtn><VBtn size="x-small" color="error" variant="tonal">Reset</VBtn></div></div>
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Telegram</span><div class="d-flex align-center gap-2"><h6 class="text-h6">{{ userData.tgUsername !== '-' ? '@' + userData.tgUsername : '-' }}</h6><template v-if="userData.tgUsername && userData.tgUsername !== '-'"><VBtn size="x-small" color="success" variant="tonal" prepend-icon="bx-check-circle" disabled>Verified</VBtn><VBtn size="x-small" color="error" variant="tonal" @click="resetVerification('telegram')">Reset</VBtn></template><VBtn v-else size="x-small" color="primary" variant="tonal">Verify</VBtn></div></div>
                 </VCol>
                 <VCol cols="12" md="6">
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Role</span><VChip variant="tonal" color="primary" size="small" label>{{ userData.role }}</VChip></div>
