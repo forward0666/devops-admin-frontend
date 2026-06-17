@@ -194,7 +194,7 @@ const resolveAvatarColor = (name: string) => {
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Username</span><h6 class="text-h6">{{ userData.username }}</h6></div>
                 </VCol>
                 <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Email</span><div class="d-flex align-center gap-2"><h6 class="text-h6">{{ userData.email }}</h6><VBtn v-if="userData.emailVerified" size="x-small" color="success" variant="tonal" prepend-icon="bx-check-circle" disabled>Verified</VBtn><VBtn v-else size="x-small" color="warning" variant="tonal" disabled>Unverified</VBtn></div></div>
+                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Email</span><div class="d-flex align-center gap-2"><h6 class="text-h6">{{ userData.email }}</h6><VBtn v-if="userData.emailVerified" size="x-small" color="success" variant="tonal" prepend-icon="bx-check-circle" disabled>Verified</VBtn><VBtn v-else size="x-small" color="primary" variant="tonal">Verify</VBtn></div></div>
                 </VCol>
                 <VCol cols="12" md="6">
                   <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Phone</span><h6 class="text-h6">{{ userData.phone }}</h6></div>
