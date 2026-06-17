@@ -183,6 +183,8 @@ const resolveAvatarColor = (name: string) => {
         <!-- Account Tab -->
         <div v-show="activeTab === 'account'" class="mt-6">
           <VCard>
+            <VCardItem><VCardTitle>Account Details</VCardTitle></VCardItem>
+            <VDivider />
             <VCardText>
               <VRow>
                 <VCol cols="12" md="6">
