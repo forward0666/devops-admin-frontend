@@ -10,10 +10,12 @@ const errorMsg = ref('')
 onMounted(async () => {
   try {
     const success = await handleCallback()
+    console.log('[SSO Callback] handleCallback success:', success, 'token:', !!authStore.token)
     if (success && authStore.token) {
       // Keycloak token 已拿到，调后端 /login/authSSO 换 devops-admin token
       try {
         const res = await authService.ssoLogin(authStore.token)
+        console.log('[SSO Callback] authSSO response:', res)
         if (res && res.token) {
           // 替换为 devops-admin 的 token
           authStore.setSSOToken(res.token, {
@@ -23,7 +25,8 @@ onMounted(async () => {
             fullName: res.fullName,
             role: res.role,
           })
-          navigateTo(authStore.homeRoute)
+          console.log('[SSO Callback] navigating to:', authStore.homeRoute)
+          await navigateTo(authStore.homeRoute)
         }
         else {
           errorMsg.value = 'SSO 登录失败：后端未返回 token'
