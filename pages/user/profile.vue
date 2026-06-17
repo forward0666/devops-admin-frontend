@@ -178,7 +178,7 @@ const resolveAvatarColor = (name: string) => {
 
 
 
-        <!-- Security Tab -->
+        <h5 class="text-h5 mb-4">Security</h5>
         <div class="mt-6">
           <VCard title="Change Password" class="change-password-card">
             <VForm @submit.prevent="changePassword">
