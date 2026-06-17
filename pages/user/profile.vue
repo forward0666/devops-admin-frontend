@@ -57,10 +57,10 @@ async function loadProfile() {
 onMounted(() => loadProfile())
 
 const isEditDialogVisible = ref(false)
-const editForm = ref({ fullName: '', email: '', phone: '', tgUsername: '' })
+const editForm = ref({ fullName: '', email: '', phone: '', tgUsername: '', position: '' })
 
 function openEditDialog() {
-  editForm.value = { fullName: userData.fullName, email: userData.email, phone: userData.phone, tgUsername: userData.tgUsername === '-' ? '' : userData.tgUsername }
+  editForm.value = { fullName: userData.fullName, email: userData.email, phone: userData.phone, tgUsername: userData.tgUsername === '-' ? '' : userData.tgUsername, position: userData.position === '-' ? '' : userData.position }
   isEditDialogVisible.value = true
 }
 
@@ -71,11 +71,13 @@ async function saveProfile() {
       email: editForm.value.email,
       phone: editForm.value.phone,
       tgUsername: editForm.value.tgUsername,
+      position: editForm.value.position,
     })
     userData.fullName = editForm.value.fullName
     userData.email = editForm.value.email
     userData.phone = editForm.value.phone
     userData.tgUsername = editForm.value.tgUsername || '-'
+    userData.position = editForm.value.position || '-'
     isEditDialogVisible.value = false
     snackbar.value = { show: true, text: 'Profile updated', color: 'success' }
   } catch (e: any) {
@@ -234,7 +236,8 @@ const resolveAvatarColor = (name: string) => {
           <VTextField v-model="editForm.fullName" label="Full Name" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editForm.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editForm.phone" label="Phone" density="comfortable" class="mb-3" variant="outlined" />
-          <VTextField v-model="editForm.tgUsername" label="Telegram Username" density="comfortable" variant="outlined" prefix="@" />
+          <VTextField v-model="editForm.tgUsername" label="Telegram Username" density="comfortable" class="mb-3" variant="outlined" prefix="@" />
+          <VTextField v-model="editForm.position" label="Position" density="comfortable" variant="outlined" />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
