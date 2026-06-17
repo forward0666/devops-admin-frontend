@@ -39,7 +39,7 @@ logs
 .yarn
 
 # iconify dist files
-plugins/iconify/icons.css
+!plugins/iconify/icons.css
 
 # Ignore MSW script
 public/mockServiceWorker.js
