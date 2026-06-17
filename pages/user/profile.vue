@@ -180,38 +180,7 @@ const resolveAvatarColor = (name: string) => {
           <VTab value="security"><VIcon icon="bx-lock-alt" size="18" class="me-1" />Security</VTab>
         </VTabs>
 
-        <!-- Account Tab -->
-        <div v-show="activeTab === 'account'" class="mt-6">
-          <VCard>
-            <VCardItem><VCardTitle>Account Information</VCardTitle></VCardItem>
-            <VDivider />
-            <VCardText>
-              <VRow>
-                <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Full Name</span><h6 class="text-h6">{{ userData.fullName }}</h6></div>
-                </VCol>
-                <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Username</span><h6 class="text-h6">{{ userData.username }}</h6></div>
-                </VCol>
-                <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Email</span><h6 class="text-h6">{{ userData.email }}</h6></div>
-                </VCol>
-                <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Phone</span><h6 class="text-h6">{{ userData.phone }}</h6></div>
-                </VCol>
-                <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Role</span><VChip variant="tonal" color="primary" size="small" label>{{ userData.role }}</VChip></div>
-                </VCol>
-                <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Department</span><h6 class="text-h6">{{ userData.department }}</h6></div>
-                </VCol>
-                <VCol cols="12" md="6">
-                  <div class="mb-4"><span class="text-body-2 text-medium-emphasis d-block mb-1">Position</span><h6 class="text-h6">{{ userData.position }}</h6></div>
-                </VCol>
-              </VRow>
-            </VCardText>
-          </VCard>
-        </div>
+
 
         <!-- Security Tab -->
         <div v-show="activeTab === 'security'" class="mt-6">
