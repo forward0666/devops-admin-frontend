@@ -81,6 +81,9 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    server: {
+      allowedHosts: ['devops-admin.sdjk35.com'],
+    },
     define: { 'process.env': {} },
 
     resolve: {
