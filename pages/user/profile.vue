@@ -2,6 +2,7 @@
 import { userConsoleProfileService } from '~/services/api'
 import { LOGIN } from '~/constants/routes'
 const authStore = useAuthStore()
+const departmentStore = useDepartmentStore()
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const activeTab = ref('account')
@@ -54,13 +55,24 @@ async function loadProfile() {
   }
 }
 
-onMounted(() => loadProfile())
+onMounted(() => {
+  loadProfile()
+  departmentStore.fetchDepartments()
+})
 
 const isEditDialogVisible = ref(false)
-const editForm = ref({ fullName: '', email: '', phone: '', tgUsername: '', position: '' })
+const editForm = ref({ fullName: '', email: '', phone: '', tgUsername: '', position: '', departmentId: null as number | null })
 
-function openEditDialog() {
-  editForm.value = { fullName: userData.fullName, email: userData.email, phone: userData.phone, tgUsername: userData.tgUsername === '-' ? '' : userData.tgUsername, position: userData.position === '-' ? '' : userData.position }
+async function openEditDialog() {
+  const profile: any = await userConsoleProfileService.getProfile().catch(() => null)
+  editForm.value = {
+    fullName: userData.fullName,
+    email: userData.email,
+    phone: userData.phone,
+    tgUsername: userData.tgUsername === '-' ? '' : userData.tgUsername,
+    position: userData.position === '-' ? '' : userData.position,
+    departmentId: profile?.data?.departmentId || profile?.departmentId || null,
+  }
   isEditDialogVisible.value = true
 }
 
@@ -72,12 +84,14 @@ async function saveProfile() {
       phone: editForm.value.phone,
       tgUsername: editForm.value.tgUsername,
       position: editForm.value.position,
+      departmentId: editForm.value.departmentId,
     })
     userData.fullName = editForm.value.fullName
     userData.email = editForm.value.email
     userData.phone = editForm.value.phone
     userData.tgUsername = editForm.value.tgUsername || '-'
     userData.position = editForm.value.position || '-'
+    userData.department = departmentStore.departments.find((d: any) => d.id === editForm.value.departmentId)?.name || '-'
     isEditDialogVisible.value = false
     snackbar.value = { show: true, text: 'Profile updated', color: 'success' }
   } catch (e: any) {
@@ -237,7 +251,8 @@ const resolveAvatarColor = (name: string) => {
           <VTextField v-model="editForm.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editForm.phone" label="Phone" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editForm.tgUsername" label="Telegram Username" density="comfortable" class="mb-3" variant="outlined" prefix="@" />
-          <VTextField v-model="editForm.position" label="Position" density="comfortable" variant="outlined" />
+          <VTextField v-model="editForm.position" label="Position" density="comfortable" class="mb-3" variant="outlined" />
+          <VSelect v-model="editForm.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" variant="outlined" clearable />
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isEditDialogVisible = false">Cancel</VBtn>
