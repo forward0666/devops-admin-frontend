@@ -1,8 +1,16 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm build
+
 FROM nginx:1.30.1
 
 RUN mkdir -p /www/wwwroot /var/run/nginx /var/cache/nginx
 
-COPY .output/public/ /www/wwwroot/
+COPY --from=builder /app/.output/public/ /www/wwwroot/
 
 RUN chown -R nginx:nginx /www/wwwroot \
  && chown -R nginx:nginx /var/cache/nginx \
