@@ -4,12 +4,11 @@ import Keycloak from 'keycloak-js'
 let keycloak: Keycloak | null = null
 
 function getKeycloakConfig() {
-  const rc = useRuntimeConfig()
-  const url = rc.public.keycloakUrl as string
-  const realm = rc.public.keycloakRealm as string
-  const clientId = rc.public.keycloakClientId as string
+  const url = import.meta.env.VITE_KEYCLOAK_URL || useRuntimeConfig().public.keycloakUrl as string
+  const realm = import.meta.env.VITE_KEYCLOAK_REALM || useRuntimeConfig().public.keycloakRealm as string
+  const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || useRuntimeConfig().public.keycloakClientId as string
   if (!url || !realm || !clientId) {
-    console.warn('[Keycloak] Missing runtime config, using defaults')
+    console.warn('[Keycloak] Missing config')
   }
   return {
     url: url || 'https://keycloak.sdjk35.com',
