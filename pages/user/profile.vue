@@ -3,7 +3,7 @@ import { userConsoleProfileService } from '~/services/api'
 import { LOGIN } from '~/constants/routes'
 const authStore = useAuthStore()
 const departmentStore = useDepartmentStore()
-const positionStore = usePositionStore()
+const positionOptions = ['DevOps', 'Backend Developer', 'Frontend Developer', 'UI', 'Project Manager', 'Product Manager', 'QA Tester']
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 const activeTab = ref('account')
@@ -59,7 +59,6 @@ async function loadProfile() {
 onMounted(() => {
   loadProfile()
   departmentStore.fetchDepartments()
-  positionStore.fetchPositions()
 })
 
 const isEditDialogVisible = ref(false)
@@ -253,7 +252,7 @@ const resolveAvatarColor = (name: string) => {
           <VTextField v-model="editForm.email" label="Email" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editForm.phone" label="Phone" density="comfortable" class="mb-3" variant="outlined" />
           <VTextField v-model="editForm.tgUsername" label="Telegram Username" density="comfortable" class="mb-3" variant="outlined" prefix="@" />
-          <VSelect v-model="editForm.position" label="Position" :items="positionStore.positions.map((p: any) => p.name)" density="comfortable" class="mb-3" variant="outlined" clearable />
+          <VSelect v-model="editForm.position" label="Position" :items="positionOptions" density="comfortable" class="mb-3" variant="outlined" clearable />
           <VSelect v-model="editForm.departmentId" label="Department" :items="departmentStore.departments.map((d: any) => ({ title: d.name, value: d.id }))" density="comfortable" variant="outlined" clearable />
         </VCardText>
         <VCardActions class="justify-end">
