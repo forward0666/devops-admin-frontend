@@ -6,6 +6,7 @@ const departmentStore = useDepartmentStore()
 const positionOptions = ['Backend Developer', 'Frontend Developer', 'UI', 'Project Manager', 'Product Manager', 'QA Tester']
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
+const activeTab = ref('account')
 const profileLoading = ref(false)
 
 const user = computed(() => authStore.user)
@@ -174,13 +175,13 @@ const resolveAvatarColor = (name: string) => {
 
       <!-- Right Column: Tabs -->
       <VCol cols="12" md="7" lg="8">
+        <VTabs v-model="activeTab">
+          <VTab value="account"><VIcon icon="bx-user" size="18" class="me-1" />Account</VTab>
+          <VTab value="security"><VIcon icon="bx-lock-alt" size="18" class="me-1" />Security</VTab>
+        </VTabs>
 
-
-
-
-        <h5 class="text-h5"><VIcon icon="bx-user" size="20" class="me-1" />Account</h5>
-        <VDivider class="my-4" />
-        <div>
+        <!-- Account Tab -->
+        <div v-show="activeTab === 'account'" class="mt-6">
           <VCard>
             <VCardText>
               <VRow>
@@ -210,9 +211,8 @@ const resolveAvatarColor = (name: string) => {
           </VCard>
         </div>
 
-        <h5 class="text-h5 mt-6"><VIcon icon="bx-lock-alt" size="20" class="me-1" />Security</h5>
-        <VDivider class="my-4" />
-        <div>
+        <!-- Security Tab -->
+        <div v-show="activeTab === 'security'" class="mt-6">
           <VCard title="Change Password" class="change-password-card">
             <VForm @submit.prevent="changePassword">
               <VCardText class="pt-0">
