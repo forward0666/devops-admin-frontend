@@ -1,12 +1,10 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-const itToolsUrl = import.meta.env.VITE_IT_TOOLS_URL
+const itToolsUrl = import.meta.env.VITE_IT_TOOLS_URL || '/user/tool/ittool/'
 
 onMounted(() => {
-  if (itToolsUrl) {
-    window.location.href = itToolsUrl
-  }
+  window.location.href = itToolsUrl
 })
 </script>
 
