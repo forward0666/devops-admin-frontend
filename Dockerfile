@@ -1,10 +1,8 @@
 FROM node:22-alpine AS builder
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable \
- && echo 'y' | pnpm approve-builds @parcel/watcher esbuild vue-demi \
- && pnpm install --no-frozen-lockfile
+COPY package.json pnpm-lock.yaml .npmrc pnpm-workspace.yaml ./
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate && pnpm install --no-frozen-lockfile
 COPY . .
 RUN pnpm build
 
