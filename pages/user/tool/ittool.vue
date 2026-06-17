@@ -3,8 +3,8 @@ definePageMeta({ layout: 'default' })
 
 const itToolsUrl = import.meta.env.VITE_IT_TOOLS_URL || '/user/tool/ittool/'
 
-// 强制全页跳转，不走 SPA 路由
-if (import.meta.client) {
+// 强制全页跳转，避免循环
+if (import.meta.client && !window.location.pathname.endsWith('/')) {
   window.location.replace(itToolsUrl)
 }
 </script>
