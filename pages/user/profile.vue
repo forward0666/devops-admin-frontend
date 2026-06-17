@@ -35,7 +35,7 @@ async function loadProfile() {
     userData.email = data.email || '-'
     userData.role = data.role || 'user'
     userData.status = data.active !== false ? 'Active' : 'Inactive'
-    userData.department = data.department || '-'
+    userData.department = departmentStore.departments.find((d: any) => d.id === data.departmentId)?.name || data.department || '-'
     userData.phone = data.phone || '-'
     userData.position = data.position || '-'
     userData.tgUsername = data.tgUsername || '-'
@@ -56,9 +56,9 @@ async function loadProfile() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await departmentStore.fetchDepartments()
   loadProfile()
-  departmentStore.fetchDepartments()
 })
 
 const isEditDialogVisible = ref(false)
