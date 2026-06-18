@@ -112,9 +112,25 @@ const editingProjectId = ref<number | null>(null)
 const form = ref({ name: '', description: '', env: '', entries: [{ zone: '', zoneId: '', ruleId: '' }] as { zone: string; zoneId: string; ruleId: string }[] })
 const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
+const dialogDomains = ref<any[]>([])
+const dialogDomainOptions = computed(() =>
+  dialogDomains.value
+    .filter(d => d.type === 'web')
+    .map(d => ({ title: d.domain, value: d.domain, zoneId: d.zoneId || '' }))
+)
+watch(() => form.value.env, () => { if (dialog.value) fetchDialogDomains() })
 
 function addEntry() { form.value.entries.push({ zone: '', zoneId: '', ruleId: '' }) }
 function removeEntry(idx: number) { if (form.value.entries.length > 1) form.value.entries.splice(idx, 1) }
+
+async function fetchDialogDomains() {
+  const pid = editingId.value ? editingProjectId.value : selectedProject.value
+  if (!pid) { dialogDomains.value = []; return }
+  try {
+    const data = await domainService.list(String(pid))
+    dialogDomains.value = (data || []).filter((d: any) => !form.value.env || d.env === form.value.env)
+  } catch { dialogDomains.value = [] }
+}
 
 function openCreate() {
   if (!selectedProject.value || selectedProject.value === -1) {
@@ -124,6 +140,7 @@ function openCreate() {
   editingId.value = null
   form.value = { name: '', description: '', env: selectedEnv.value || '', entries: [{ zone: '', zoneId: '', ruleId: '' }] }
   dialog.value = true
+  fetchDialogDomains()
 }
 
 function openEdit(rule: any) {
@@ -143,6 +160,7 @@ function openEdit(rule: any) {
   }
   form.value = { name: rule.name || '', description: rule.description || '', env: rule.env || '', entries }
   dialog.value = true
+  fetchDialogDomains()
 }
 
 async function fetchRules() {
@@ -271,7 +289,16 @@ async function deleteRule(rule: any) {
           <VTextField v-model="form.description" label="Description" density="compact" hide-details class="mb-4" placeholder="规则描述" />
           <div class="text-caption text-medium-emphasis mb-2 font-weight-bold">Rules</div>
           <div v-for="(entry, idx) in form.entries" :key="idx" class="d-flex align-center gap-2 mb-2">
-            <VTextField v-model="entry.zone" label="Zone" density="compact" hide-details placeholder="example.com" style="flex: 1" />
+            <VSelect
+              v-model="entry.zone"
+              :items="dialogDomainOptions"
+              label="Zone"
+              density="compact"
+              hide-details
+              clearable
+              style="flex: 1"
+              @update:model-value="val => { const opt = dialogDomainOptions.find(o => o.value === val); entry.zoneId = opt?.zoneId || '' }"
+            />
             <VTextField v-model="entry.zoneId" label="Zone ID" density="compact" hide-details placeholder="abc123" style="flex: 2" />
             <VTextField v-model="entry.ruleId" label="Rule ID" density="compact" hide-details placeholder="def456" style="flex: 2" />
             <VBtn icon="bx-trash" size="small" variant="text" color="error" :disabled="form.entries.length <= 1" @click="removeEntry(idx)" />
