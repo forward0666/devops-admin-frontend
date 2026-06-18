@@ -35,6 +35,7 @@ export const DEVOPS = {
   CF_SSL: '/devops/cloudflare/ssl',
   CF_ZONE: '/devops/cloudflare/zone',
   CF_DOMAIN: '/devops/cloudflare/domain',
+  GROUP: '/devops/group',
   TG_INDEX: '/devops/telegram',
   TG_BLACKLIST: '/devops/telegram/blacklist',
   TG_CHATS: '/devops/telegram/chats',
