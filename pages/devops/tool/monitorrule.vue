@@ -1,114 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import apiClient from '~/services/api'
-import { useCfAccount } from '~/composables/useCfAccount'
 
 definePageMeta({ layout: 'default' })
 
-const CF_GATEWAY = '/cloudflare'
-const { accounts, loading: loadingAccounts, fetchAccounts, getToken } = useCfAccount()
+const MONITOR_GATEWAY = '/monitor'
 
-// State
 const rules = ref<any[]>([])
 const loading = ref(false)
 const dialog = ref(false)
-const editingId = ref<string | null>(null)
+const editingId = ref<number | null>(null)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 const saving = ref(false)
 const checkingIds = ref<number[]>([])
 
-// Form
-const form = ref({
-  name: '',
-  source: 'cloudflare' as 'cloudflare' | 'tencent' | 'custom',
-  accountId: null as number | null,
-  domains: [] as string[],
-  customDomains: '',
-  description: '',
-  enabled: true,
-})
-
-// Domain source options
-const sourceOptions = [
-  { title: 'Cloudflare', value: 'cloudflare' },
-  { title: 'Tencent', value: 'tencent' },
-  { title: 'Custom', value: 'custom' },
-]
-
-// Cloudflare domains (from dnsDomain)
-const cfDomains = ref<string[]>([])
-const loadingCfDomains = ref(false)
-
-// Tencent domains (placeholder)
-const tencentDomains = ref<string[]>([])
-const loadingTencentDomains = ref(false)
-
-
-
-// Computed
-const accountOptions = computed(() => [
-  { title: 'All', value: -1 },
-  ...accounts.value.map((a: any) => ({ title: a.name, value: a.id })),
-])
-
-const domainOptions = computed(() => {
-  if (form.value.source === 'cloudflare') {
-    return [{ title: 'All', value: 'all' }, ...cfDomains.value.map((d: string) => ({ title: d, value: d }))]
-  } else if (form.value.source === 'tencent') {
-    return [{ title: 'All', value: 'all' }, ...tencentDomains.value.map((d: string) => ({ title: d, value: d }))]
-  }
-  return []
-})
-
-// Methods
-async function fetchCfDomains() {
-  loadingCfDomains.value = true
-  try {
-    const params: Record<string, any> = {}
-    if (form.value.accountId && form.value.accountId !== -1) params.account_id = form.value.accountId
-    const { data } = await apiClient.get(`${CF_GATEWAY}/dnsDomain`, { params })
-    const records = data.data || []
-    // Extract unique domain names
-    const names = [...new Set(records.map((r: any) => r.name).filter(Boolean))]
-    cfDomains.value = names.sort()
-  } catch (e: any) {
-    console.error('Failed to fetch CF domains', e)
-  } finally {
-    loadingCfDomains.value = false
-  }
-}
-
-async function fetchTencentDomains() {
-  loadingTencentDomains.value = true
-  try {
-    // TODO: Replace with actual Tencent API call
-    tencentDomains.value = []
-  } catch (e: any) {
-    console.error('Failed to fetch Tencent domains', e)
-  } finally {
-    loadingTencentDomains.value = false
-  }
-}
-
-const MONITOR_GATEWAY = '/monitor'
+const form = ref({ name: '', description: '', enabled: true })
 
 async function fetchRules() {
   loading.value = true
   try {
     const { data } = await apiClient.get(`${MONITOR_GATEWAY}/rules`)
-    rules.value = (data.data || []).map((r: any) => {
-      let domains = r.domains
-      if (typeof domains === 'string') {
-        try { domains = JSON.parse(domains) } catch { domains = [] }
-      }
-      return {
-        ...r,
-        domains: domains || [],
-        accountId: r.account_id ?? r.accountId,
-        customDomains: r.custom_domains ?? r.customDomains ?? '',
-        lastCheck: r.last_check ?? r.lastCheck,
-      }
-    })
+    rules.value = data.data || []
   } catch (e: any) {
     console.error('Failed to fetch rules', e)
   } finally {
@@ -118,66 +30,25 @@ async function fetchRules() {
 
 function openCreate() {
   editingId.value = null
-  form.value = {
-    name: '',
-    source: 'cloudflare',
-    accountId: null,
-    domains: [],
-    customDomains: '',
-    description: '',
-  }
+  form.value = { name: '', description: '', enabled: true }
   dialog.value = true
 }
 
 function openEdit(rule: any) {
   editingId.value = rule.id
-  form.value = {
-    name: rule.name,
-    source: rule.source,
-    accountId: rule.accountId || rule.account_id || null,
-    domains: Array.isArray(rule.domains) ? [...rule.domains] : [],
-    customDomains: rule.customDomains || rule.custom_domains || '',
-    description: rule.description || '',
-    enabled: !!rule.enabled,
-  }
-  if (form.value.source === 'cloudflare' && form.value.accountId) {
-    fetchCfDomains()
-  }
+  form.value = { name: rule.name || '', description: rule.description || '', enabled: !!rule.enabled }
   dialog.value = true
 }
 
 async function save() {
-  if (!form.value.name.trim()) {
-    snackbar.value = { show: true, text: 'Name is required', color: 'error' }
-    return
-  }
-
-  if (form.value.source === 'custom' && !form.value.customDomains.trim()) {
-    snackbar.value = { show: true, text: 'Please enter at least one domain', color: 'error' }
-    return
-  }
-
-  if (form.value.source !== 'custom' && form.value.domains.length === 0) {
-    snackbar.value = { show: true, text: 'Please select at least one domain', color: 'error' }
-    return
-  }
-
+  if (!form.value.name.trim()) { snackbar.value = { show: true, text: 'Name is required', color: 'error' }; return }
   saving.value = true
   try {
-    const body = {
-      name: form.value.name,
-      source: form.value.source,
-      accountId: form.value.accountId,
-      domains: form.value.domains,
-      customDomains: form.value.customDomains,
-      description: form.value.description,
-      enabled: form.value.enabled,
-    }
     if (editingId.value) {
-      await apiClient.put(`${MONITOR_GATEWAY}/rules/${editingId.value}`, body)
+      await apiClient.put(`${MONITOR_GATEWAY}/rules/${editingId.value}`, form.value)
       snackbar.value = { show: true, text: 'Rule updated', color: 'success' }
     } else {
-      await apiClient.post(`${MONITOR_GATEWAY}/rules`, body)
+      await apiClient.post(`${MONITOR_GATEWAY}/rules`, form.value)
       snackbar.value = { show: true, text: 'Rule created', color: 'success' }
     }
     dialog.value = false
@@ -189,7 +60,7 @@ async function save() {
   }
 }
 
-async function handleDelete(id: string) {
+async function handleDelete(id: number) {
   if (!confirm('Delete this rule?')) return
   try {
     await apiClient.delete(`${MONITOR_GATEWAY}/rules/${id}`)
@@ -206,213 +77,92 @@ async function triggerCheck(id: number) {
     await apiClient.post(`${MONITOR_GATEWAY}/rules/${id}/check`)
     snackbar.value = { show: true, text: 'Check triggered', color: 'success' }
   } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to trigger check', color: 'error' }
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed', color: 'error' }
   } finally {
     checkingIds.value = checkingIds.value.filter(i => i !== id)
   }
 }
 
-// Watchers
-watch(() => form.value.domains, (val) => {
-  if (val.includes('all') && val.length > 1) {
-    // If 'all' is selected along with specific domains, just keep 'all'
-    form.value.domains = ['all']
+async function toggleEnabled(rule: any) {
+  try {
+    await apiClient.post(`${MONITOR_GATEWAY}/rules/${rule.id}/toggle`)
+    rule.enabled = !rule.enabled
+  } catch (e: any) {
+    snackbar.value = { show: true, text: 'Failed to toggle', color: 'error' }
   }
-}, { deep: true })
+}
 
-watch(() => form.value.source, (val) => {
-  form.value.domains = []
-  form.value.accountId = null
-  if (val === 'tencent' && tencentDomains.value.length === 0) {
-    fetchTencentDomains()
-  }
-})
-
-watch(() => form.value.accountId, (val) => {
-  form.value.domains = []
-  if (val) fetchCfDomains()
-})
-
-// Lifecycle
-onMounted(async () => {
-  await fetchAccounts()
-  await fetchRules()
-})
+onMounted(fetchRules)
 </script>
 
 <template>
   <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-    <!-- Header -->
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
-        <div class="flex-grow-1">
-          <h4 class="text-h4 mb-1">Monitor</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Description</p>
-        </div>
-        <VBtn color="primary" @click="openCreate">
-          <VIcon icon="bx-plus" class="me-1" /> Add Rule
-        </VBtn>
+        <VIcon icon="bx-radar" color="primary" />
+        <span class="text-h6">Monitor Rules</span>
+        <VChip size="small" color="info" variant="tonal">All domains from domain DB</VChip>
+        <VSpacer />
+        <VBtn color="primary" size="small" prepend-icon="bx-plus" @click="openCreate">Add Rule</VBtn>
       </VCardText>
     </VCard>
 
-    <!-- Rules Table -->
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-      <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <VTable v-if="rules.length > 0" class="sticky-table" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
-        <colgroup>
-          <col style="width: 200px" />
-          <col style="width: 120px" />
-          <col style="width: 250px" />
-          <col style="width: 200px" />
-          <col style="width: 180px" />
-          <col style="width: 130px" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th style="width: 200px">Name</th>
-            <th style="width: 120px">Source</th>
-            <th style="width: 250px">Domain</th>
-            <th style="width: 200px">Description</th>
-            <th style="width: 180px">Last Check</th>
-            <th style="width: 130px; text-align: center;">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="rule in rules" :key="rule.id">
-            <td class="font-weight-medium">{{ rule.name }}</td>
-            <td>
-              <VChip
-                size="x-small"
-                :color="rule.source === 'cloudflare' ? 'primary' : rule.source === 'tencent' ? 'success' : 'warning'"
-                variant="tonal"
-              >
-                {{ rule.source }}
-              </VChip>
-            </td>
-            <td>
-              <template v-if="Array.isArray(rule.domains) && rule.domains.length">
-                <VChip v-for="d in rule.domains" :key="d" size="x-small" variant="tonal" color="primary" class="me-1 mb-1">{{ d === 'all' ? 'All' : d }}</VChip>
-              </template>
-              <template v-else-if="rule.customDomains">
-                <span class="text-caption">{{ rule.customDomains }}</span>
-              </template>
-              <template v-else>
-                <span class="text-caption text-medium-emphasis">-</span>
-              </template>
-            </td>
-            <td class="text-caption text-medium-emphasis">{{ rule.description || '-' }}</td>
-            <td>
-              <div v-if="rule.last_check" class="text-caption">
-                <div>{{ new Date(rule.last_check + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</div>
-                <VChip size="x-small" :color="rule.status === 'ok' ? 'success' : rule.status === 'error' ? 'error' : 'grey'" variant="tonal" class="mt-1">{{ rule.status || '-' }}</VChip>
-              </div>
-              <span v-else class="text-caption text-medium-emphasis">Never</span>
-            </td>
-            <td style="text-align: center;">
-              <VBtn icon size="x-small" variant="text" color="success" @click="triggerCheck(rule.id)" :loading="checkingIds.includes(rule.id)">
-                <VIcon icon="bx-play" size="16" />
-              </VBtn>
-              <VBtn icon size="x-small" variant="text" color="primary" @click="openEdit(rule)">
-                <VIcon icon="bx-edit" size="16" />
-              </VBtn>
-              <VBtn icon size="x-small" variant="text" color="error" @click="handleDelete(rule.id)">
-                <VIcon icon="bx-trash" size="16" />
-              </VBtn>
-            </td>
-          </tr>
-        </tbody>
-      </VTable>
-      <VCardText v-else-if="!loading" class="text-center py-8 text-medium-emphasis">
-        <VIcon icon="bx-radar" size="48" class="mb-2" />
-        <p>No monitoring rules yet. Click "Add Rule" to create one.</p>
-      </VCardText>
+      <div class="card-scroll">
+        <VProgressLinear v-if="loading" indeterminate color="primary" />
+
+        <div v-else-if="rules.length === 0" class="text-center py-8 text-medium-emphasis">
+          <VIcon icon="bx-radar" size="48" class="mb-2" />
+          <p>No monitoring rules yet.</p>
+        </div>
+
+        <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
+          <thead>
+            <tr class="text-caption text-medium-emphasis">
+              <th style="width: 200px;">Name</th>
+              <th>Description</th>
+              <th style="width: 80px;">Enabled</th>
+              <th style="width: 100px;">Status</th>
+              <th style="width: 160px;">Last Check</th>
+              <th style="width: 120px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="rule in rules" :key="rule.id">
+              <td class="font-weight-medium">{{ rule.name }}</td>
+              <td class="text-body-2 text-medium-emphasis">{{ rule.description || '-' }}</td>
+              <td>
+                <VSwitch :model-value="rule.enabled" @click="toggleEnabled(rule)" density="compact" hide-details color="primary" />
+              </td>
+              <td>
+                <VChip size="x-small" :color="rule.status === 'ok' ? 'success' : rule.status === 'running' ? 'info' : rule.status === 'error' ? 'error' : 'grey'" variant="tonal">
+                  {{ rule.status || 'pending' }}
+                </VChip>
+              </td>
+              <td class="text-caption">
+                <template v-if="rule.last_check">
+                  {{ new Date(rule.last_check + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}
+                </template>
+                <span v-else class="text-medium-emphasis">Never</span>
+              </td>
+              <td>
+                <VBtn size="x-small" variant="tonal" color="success" class="me-1" @click="triggerCheck(rule.id)" :loading="checkingIds.includes(rule.id)">Run</VBtn>
+                <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(rule)">Edit</VBtn>
+                <VBtn size="x-small" variant="tonal" color="error" @click="handleDelete(rule.id)">Del</VBtn>
+              </td>
+            </tr>
+          </tbody>
+        </VTable>
+      </div>
     </VCard>
 
-    <!-- Dialog -->
-    <VDialog v-model="dialog" max-width="600">
+    <VDialog v-model="dialog" max-width="500">
       <VCard>
         <VCardTitle>{{ editingId ? 'Edit Rule' : 'Add Rule' }}</VCardTitle>
         <VCardText>
-          <!-- Name -->
-          <VTextField
-            v-model="form.name"
-            label="Rule Name"
-            density="compact"
-            class="mb-3"
-            hint="e.g. Production Monitor"
-            persistent-hint
-          />
-
-          <!-- Source -->
-          <VSelect
-            v-model="form.source"
-            :items="sourceOptions"
-            label="Domain Source"
-            density="compact"
-            class="mb-3"
-          />
-
-          <!-- Cloudflare: Account + Domain -->
-          <template v-if="form.source === 'cloudflare'">
-            <VSelect
-              v-model="form.accountId"
-              :items="accountOptions"
-              label="Cloudflare Account"
-              density="compact"
-              class="mb-3"
-              :loading="loadingAccounts"
-              clearable
-            />
-            <VSelect
-              v-model="form.domains"
-              :items="domainOptions"
-              label="Domain"
-              density="compact"
-              class="mb-3"
-              :loading="loadingCfDomains"
-              :disabled="!form.accountId"
-              clearable
-              multiple
-              chips
-            />
-          </template>
-
-          <!-- Tencent: Domain -->
-          <template v-if="form.source === 'tencent'">
-            <VSelect
-              v-model="form.domains"
-              :items="domainOptions"
-              label="Domain"
-              density="compact"
-              class="mb-3"
-              :loading="loadingTencentDomains"
-              clearable
-              multiple
-              chips
-            />
-          </template>
-
-          <!-- Custom: Text input -->
-          <template v-if="form.source === 'custom'">
-            <VTextarea
-              v-model="form.customDomains"
-              label="Domains"
-              density="compact"
-              class="mb-3"
-              rows="3"
-              hint="Enter one domain per line"
-              persistent-hint
-            />
-          </template>
-
-          <!-- Description -->
-          <VTextarea
-            v-model="form.description"
-            label="Description"
-            density="compact"
-            rows="2"
-            hide-details
-          />
+          <VTextField v-model="form.name" label="Rule Name" density="compact" hide-details class="mb-3" />
+          <VTextarea v-model="form.description" label="Description" density="compact" hide-details class="mb-3" rows="2" />
+          <VSwitch v-model="form.enabled" label="Enabled" density="compact" hide-details color="primary" />
         </VCardText>
         <VCardActions>
           <VSpacer />
@@ -422,34 +172,20 @@ onMounted(async () => {
       </VCard>
     </VDialog>
 
-    <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
-      {{ snackbar.text }}
-    </VSnackbar>
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
 
 <style scoped>
-.sortable {
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-}
-.sortable:hover {
-  color: rgb(var(--v-theme-primary));
-}
-.sticky-table {
-  display: flex;
-  flex-direction: column;
-}
-.sticky-table :deep(.v-table__wrapper) {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-}
-.sticky-table :deep(thead) {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: rgb(var(--v-theme-surface));
-}
+.sticky-table { display: flex; flex-direction: column; width: 100%; }
+.sticky-table :deep(.v-table__wrapper) table { table-layout: fixed !important; width: 100% !important; }
+.sticky-table :deep(th), .sticky-table :deep(td) { padding: 2px 8px !important; font-size: 13px; }
+.sticky-table :deep(.v-table__wrapper) { flex: 1; min-height: 0; overflow-y: auto; }
+.sticky-table :deep(thead) { position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface)); }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(1), .sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 200px !important; min-width: 200px !important; max-width: 200px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(3), .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(4), .sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(5), .sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 160px !important; min-width: 160px !important; max-width: 160px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(6), .sticky-table :deep(.v-table__wrapper) table td:nth-child(6) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
+.card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
