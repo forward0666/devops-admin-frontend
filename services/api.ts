@@ -518,28 +518,28 @@ export const telegramBotService = {
 // Domain Group Service
 export const domainGroupService = {
   listGroups() {
-    return request<any>({ method: 'get', url: '/domain/domain/groups' })
+    return request<any>({ method: 'get', url: '/domain/groups' })
   },
   createGroup(name: string) {
-    return request<any>({ method: 'post', url: '/domain/domain/groups', data: { name } })
+    return request<any>({ method: 'post', url: '/domain/groups', data: { name } })
   },
   updateGroup(id: string, name: string) {
-    return request<any>({ method: 'put', url: `/domain/domain/groups/${id}`, data: { name } })
+    return request<any>({ method: 'put', url: `/domain/groups/${id}`, data: { name } })
   },
   deleteGroup(id: string) {
-    return request<void>({ method: 'delete', url: `/domain/domain/groups/${id}` })
+    return request<void>({ method: 'delete', url: `/domain/groups/${id}` })
   },
   listMeta() {
-    return request<any>({ method: 'get', url: '/domain/domain/meta' })
+    return request<any>({ method: 'get', url: '/domain/meta' })
   },
   upsertMeta(data: { zoneId: string; name?: string; type?: string; remark?: string; groupId?: string; source?: string }) {
-    return request<any>({ method: 'post', url: '/domain/domain/meta', data })
+    return request<any>({ method: 'post', url: '/domain/meta', data })
   },
   batchUpsertMeta(items: any[]) {
-    return request<any>({ method: 'post', url: '/domain/domain/meta/batch', data: { items } })
+    return request<any>({ method: 'post', url: '/domain/meta/batch', data: { items } })
   },
   deleteMeta(zoneId: string) {
-    return request<void>({ method: 'delete', url: `/domain/domain/meta/${zoneId}` })
+    return request<void>({ method: 'delete', url: `/domain/meta/${zoneId}` })
   },
 }
 
