@@ -247,7 +247,7 @@ onMounted(fetchRules)
 .sticky-table :deep(.v-table__wrapper) { flex: 1; min-height: 0; overflow-y: auto; }
 .sticky-table :deep(thead) { position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface)); }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(1), .sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(2), .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(2), .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 300px !important; min-width: 300px !important; max-width: 300px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(3), .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 60px !important; min-width: 60px !important; max-width: 60px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(4), .sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(5), .sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 140px !important; min-width: 140px !important; max-width: 140px !important; }
