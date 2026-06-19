@@ -192,7 +192,7 @@ function exportCSV() {
           color="primary"
           variant="tonal"
           :loading="syncing"
-          :disabled="!selectedAccountId || selectedAccountId === -1"
+          :disabled="!selectedAccountId"
           prepend-icon="bx-refresh"
           @click="syncFromCF"
         >
