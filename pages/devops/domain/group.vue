@@ -12,7 +12,7 @@ const GROUPS_KEY = 'cf-domain-groups'
 const ASSIGN_KEY = 'cf-domain-assignments'
 const META_KEY = 'cf-domain-meta'
 
-const TYPE_OPTIONS = ['antiblock', 'admin', 'callback', 'api', 'web', 'entry']
+const TYPE_OPTIONS = ['antiblock', 'admin', 'callback', 'api', 'web', 'entry', 'other']
 
 const zones = ref<any[]>([])
 const loading = ref(false)
