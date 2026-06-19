@@ -11,7 +11,7 @@ const router = useRouter()
 const domainFilter = ref(route.query.search as string || '')
 const statusFilter = ref(route.query.status as string || '')
 const groupFilter = ref('')
-const platformFilter = ref('')
+const sourceFilter = ref('')
 const groups = ref<any[]>([])
 const zoneMeta = ref<Record<string, any>>({})
 const dnsRecords = ref<any[]>([])
@@ -79,13 +79,13 @@ const statusCodeStats = computed(() => {
   return [stats.total, stats.pub, stats.priv, stats.up, stats.s3xx, stats.s403, stats.s4xx, stats.s5xx, stats.down, stats.noData]
 })
 
-const platformOptions = computed(() => {
-  const platforms = [...new Set(dnsRecords.value.map(r => getPlatform(r.account_name)).filter(Boolean))]
+const sourceOptions = computed(() => {
+  const platforms = [...new Set(dnsRecords.value.map(r => getSource(r.account_name)).filter(Boolean))]
   return platforms.map(p => ({ title: p, value: p }))
 })
 
 
-function getPlatform(accountName: string): string {
+function getSource(accountName: string): string {
   if (!accountName) return 'Other'
   const lower = accountName.toLowerCase()
   if (lower.includes('u8')) return 'Cloudflare-U8'
@@ -106,8 +106,8 @@ const filteredRecords = computed(() => {
   if (groupFilter.value) {
     records = records.filter(r => getZoneGroupId(r) === groupFilter.value)
   }
-  if (platformFilter.value) {
-    records = records.filter(r => getPlatform(r.account_name) === platformFilter.value)
+  if (sourceFilter.value) {
+    records = records.filter(r => getSource(r.account_name) === sourceFilter.value)
   }
   if (statusFilter.value) {
     const f = statusFilter.value
@@ -327,7 +327,7 @@ async function fetchMeta() {
           style="max-width: 240px"
         />
         <VSelect v-model="groupFilter" :items="[{ title: 'All Groups', value: '' }, ...groups.map((g: any) => ({ title: g.name, value: g.id }))]" density="compact" style="max-width: 160px" hide-details clearable placeholder="Group" />
-        <VSelect v-model="platformFilter" :items="[{ title: 'All Platforms', value: '' }, ...platformOptions]" density="compact" style="max-width: 160px" hide-details clearable placeholder="Platform" />
+        <VSelect v-model="sourceFilter" :items="[{ title: 'All Sources', value: '' }, ...sourceOptions]" density="compact" style="max-width: 160px" hide-details clearable placeholder="Source" />
         <div class="d-flex align-center flex-wrap gap-2">
           <VChip size="small" color="primary" variant="tonal">Total: {{ dnsRecords.length }}</VChip>
           <VChip v-for="(count, type) in typeCounts" :key="type" size="small" :color="typeColors[type] || 'grey'" variant="tonal">
