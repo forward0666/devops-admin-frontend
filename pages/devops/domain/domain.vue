@@ -12,7 +12,6 @@ const domainFilter = ref(route.query.search as string || '')
 const statusFilter = ref(route.query.status as string || '')
 const groupFilter = ref('')
 const platformFilter = ref('')
-const envFilter = ref('')
 const groups = ref<any[]>([])
 const zoneMeta = ref<Record<string, any>>({})
 const dnsRecords = ref<any[]>([])
@@ -85,10 +84,6 @@ const platformOptions = computed(() => {
   return platforms.map(p => ({ title: p, value: p }))
 })
 
-const envOptions = computed(() => {
-  const envs = [...new Set(Object.values(zoneMeta.value).map((m: any) => m.env).filter(Boolean))]
-  return envs.map(e => ({ title: e, value: e }))
-})
 
 function getPlatform(accountName: string): string {
   if (!accountName) return 'Other'
@@ -113,9 +108,6 @@ const filteredRecords = computed(() => {
   }
   if (platformFilter.value) {
     records = records.filter(r => getPlatform(r.account_name) === platformFilter.value)
-  }
-  if (envFilter.value) {
-    records = records.filter(r => (zoneMeta.value[r.zone_id]?.env || '') === envFilter.value)
   }
   if (statusFilter.value) {
     const f = statusFilter.value
@@ -336,7 +328,6 @@ async function fetchMeta() {
         />
         <VSelect v-model="groupFilter" :items="[{ title: 'All Groups', value: '' }, ...groups.map((g: any) => ({ title: g.name, value: g.id }))]" density="compact" style="max-width: 160px" hide-details clearable placeholder="Group" />
         <VSelect v-model="platformFilter" :items="[{ title: 'All Platforms', value: '' }, ...platformOptions]" density="compact" style="max-width: 160px" hide-details clearable placeholder="Platform" />
-        <VSelect v-model="envFilter" :items="[{ title: 'All Envs', value: '' }, ...envOptions]" density="compact" style="max-width: 160px" hide-details clearable placeholder="Environment" />
         <div class="d-flex align-center flex-wrap gap-2">
           <VChip size="small" color="primary" variant="tonal">Total: {{ dnsRecords.length }}</VChip>
           <VChip v-for="(count, type) in typeCounts" :key="type" size="small" :color="typeColors[type] || 'grey'" variant="tonal">
