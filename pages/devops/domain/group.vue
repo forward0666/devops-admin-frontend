@@ -89,6 +89,14 @@ function doMove() {
   assignments.value = map; saveAssignments(map); moveDialog.value = false
 }
 
+function getCloudflareSource(accountName: string): string {
+  if (!accountName) return 'Cloudflare'
+  const lower = accountName.toLowerCase()
+  if (lower.includes('u8')) return 'Cloudflare-U8'
+  if (lower.includes('ph') || lower.includes('philippine') || lower.includes('philiipine')) return 'Cloudflare-PH'
+  return `Cloudflare-${accountName}`
+}
+
 // --- Fetch zones from all accounts ---
 async function fetchZones() {
   loading.value = true
@@ -198,16 +206,18 @@ onMounted(() => {
                 <th style="width: 300px;">Domain</th>
                 <th style="width: 120px;">Source</th>
                 <th style="width: 80px;">Type</th>
-                <th>Action</th>
+                <th>Remark</th>
+                <th style="width: 80px;">Action</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="z in zonesInGroup" :key="z.zone_id">
                 <td><code class="text-body-2">{{ z.name }}</code></td>
                 <td>
-                  <VChip size="x-small" color="orange" variant="tonal">Cloudflare</VChip>
+                  <VChip size="x-small" color="orange" variant="tonal">{{ getCloudflareSource(z.accountName) }}</VChip>
                 </td>
                 <td class="text-body-2">{{ z.type || '-' }}</td>
+                <td class="text-body-2 text-medium-emphasis">{{ z.remark || '-' }}</td>
                 <td>
                   <VBtn size="x-small" variant="tonal" color="primary" @click="openMove(z)">Move</VBtn>
                 </td>
@@ -314,5 +324,7 @@ onMounted(() => {
 .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(3),
 .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(5),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
