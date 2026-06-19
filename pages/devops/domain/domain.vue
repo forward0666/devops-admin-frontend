@@ -4,16 +4,13 @@ import apiClient from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
-const CF_GATEWAY = '/cloudflare'
+const CF_GATEWAY = '/domain'
 
 const route = useRoute()
 const router = useRouter()
-const selectedAccountId = ref<number | null>(route.query.account ? Number(route.query.account) : -1)
 const domainFilter = ref(route.query.search as string || '')
 const statusFilter = ref(route.query.status as string || '')
 const dnsRecords = ref<any[]>([])
-const accounts = ref<any[]>([])
-const loadingAccounts = ref(false)
 const loadingRecords = ref(false)
 const syncing = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
@@ -21,11 +18,6 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 // Pagination
 const page = ref(1)
 const pageSize = ref(20)
-
-const accountOptions = computed(() => [
-  { title: 'All', value: -1 },
-  ...accounts.value.map((a: any) => ({ title: a.name, value: a.id })),
-])
 
 const typeCounts = computed(() => {
   const map: Record<string, number> = {}
@@ -105,24 +97,10 @@ const filteredRecords = computed(() => {
   return records
 })
 
-async function fetchAccounts() {
-  loadingAccounts.value = true
-  try {
-    const { data } = await apiClient.get(`${CF_GATEWAY}/accounts`)
-    accounts.value = data.data || []
-  } catch (e: any) {
-    console.error('Failed to fetch accounts', e)
-  } finally {
-    loadingAccounts.value = false
-  }
-}
-
 async function fetchDnsRecords() {
   loadingRecords.value = true
   try {
-    const params: Record<string, any> = {}
-    if (selectedAccountId.value && selectedAccountId.value !== -1) params.account_id = selectedAccountId.value
-    const { data } = await apiClient.get(`/domain/dnsDomain`, { params })
+    const { data } = await apiClient.get(`${CF_GATEWAY}/dnsDomain`)
     dnsRecords.value = data.data || []
   } catch (e: any) {
     console.error('Failed to fetch DNS domains', e)
@@ -137,10 +115,9 @@ async function fetchDnsRecords() {
 async function syncDns() {
   syncing.value = true
   try {
-    const { data } = await apiClient.post(`/domain/dnsDomain/sync`, null, { timeout: 30000 })
+    const { data } = await apiClient.post(`${CF_GATEWAY}/dnsDomain/sync`, null, { timeout: 30000 })
     const synced = data.data?.synced || 0
-    const accCount = data.data?.accounts || 0
-    snackbar.value = { show: true, text: `Sync complete: ${synced} records from ${accCount} accounts`, color: 'success' }
+    snackbar.value = { show: true, text: `Sync complete: ${synced} records`, color: 'success' }
     await fetchDnsRecords()
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || e?.message || 'Sync failed', color: 'error' }
@@ -148,11 +125,6 @@ async function syncDns() {
     syncing.value = false
   }
 }
-
-watch(selectedAccountId, (val) => {
-  router.replace({ query: val !== null ? { account: String(val), search: domainFilter.value || undefined } : { search: domainFilter.value || undefined } })
-  fetchDnsRecords()
-})
 
 watch(domainFilter, () => { page.value = 1 })
 
@@ -302,16 +274,6 @@ onMounted(async () => {
     <!-- Filter bar -->
     <VCard class="mb-4" style="flex-shrink: 0;">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
-        <VSelect
-          v-model="selectedAccountId"
-          :items="accountOptions"
-          label="Account"
-          density="compact"
-          style="max-width: 180px"
-          hide-details
-          clearable
-          :loading="loadingAccounts"
-        />
         <VTextField
           v-model="domainFilter"
           prepend-inner-icon="bx-search"
