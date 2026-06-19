@@ -195,27 +195,17 @@ onMounted(() => {
           <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
             <thead>
               <tr class="text-caption text-medium-emphasis">
-                <th style="width: 250px;">Zone</th>
-                <th style="width: 100px;">Account</th>
-                <th style="width: 80px;">Status</th>
+                <th style="width: 300px;">Domain</th>
+                <th style="width: 120px;">Source</th>
                 <th style="width: 80px;">Type</th>
-                <th style="width: 80px;">Plan</th>
-                <th>Zone ID</th>
-                <th style="width: 80px;">Action</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="z in zonesInGroup" :key="z.zone_id">
                 <td><code class="text-body-2">{{ z.name }}</code></td>
                 <td class="text-body-2">{{ z.accountName || '-' }}</td>
-                <td>
-                  <VChip size="x-small" :color="z.status === 'active' ? 'success' : 'warning'" variant="tonal">
-                    {{ z.status || '-' }}
-                  </VChip>
-                </td>
                 <td class="text-body-2">{{ z.type || '-' }}</td>
-                <td class="text-body-2">{{ z.plan?.name || '-' }}</td>
-                <td><code class="text-caption">{{ z.zone_id }}</code></td>
                 <td>
                   <VBtn size="x-small" variant="tonal" color="primary" @click="openMove(z)">Move</VBtn>
                 </td>
@@ -317,16 +307,10 @@ onMounted(() => {
   background: rgb(var(--v-theme-surface));
 }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(1),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 250px !important; min-width: 250px !important; max-width: 250px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 300px !important; min-width: 300px !important; max-width: 300px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(2),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(3),
 .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(4),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(5),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(7),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(7) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
