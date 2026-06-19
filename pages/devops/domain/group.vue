@@ -283,8 +283,8 @@ onMounted(() => {
               <tr class="text-caption text-medium-emphasis">
                 <th style="width: 40px;"><VCheckbox :model-value="allSelected" :indeterminate="someSelected" @click="toggleAll" density="compact" hide-details /></th>
                 <th style="width: 200px; cursor: pointer;" @click="toggleSort('name')">Domain <VIcon :icon="sortIcon('name')" size="14" /></th>
-                <th style="width: 120px; cursor: pointer;" @click="toggleSort('source')">Source <VIcon :icon="sortIcon('source')" size="14" /></th>
-                <th style="width: 80px; cursor: pointer;" @click="toggleSort('type')">Type <VIcon :icon="sortIcon('type')" size="14" /></th>
+                <th style="width: 170px; cursor: pointer;" @click="toggleSort('source')">Source <VIcon :icon="sortIcon('source')" size="14" /></th>
+                <th style="width: 130px; cursor: pointer;" @click="toggleSort('type')">Type <VIcon :icon="sortIcon('type')" size="14" /></th>
                 <th style="cursor: pointer;" @click="toggleSort('remark')">Remark <VIcon :icon="sortIcon('remark')" size="14" /></th>
                 <th style="width: 120px;">Action</th>
               </tr>
@@ -376,8 +376,8 @@ onMounted(() => {
 .sticky-table :deep(thead) { position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface)); }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(1), .sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 40px !important; min-width: 40px !important; max-width: 40px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(2), .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 200px !important; min-width: 200px !important; max-width: 200px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(3), .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(4), .sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(3), .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 170px !important; min-width: 170px !important; max-width: 170px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(4), .sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 130px !important; min-width: 130px !important; max-width: 130px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(6), .sticky-table :deep(.v-table__wrapper) table td:nth-child(6) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
