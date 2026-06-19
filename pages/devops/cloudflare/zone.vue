@@ -43,7 +43,13 @@ async function fetchZones() {
       )
       const allZones: any[] = []
       results.forEach(z => allZones.push(...(z || [])))
-      zones.value = allZones
+      // 按 zone_id 去重
+      const seen = new Set()
+      zones.value = allZones.filter(z => {
+        if (seen.has(z.zone_id)) return false
+        seen.add(z.zone_id)
+        return true
+      })
     } else {
       const { data } = await apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: selectedAccountId.value } })
       zones.value = data.data || []
