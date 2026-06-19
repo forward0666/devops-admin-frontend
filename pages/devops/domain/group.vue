@@ -29,7 +29,7 @@ const groups = ref<any[]>([])
 async function fetchGroups() {
   try {
     const res = await domainGroupService.listGroups()
-    groups.value = res?.data || []
+    groups.value = res || []
   } catch { groups.value = [] }
 }
 
@@ -38,7 +38,7 @@ const zoneMeta = ref<Record<string, { type: string; remark: string; groupId: str
 async function fetchMeta() {
   try {
     const res = await domainGroupService.listMeta()
-    const list = res?.data || []
+    const list = res || []
     const m: Record<string, any> = {}
     for (const item of list) {
       m[item.zoneId] = { type: item.type || '', remark: item.remark || '', groupId: item.groupId || '' }
