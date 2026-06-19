@@ -63,7 +63,12 @@ const zonesInGroup = computed(() => {
   else list = zones.value.filter(z => getZoneGroupId(z) === selectedGroupId.value)
 
   // Filter
-  if (filterDomain.value) { const s = filterDomain.value.toLowerCase(); list = list.filter(z => z.name?.toLowerCase().includes(s)) }
+  if (filterDomain.value) {
+    const s = filterDomain.value.toLowerCase()
+    const before = list.length
+    list = list.filter(z => (z.name || '').toLowerCase().includes(s))
+    console.log(`[Filter] '${s}': ${before} -> ${list.length}, sample names:`, list.slice(0, 3).map(z => z.name))
+  }
 
   const key = sortKey.value
   const dir = sortDir.value === 'asc' ? 1 : -1
