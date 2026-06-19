@@ -163,7 +163,7 @@ onMounted(fetchRules)
               <th style="width: 60px;">Enabled</th>
               <th style="width: 80px;">Status</th>
               <th style="width: 140px;">Last Check</th>
-              <th style="width: 70px;">Action</th>
+              <th style="width: 60px;">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -185,9 +185,9 @@ onMounted(fetchRules)
                 <span v-else class="text-medium-emphasis">Never</span>
               </td>
               <td>
-                <VBtn size="x-small" variant="tonal" color="success" class="me-1" @click="triggerCheck(rule.id)" :loading="checkingIds.includes(rule.id)">Run</VBtn>
-                <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(rule)">Edit</VBtn>
-                <VBtn size="x-small" variant="tonal" color="error" @click="handleDelete(rule.id)">Del</VBtn>
+                <VBtn icon size="x-small" variant="text" color="success" @click="triggerCheck(rule.id)" :loading="checkingIds.includes(rule.id)"><VIcon icon="bx-play" size="16" /></VBtn>
+                <VBtn icon size="x-small" variant="text" color="info" @click="openEdit(rule)"><VIcon icon="bx-edit" size="16" /></VBtn>
+                <VBtn icon size="x-small" variant="text" color="error" @click="handleDelete(rule.id)"><VIcon icon="bx-trash" size="16" /></VBtn>
               </td>
             </tr>
           </tbody>
@@ -251,6 +251,6 @@ onMounted(fetchRules)
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(3), .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 60px !important; min-width: 60px !important; max-width: 60px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(4), .sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(5), .sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 140px !important; min-width: 140px !important; max-width: 140px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(6), .sticky-table :deep(.v-table__wrapper) table td:nth-child(6) { width: 70px !important; min-width: 70px !important; max-width: 70px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(6), .sticky-table :deep(.v-table__wrapper) table td:nth-child(6) { width: 60px !important; min-width: 60px !important; max-width: 60px !important; text-align: center; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
