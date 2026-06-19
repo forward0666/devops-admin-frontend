@@ -95,6 +95,20 @@ function toggleOne(zoneId: string) {
   selectedIds.value = s
 }
 
+// --- Add Domain ---
+const addDomainDialog = ref(false)
+const newDomainName = ref('')
+function addDomain() {
+  const name = newDomainName.value.trim().toLowerCase()
+  if (!name) return
+  const fakeZoneId = `custom_${Date.now()}`
+  zones.value.push({ zone_id: fakeZoneId, name, status: 'active', type: 'custom', accountName: 'Other' })
+  const map = { ...zoneMeta.value }
+  map[fakeZoneId] = { type: 'other', remark: '' }
+  zoneMeta.value = map; saveMeta(map)
+  newDomainName.value = ''; addDomainDialog.value = false
+}
+
 // --- Add Group ---
 const addDialog = ref(false)
 const newGroupName = ref('')
@@ -177,6 +191,7 @@ function getCloudflareSource(accountName: string): string {
   const lower = accountName.toLowerCase()
   if (lower.includes('u8')) return 'Cloudflare-U8'
   if (lower.includes('ph') || lower.includes('philippine') || lower.includes('philiipine')) return 'Cloudflare-PH'
+  if (lower === 'other') return 'Other'
   return `Cloudflare-${accountName}`
 }
 
@@ -219,7 +234,8 @@ onMounted(() => {
         <VChip v-if="selectedIds.size > 0" size="small" color="primary" variant="tonal">Selected: {{ selectedIds.size }}</VChip>
         <VSpacer />
         <VBtn v-if="selectedIds.size > 0" color="warning" size="small" prepend-icon="bx-edit" @click="openBatchEdit">Batch Edit</VBtn>
-        <VBtn color="primary" size="small" prepend-icon="bx-plus" @click="addDialog = true">Add Group</VBtn>
+        <VBtn color="success" size="small" prepend-icon="bx-plus" @click="addDomainDialog = true">Add Domain</VBtn>
+        <VBtn color="primary" size="small" prepend-icon="bx-folder-plus" @click="addDialog = true">Add Group</VBtn>
         <VBtn icon="bx-refresh" size="small" variant="tonal" color="primary" @click="fetchZones" :loading="loading" />
       </VCardText>
     </VCard>
@@ -290,6 +306,18 @@ onMounted(() => {
         </div>
       </VCard>
     </div>
+
+    <!-- Add Domain Dialog -->
+    <VDialog v-model="addDomainDialog" max-width="500">
+      <VCard>
+        <VCardTitle>Add Domain</VCardTitle>
+        <VCardText>
+          <VTextField v-model="newDomainName" label="Domain" density="compact" hide-details placeholder="example.com" autofocus @keyup.enter="addDomain" />
+          <p class="text-caption text-medium-emphasis mt-2">Type: other | Group: Default</p>
+        </VCardText>
+        <VCardActions><VSpacer /><VBtn variant="text" @click="addDomainDialog = false">Cancel</VBtn><VBtn color="success" :disabled="!newDomainName.trim()" @click="addDomain">Add</VBtn></VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- Add Group Dialog -->
     <VDialog v-model="addDialog" max-width="400">
