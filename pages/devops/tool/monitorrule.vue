@@ -14,13 +14,50 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 const saving = ref(false)
 const checkingIds = ref<number[]>([])
 
-const form = ref({ name: '', description: '', enabled: true })
+const form = ref({ name: '', description: '', enabled: true, domains: [] as string[] })
+const allDomains = ref<string[]>([])
+const domainSearch = ref('')
+const loadingDomains = ref(false)
+
+const filteredDomains = computed(() => {
+  if (!domainSearch.value) return allDomains.value
+  const s = domainSearch.value.toLowerCase()
+  return allDomains.value.filter(d => d.toLowerCase().includes(s))
+})
+const allFilteredSelected = computed(() =>
+  filteredDomains.value.length > 0 && filteredDomains.value.every(d => form.value.domains.includes(d))
+)
+
+async function fetchAllDomains() {
+  loadingDomains.value = true
+  try {
+    const { data } = await apiClient.get('/domain/domain')
+    const records = data.data || []
+    const names = [...new Set(records.map((r: any) => r.name).filter(Boolean))]
+    allDomains.value = names.sort()
+  } catch { allDomains.value = [] }
+  finally { loadingDomains.value = false }
+}
+
+function toggleAllDomains() {
+  if (allFilteredSelected.value) {
+    form.value.domains = form.value.domains.filter(d => !filteredDomains.value.includes(d))
+  } else {
+    const s = new Set(form.value.domains)
+    filteredDomains.value.forEach(d => s.add(d))
+    form.value.domains = [...s]
+  }
+}
 
 async function fetchRules() {
   loading.value = true
   try {
     const { data } = await apiClient.get(`${MONITOR_GATEWAY}/rules`)
-    rules.value = data.data || []
+    rules.value = (data.data || []).map((r: any) => ({
+      ...r,
+      domains: Array.isArray(r.domains) ? r.domains : (typeof r.domains === 'string' ? (() => { try { return JSON.parse(r.domains) } catch { return [] } })() : []),
+      enabled: !!r.enabled,
+    }))
   } catch (e: any) {
     console.error('Failed to fetch rules', e)
   } finally {
@@ -30,14 +67,16 @@ async function fetchRules() {
 
 function openCreate() {
   editingId.value = null
-  form.value = { name: '', description: '', enabled: true }
+  form.value = { name: '', description: '', enabled: true, domains: [] }
   dialog.value = true
+  fetchAllDomains()
 }
 
 function openEdit(rule: any) {
   editingId.value = rule.id
-  form.value = { name: rule.name || '', description: rule.description || '', enabled: !!rule.enabled }
+  form.value = { name: rule.name || '', description: rule.description || '', enabled: !!rule.enabled, domains: rule.domains ? [...rule.domains] : [] }
   dialog.value = true
+  fetchAllDomains()
 }
 
 async function save() {
@@ -161,6 +200,31 @@ onMounted(fetchRules)
         <VCardTitle>{{ editingId ? 'Edit Rule' : 'Add Rule' }}</VCardTitle>
         <VCardText>
           <VTextField v-model="form.name" label="Rule Name" density="compact" hide-details class="mb-3" />
+
+          <!-- Domain selector -->
+          <div class="mb-3">
+            <div class="text-caption text-medium-emphasis mb-1">Domains (check to include)</div>
+            <VTextField v-model="domainSearch" prepend-inner-icon="bx-search" placeholder="Search domains..." density="compact" hide-details clearable class="mb-2" />
+            <div class="d-flex align-center gap-2 mb-1">
+              <VCheckbox :model-value="allFilteredSelected" :indeterminate="form.domains.length > 0 && !allFilteredSelected" @click="toggleAllDomains" label="Select All" density="compact" hide-details class="ma-0 pa-0" />
+              <VChip size="x-small" color="primary" variant="tonal">{{ form.domains.length }} selected</VChip>
+            </div>
+            <div style="max-height: 200px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.12); border-radius: 4px; padding: 4px 8px;">
+              <div v-if="loadingDomains" class="text-center py-2"><VProgressCircular indeterminate size="20" /></div>
+              <div v-else-if="filteredDomains.length === 0" class="text-caption text-medium-emphasis py-2">No domains found</div>
+              <VCheckbox
+                v-for="d in filteredDomains"
+                :key="d"
+                :model-value="form.domains.includes(d)"
+                @click="form.domains.includes(d) ? form.domains = form.domains.filter(x => x !== d) : form.domains.push(d)"
+                :label="d"
+                density="compact"
+                hide-details
+                class="ma-0 pa-0"
+              />
+            </div>
+          </div>
+
           <VTextarea v-model="form.description" label="Description" density="compact" hide-details class="mb-3" rows="2" />
           <VSwitch v-model="form.enabled" label="Enabled" density="compact" hide-details color="primary" />
         </VCardText>
