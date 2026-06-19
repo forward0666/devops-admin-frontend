@@ -36,7 +36,7 @@ apiClient.interceptors.request.use(
       } else if (url.startsWith('/cloudflare/')) {
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_CF_SECRET || ''
       } else if (url.startsWith('/domain/')) {
-        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_DOMAIN_SECRET || import.meta.env.VITE_CF_SECRET || ''
+        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_DOMAIN_SECRET || ''
       } else if (url.startsWith('/agent/')) {
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_AGENT_SECRET || import.meta.env.VITE_GATEWAY_SECRET || ''
       } else if (url.startsWith('/monitor/')) {
