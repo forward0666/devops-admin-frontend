@@ -261,7 +261,6 @@ onMounted(init)
         <VChip v-if="selectedIds.size > 0" size="small" color="primary" variant="tonal">Selected: {{ selectedIds.size }}</VChip>
         <VSpacer />
         <VBtn v-if="selectedIds.size > 0" color="warning" size="small" prepend-icon="bx-edit" @click="openBatchEdit">Batch Edit</VBtn>
-        <VBtn color="success" size="small" prepend-icon="bx-plus" @click="addDomainDialog = true">Add Domain</VBtn>
         <VBtn color="primary" size="small" prepend-icon="bx-folder-plus" @click="addDialog = true">Add Group</VBtn>
         <VBtn icon="bx-refresh" size="small" variant="tonal" color="primary" @click="init" :loading="loading" />
       </VCardText>
