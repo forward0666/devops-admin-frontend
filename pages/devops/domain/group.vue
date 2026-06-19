@@ -12,9 +12,23 @@ const GROUPS_KEY = 'cf-domain-groups'
 const ASSIGN_KEY = 'cf-domain-assignments'
 const META_KEY = 'cf-domain-meta'
 
+const TYPE_OPTIONS = ['antiblock', 'admin', 'callback', 'api', 'web', 'entry']
+
 const zones = ref<any[]>([])
 const loading = ref(false)
 const selectedGroupId = ref<string>('all')
+
+// --- Sort ---
+const sortKey = ref<string>('name')
+const sortDir = ref<'asc' | 'desc'>('asc')
+function toggleSort(key: string) {
+  if (sortKey.value === key) sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  else { sortKey.value = key; sortDir.value = 'asc' }
+}
+function sortIcon(key: string) {
+  if (sortKey.value !== key) return 'bx-sort'
+  return sortDir.value === 'asc' ? 'bx-sort-up' : 'bx-sort-down'
+}
 
 // --- Groups ---
 const groups = ref<DomainGroup[]>([])
@@ -35,17 +49,32 @@ function loadMeta(): Record<string, { type: string; remark: string }> {
 function saveMeta(map: Record<string, any>) { localStorage.setItem(META_KEY, JSON.stringify(map)) }
 const zoneMeta = ref<Record<string, { type: string; remark: string }>>({})
 
-function getZoneType(z: any): string { return zoneMeta.value[z.zone_id]?.type || z.type || '' }
+function getZoneType(z: any): string { return zoneMeta.value[z.zone_id]?.type || '' }
 function getZoneRemark(z: any): string { return zoneMeta.value[z.zone_id]?.remark || '' }
 
 // --- Domain lists ---
 const ungroupedZones = computed(() => zones.value.filter(z => !assignments.value[z.zone_id]))
 const allZones = computed(() => zones.value)
 const zonesInGroup = computed(() => {
-  if (selectedGroupId.value === 'all') return allZones.value
-  if (selectedGroupId.value === 'default') return ungroupedZones.value
-  return zones.value.filter(z => assignments.value[z.zone_id] === selectedGroupId.value)
+  let list: any[]
+  if (selectedGroupId.value === 'all') list = allZones.value
+  else if (selectedGroupId.value === 'default') list = ungroupedZones.value
+  else list = zones.value.filter(z => assignments.value[z.zone_id] === selectedGroupId.value)
+
+  // Sort
+  const key = sortKey.value
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  return [...list].sort((a, b) => {
+    let va: string, vb: string
+    if (key === 'name') { va = a.name || ''; vb = b.name || '' }
+    else if (key === 'source') { va = getCloudflareSource(a.accountName); vb = getCloudflareSource(b.accountName) }
+    else if (key === 'type') { va = getZoneType(a); vb = getZoneType(b) }
+    else if (key === 'remark') { va = getZoneRemark(a); vb = getZoneRemark(b) }
+    else { va = ''; vb = '' }
+    return va.localeCompare(vb) * dir
+  })
 })
+
 const groupCounts = computed(() => {
   const m: Record<string, number> = { all: zones.value.length, default: ungroupedZones.value.length }
   for (const g of groups.value) m[g.id] = zones.value.filter(z => assignments.value[z.zone_id] === g.id).length
@@ -237,10 +266,10 @@ onMounted(() => {
             <thead>
               <tr class="text-caption text-medium-emphasis">
                 <th style="width: 40px;"><VCheckbox :model-value="allSelected" :indeterminate="someSelected" @click="toggleAll" density="compact" hide-details /></th>
-                <th style="width: 200px;">Domain</th>
-                <th style="width: 120px;">Source</th>
-                <th style="width: 80px;">Type</th>
-                <th>Remark</th>
+                <th style="width: 200px; cursor: pointer;" @click="toggleSort('name')">Domain <VIcon :icon="sortIcon('name')" size="14" /></th>
+                <th style="width: 120px; cursor: pointer;" @click="toggleSort('source')">Source <VIcon :icon="sortIcon('source')" size="14" /></th>
+                <th style="width: 80px; cursor: pointer;" @click="toggleSort('type')">Type <VIcon :icon="sortIcon('type')" size="14" /></th>
+                <th style="cursor: pointer;" @click="toggleSort('remark')">Remark <VIcon :icon="sortIcon('remark')" size="14" /></th>
                 <th style="width: 120px;">Action</th>
               </tr>
             </thead>
@@ -299,7 +328,7 @@ onMounted(() => {
         <VCardText>
           <div v-if="editTargets.length === 1" class="mb-3"><code>{{ editTargets[0]?.name }}</code></div>
           <div v-else class="mb-3 text-caption text-medium-emphasis">{{ editTargets.map(z => z.name).join(', ') }}</div>
-          <VSelect v-model="editType" :items="['', 'web', 'api', 'cdn', 'saas', 'other']" label="Type" density="compact" hide-details class="mb-3" clearable />
+          <VSelect v-model="editType" :items="TYPE_OPTIONS" label="Type" density="compact" hide-details class="mb-3" clearable />
           <VTextField v-model="editRemark" label="Remark" density="compact" hide-details placeholder="备注信息" />
         </VCardText>
         <VCardActions><VSpacer /><VBtn variant="text" @click="editDialog = false">Cancel</VBtn><VBtn color="primary" @click="doEdit">Save</VBtn></VCardActions>
