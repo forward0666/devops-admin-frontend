@@ -513,4 +513,32 @@ export const telegramBotService = {
   },
 }
 
+// Domain Group Service (CF domain management)
+export const domainGroupService = {
+  listGroups() {
+    return request<any>({ method: 'get', url: '/cloudflare/domain/groups' })
+  },
+  createGroup(name: string) {
+    return request<any>({ method: 'post', url: '/cloudflare/domain/groups', data: { name } })
+  },
+  updateGroup(id: string, name: string) {
+    return request<any>({ method: 'put', url: `/cloudflare/domain/groups/${id}`, data: { name } })
+  },
+  deleteGroup(id: string) {
+    return request<void>({ method: 'delete', url: `/cloudflare/domain/groups/${id}` })
+  },
+  listMeta() {
+    return request<any>({ method: 'get', url: '/cloudflare/domain/meta' })
+  },
+  upsertMeta(data: { zoneId: string; name?: string; type?: string; remark?: string; groupId?: string; source?: string }) {
+    return request<any>({ method: 'post', url: '/cloudflare/domain/meta', data })
+  },
+  batchUpsertMeta(items: any[]) {
+    return request<any>({ method: 'post', url: '/cloudflare/domain/meta/batch', data: { items } })
+  },
+  deleteMeta(zoneId: string) {
+    return request<void>({ method: 'delete', url: `/cloudflare/domain/meta/${zoneId}` })
+  },
+}
+
 export default apiClient

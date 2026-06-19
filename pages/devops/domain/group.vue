@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import apiClient from '~/services/api'
+import apiClient, { domainGroupService } from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
 const CF_GATEWAY = '/cloudflare'
-
-interface DomainGroup { id: string; name: string }
-
-const GROUPS_KEY = 'cf-domain-groups'
-const ASSIGN_KEY = 'cf-domain-assignments'
-const META_KEY = 'cf-domain-meta'
 
 const TYPE_OPTIONS = ['antiblock', 'admin', 'callback', 'api', 'web', 'entry', 'other']
 
@@ -30,38 +24,42 @@ function sortIcon(key: string) {
   return sortDir.value === 'asc' ? 'bx-sort-up' : 'bx-sort-down'
 }
 
-// --- Groups ---
-const groups = ref<DomainGroup[]>([])
-function loadGroups() {
-  try { groups.value = JSON.parse(localStorage.getItem(GROUPS_KEY) || '[]') } catch { groups.value = [] }
+// --- Groups (from backend) ---
+const groups = ref<any[]>([])
+async function fetchGroups() {
+  try {
+    const res = await domainGroupService.listGroups()
+    groups.value = res?.data || []
+  } catch { groups.value = [] }
 }
-function saveGroups() { localStorage.setItem(GROUPS_KEY, JSON.stringify(groups.value)) }
-function loadAssignments(): Record<string, string> {
-  try { return JSON.parse(localStorage.getItem(ASSIGN_KEY) || '{}') } catch { return {} }
-}
-function saveAssignments(map: Record<string, string>) { localStorage.setItem(ASSIGN_KEY, JSON.stringify(map)) }
-const assignments = ref<Record<string, string>>({})
 
-// --- Zone Meta (type, remark) ---
-function loadMeta(): Record<string, { type: string; remark: string }> {
-  try { return JSON.parse(localStorage.getItem(META_KEY) || '{}') } catch { return {} }
+// --- Zone Meta (from backend) ---
+const zoneMeta = ref<Record<string, { type: string; remark: string; groupId: string }>>({})
+async function fetchMeta() {
+  try {
+    const res = await domainGroupService.listMeta()
+    const list = res?.data || []
+    const m: Record<string, any> = {}
+    for (const item of list) {
+      m[item.zoneId] = { type: item.type || '', remark: item.remark || '', groupId: item.groupId || '' }
+    }
+    zoneMeta.value = m
+  } catch { zoneMeta.value = {} }
 }
-function saveMeta(map: Record<string, any>) { localStorage.setItem(META_KEY, JSON.stringify(map)) }
-const zoneMeta = ref<Record<string, { type: string; remark: string }>>({})
 
 function getZoneType(z: any): string { return zoneMeta.value[z.zone_id]?.type || '' }
 function getZoneRemark(z: any): string { return zoneMeta.value[z.zone_id]?.remark || '' }
+function getZoneGroupId(z: any): string { return zoneMeta.value[z.zone_id]?.groupId || '' }
 
 // --- Domain lists ---
-const ungroupedZones = computed(() => zones.value.filter(z => !assignments.value[z.zone_id]))
+const ungroupedZones = computed(() => zones.value.filter(z => !getZoneGroupId(z)))
 const allZones = computed(() => zones.value)
 const zonesInGroup = computed(() => {
   let list: any[]
   if (selectedGroupId.value === 'all') list = allZones.value
   else if (selectedGroupId.value === 'default') list = ungroupedZones.value
-  else list = zones.value.filter(z => assignments.value[z.zone_id] === selectedGroupId.value)
+  else list = zones.value.filter(z => getZoneGroupId(z) === selectedGroupId.value)
 
-  // Sort
   const key = sortKey.value
   const dir = sortDir.value === 'asc' ? 1 : -1
   return [...list].sort((a, b) => {
@@ -77,7 +75,7 @@ const zonesInGroup = computed(() => {
 
 const groupCounts = computed(() => {
   const m: Record<string, number> = { all: zones.value.length, default: ungroupedZones.value.length }
-  for (const g of groups.value) m[g.id] = zones.value.filter(z => assignments.value[z.zone_id] === g.id).length
+  for (const g of groups.value) m[g.id] = zones.value.filter(z => getZoneGroupId(z) === g.id).length
   return m
 })
 
@@ -95,47 +93,39 @@ function toggleOne(zoneId: string) {
   selectedIds.value = s
 }
 
-// --- Add Domain ---
-const addDomainDialog = ref(false)
-const newDomainName = ref('')
-function addDomain() {
-  const name = newDomainName.value.trim().toLowerCase()
-  if (!name) return
-  const fakeZoneId = `custom_${Date.now()}`
-  zones.value.push({ zone_id: fakeZoneId, name, status: 'active', type: 'custom', accountName: 'Other' })
-  const map = { ...zoneMeta.value }
-  map[fakeZoneId] = { type: 'other', remark: '' }
-  zoneMeta.value = map; saveMeta(map)
-  newDomainName.value = ''; addDomainDialog.value = false
-}
-
 // --- Add Group ---
 const addDialog = ref(false)
 const newGroupName = ref('')
-function addGroup() {
+async function addGroup() {
   if (!newGroupName.value.trim()) return
-  groups.value.push({ id: `g_${Date.now()}`, name: newGroupName.value.trim() })
-  saveGroups(); newGroupName.value = ''; addDialog.value = false
+  try {
+    await domainGroupService.createGroup(newGroupName.value.trim())
+    await fetchGroups()
+    newGroupName.value = ''; addDialog.value = false
+  } catch (e: any) { alert(e?.response?.data?.detail || e.message) }
 }
 
 // --- Rename Group ---
 const renameDialog = ref(false)
-const renameTarget = ref<DomainGroup | null>(null)
+const renameTarget = ref<any>(null)
 const renameName = ref('')
-function openRename(g: DomainGroup) { renameTarget.value = g; renameName.value = g.name; renameDialog.value = true }
-function doRename() {
+function openRename(g: any) { renameTarget.value = g; renameName.value = g.name; renameDialog.value = true }
+async function doRename() {
   if (!renameTarget.value || !renameName.value.trim()) return
-  renameTarget.value.name = renameName.value.trim(); saveGroups(); renameDialog.value = false
+  try {
+    await domainGroupService.updateGroup(renameTarget.value.id, renameName.value.trim())
+    await fetchGroups(); renameDialog.value = false
+  } catch (e: any) { alert(e?.response?.data?.detail || e.message) }
 }
 
 // --- Delete Group ---
-function deleteGroup(g: DomainGroup) {
+async function deleteGroup(g: any) {
   if (!confirm(`Delete "${g.name}"? Domains will move to Default.`)) return
-  const map = { ...assignments.value }
-  for (const [did, gid] of Object.entries(map)) { if (gid === g.id) delete map[did] }
-  assignments.value = map; saveAssignments(map)
-  groups.value = groups.value.filter(x => x.id !== g.id); saveGroups()
-  if (selectedGroupId.value === g.id) selectedGroupId.value = 'all'
+  try {
+    await domainGroupService.deleteGroup(g.id)
+    await fetchGroups(); await fetchMeta()
+    if (selectedGroupId.value === g.id) selectedGroupId.value = 'all'
+  } catch (e: any) { alert(e?.response?.data?.detail || e.message) }
 }
 
 // --- Move Domain ---
@@ -143,14 +133,19 @@ const moveDialog = ref(false)
 const moveTarget = ref<any>(null)
 const moveTargetGroup = ref<string>('')
 function openMove(zone: any) {
-  moveTarget.value = zone; moveTargetGroup.value = assignments.value[zone.zone_id] || ''; moveDialog.value = true
+  moveTarget.value = zone; moveTargetGroup.value = getZoneGroupId(zone); moveDialog.value = true
 }
-function doMove() {
+async function doMove() {
   if (!moveTarget.value) return
-  const map = { ...assignments.value }
-  if (moveTargetGroup.value) map[moveTarget.value.zone_id] = moveTargetGroup.value
-  else delete map[moveTarget.value.zone_id]
-  assignments.value = map; saveAssignments(map); moveDialog.value = false
+  try {
+    await domainGroupService.upsertMeta({
+      zoneId: moveTarget.value.zone_id,
+      name: moveTarget.value.name,
+      groupId: moveTargetGroup.value,
+      source: getCloudflareSource(moveTarget.value.accountName),
+    })
+    await fetchMeta(); moveDialog.value = false
+  } catch (e: any) { alert(e?.response?.data?.detail || e.message) }
 }
 
 // --- Edit (single + batch) ---
@@ -173,26 +168,45 @@ function openBatchEdit() {
   editRemark.value = ''
   editDialog.value = true
 }
-function doEdit() {
-  const map = { ...zoneMeta.value }
-  for (const z of editTargets.value) {
-    const existing = map[z.zone_id] || { type: '', remark: '' }
-    map[z.zone_id] = {
-      type: editType.value || existing.type,
-      remark: editRemark.value !== undefined ? editRemark.value : existing.remark,
-    }
-  }
-  zoneMeta.value = map; saveMeta(map)
-  editDialog.value = false; selectedIds.value = new Set()
+async function doEdit() {
+  try {
+    const items = editTargets.value.map(z => ({
+      zoneId: z.zone_id,
+      name: z.name,
+      type: editType.value || undefined,
+      remark: editRemark.value !== undefined ? editRemark.value : undefined,
+      source: getCloudflareSource(z.accountName),
+    }))
+    await domainGroupService.batchUpsertMeta(items)
+    await fetchMeta()
+    editDialog.value = false; selectedIds.value = new Set()
+  } catch (e: any) { alert(e?.response?.data?.detail || e.message) }
 }
 
 function getCloudflareSource(accountName: string): string {
-  if (!accountName) return 'Cloudflare'
+  if (!accountName) return 'Other'
   const lower = accountName.toLowerCase()
   if (lower.includes('u8')) return 'Cloudflare-U8'
   if (lower.includes('ph') || lower.includes('philippine') || lower.includes('philiipine')) return 'Cloudflare-PH'
   if (lower === 'other') return 'Other'
   return `Cloudflare-${accountName}`
+}
+
+// --- Add Domain ---
+const addDomainDialog = ref(false)
+const newDomainName = ref('')
+async function addDomain() {
+  const name = newDomainName.value.trim().toLowerCase()
+  if (!name) return
+  const fakeZoneId = `custom_${Date.now()}`
+  // Add to zones list locally
+  zones.value.push({ zone_id: fakeZoneId, name, status: 'active', type: 'custom', accountName: 'Other' })
+  // Save meta to backend
+  try {
+    await domainGroupService.upsertMeta({ zoneId: fakeZoneId, name, type: 'other', source: 'Other' })
+    await fetchMeta()
+  } catch { /* ignore */ }
+  newDomainName.value = ''; addDomainDialog.value = false
 }
 
 // --- Fetch zones from all accounts ---
@@ -218,9 +232,11 @@ async function fetchZones() {
   }
 }
 
-onMounted(() => {
-  loadGroups(); assignments.value = loadAssignments(); zoneMeta.value = loadMeta(); fetchZones()
-})
+async function init() {
+  await Promise.all([fetchGroups(), fetchMeta(), fetchZones()])
+}
+
+onMounted(init)
 </script>
 
 <template>
@@ -236,7 +252,7 @@ onMounted(() => {
         <VBtn v-if="selectedIds.size > 0" color="warning" size="small" prepend-icon="bx-edit" @click="openBatchEdit">Batch Edit</VBtn>
         <VBtn color="success" size="small" prepend-icon="bx-plus" @click="addDomainDialog = true">Add Domain</VBtn>
         <VBtn color="primary" size="small" prepend-icon="bx-folder-plus" @click="addDialog = true">Add Group</VBtn>
-        <VBtn icon="bx-refresh" size="small" variant="tonal" color="primary" @click="fetchZones" :loading="loading" />
+        <VBtn icon="bx-refresh" size="small" variant="tonal" color="primary" @click="init" :loading="loading" />
       </VCardText>
     </VCard>
 
@@ -343,7 +359,7 @@ onMounted(() => {
         <VCardTitle>Move Zone</VCardTitle>
         <VCardText>
           <p class="text-body-2 mb-3"><code>{{ moveTarget?.name }}</code></p>
-          <VSelect v-model="moveTargetGroup" :items="[{ title: 'Default (Ungrouped)', value: '' }, ...groups.map(g => ({ title: g.name, value: g.id }))]" label="Move to Group" density="compact" hide-details />
+          <VSelect v-model="moveTargetGroup" :items="[{ title: 'Default (Ungrouped)', value: '' }, ...groups.map((g: any) => ({ title: g.name, value: g.id }))]" label="Move to Group" density="compact" hide-details />
         </VCardText>
         <VCardActions><VSpacer /><VBtn variant="text" @click="moveDialog = false">Cancel</VBtn><VBtn color="primary" @click="doMove">Move</VBtn></VCardActions>
       </VCard>
