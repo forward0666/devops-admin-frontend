@@ -204,7 +204,9 @@ onMounted(() => {
             <tbody>
               <tr v-for="z in zonesInGroup" :key="z.zone_id">
                 <td><code class="text-body-2">{{ z.name }}</code></td>
-                <td class="text-body-2">{{ z.accountName || '-' }}</td>
+                <td>
+                  <VChip size="x-small" color="orange" variant="tonal">Cloudflare</VChip>
+                </td>
                 <td class="text-body-2">{{ z.type || '-' }}</td>
                 <td>
                   <VBtn size="x-small" variant="tonal" color="primary" @click="openMove(z)">Move</VBtn>
