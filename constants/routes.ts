@@ -34,7 +34,7 @@ export const DEVOPS = {
   CF_MANAGED: '/devops/cloudflare/managed',
   CF_SSL: '/devops/cloudflare/ssl',
   CF_ZONE: '/devops/cloudflare/zone',
-  CF_DOMAIN: '/devops/cloudflare/domain',
+  CF_DOMAIN: '/devops/domain/domain',
   DOMAIN_GROUP: '/devops/domain/group',
   TG_INDEX: '/devops/telegram',
   TG_BLACKLIST: '/devops/telegram/blacklist',

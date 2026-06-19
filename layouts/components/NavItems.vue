@@ -216,7 +216,6 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'Cache', to: DEVOPS.CF_CACHE }" />
         <VerticalNavLink :item="{ title: 'DDoS', to: DEVOPS.CF_DDOS }" />
         <VerticalNavLink :item="{ title: 'Managed', to: DEVOPS.CF_MANAGED }" />
-        <VerticalNavLink :item="{ title: 'Domain', to: DEVOPS.CF_DOMAIN }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
@@ -225,6 +224,7 @@ const isProjectActive = (projectId: number) => {
           icon: 'bx-globe',
         }"
       >
+        <VerticalNavLink :item="{ title: 'Domain', to: DEVOPS.CF_DOMAIN }" />
         <VerticalNavLink :item="{ title: 'Group', to: DEVOPS.DOMAIN_GROUP }" />
       </VerticalNavGroup>
 
