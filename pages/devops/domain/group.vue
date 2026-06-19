@@ -203,7 +203,7 @@ onMounted(() => {
           <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
             <thead>
               <tr class="text-caption text-medium-emphasis">
-                <th style="width: 300px;">Domain</th>
+                <th style="width: 200px;">Domain</th>
                 <th style="width: 120px;">Source</th>
                 <th style="width: 80px;">Type</th>
                 <th>Remark</th>
@@ -319,7 +319,7 @@ onMounted(() => {
   background: rgb(var(--v-theme-surface));
 }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(1),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 300px !important; min-width: 300px !important; max-width: 300px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 200px !important; min-width: 200px !important; max-width: 200px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(2),
 .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(3),
