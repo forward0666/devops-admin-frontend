@@ -66,20 +66,24 @@ async function fetchDnsRecords() {
 }
 
 async function syncFromCF() {
-  if (!selectedAccountId.value) return
+  if (!selectedAccountId.value && selectedAccountId.value !== -1) return
   syncing.value = true
   try {
-    const token = await getToken(selectedAccountId.value)
-    const { data } = await apiClient.post(
-      `${CF_GATEWAY}/dns/sync`,
-      null,
-      {
-        params: { account_id: selectedAccountId.value },
-        headers: { 'X-Cf-Token': token },
-        timeout: 200000,
-      },
-    )
-    snackbar.value = { show: true, text: `Synced ${data.data?.synced || 0} DNS records`, color: 'success' }
+    const isAll = selectedAccountId.value === -1
+    if (isAll) {
+      const { data } = await apiClient.post(`${CF_GATEWAY}/dns/syncAll`, null, { timeout: 300000 })
+      const results = data.data || []
+      const summary = results.map((r: any) => `${r.account_name}: ${r.data?.synced || 0}`).join(', ')
+      snackbar.value = { show: true, text: `Synced all: ${summary}`, color: 'success' }
+    } else {
+      const token = await getToken(selectedAccountId.value)
+      const { data } = await apiClient.post(
+        `${CF_GATEWAY}/dns/sync`,
+        null,
+        { params: { account_id: selectedAccountId.value }, headers: { 'X-Cf-Token': token }, timeout: 300000 },
+      )
+      snackbar.value = { show: true, text: `Synced ${data.data?.synced || 0} DNS records`, color: 'success' }
+    }
     await fetchDnsRecords()
   } catch (e: any) {
     let detail: string = e?.response?.data?.detail || 'Sync failed'
@@ -239,7 +243,7 @@ function exportCSV() {
           color="primary"
           variant="tonal"
           :loading="syncing"
-          :disabled="!selectedAccountId || selectedAccountId === -1"
+          :disabled="!selectedAccountId"
           prepend-icon="bx-refresh"
           @click="syncFromCF"
         >
