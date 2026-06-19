@@ -158,11 +158,11 @@ onMounted(fetchRules)
         <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
           <thead>
             <tr class="text-caption text-medium-emphasis">
-              <th style="width: 150px;">Name</th>
+              <th style="width: 120px;">Name</th>
               <th>Description</th>
-              <th style="width: 80px;">Enabled</th>
-              <th style="width: 100px;">Status</th>
-              <th style="width: 160px;">Last Check</th>
+              <th style="width: 60px;">Enabled</th>
+              <th style="width: 80px;">Status</th>
+              <th style="width: 140px;">Last Check</th>
               <th style="width: 70px;">Action</th>
             </tr>
           </thead>
@@ -246,11 +246,11 @@ onMounted(fetchRules)
 .sticky-table :deep(th), .sticky-table :deep(td) { padding: 2px 8px !important; font-size: 13px; }
 .sticky-table :deep(.v-table__wrapper) { flex: 1; min-height: 0; overflow-y: auto; }
 .sticky-table :deep(thead) { position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface)); }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(1), .sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 150px !important; min-width: 150px !important; max-width: 150px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(2), .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { max-width: 300px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(3), .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(4), .sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(5), .sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 160px !important; min-width: 160px !important; max-width: 160px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(1), .sticky-table :deep(.v-table__wrapper) table td:nth-child(1) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(2), .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(3), .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 60px !important; min-width: 60px !important; max-width: 60px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(4), .sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(5), .sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 140px !important; min-width: 140px !important; max-width: 140px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(6), .sticky-table :deep(.v-table__wrapper) table td:nth-child(6) { width: 70px !important; min-width: 70px !important; max-width: 70px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
