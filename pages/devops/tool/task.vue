@@ -28,7 +28,7 @@ const form = ref({
 const typeOptions = [
   { title: 'Check Domain', value: 'check_domain', color: 'warning' },
   { title: 'Sync Cloudflare Zone', value: 'sync_zone', color: 'info' },
-  { title: 'Sync Cloudflare Domain', value: 'sync_domain', color: 'info' },
+  { title: 'Sync Domain', value: 'sync_domain', color: 'info' },
   { title: 'Sync Cloudflare DNS', value: 'sync_dns', color: 'primary' },
   { title: 'Sync Cloudflare Security', value: 'sync_security', color: 'error' },
   { title: 'Sync Cloudflare Cache', value: 'sync_cache', color: 'success' },
