@@ -261,10 +261,6 @@ function exportCSV() {
 }
 
 onMounted(async () => {
-  await fetchAccounts()
-  if (!selectedAccountId.value && accounts.value.length > 0) {
-    selectedAccountId.value = null
-  }
   await fetchDnsRecords()
 })
 </script>
