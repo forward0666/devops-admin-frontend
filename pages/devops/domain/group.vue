@@ -1,59 +1,46 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { userConsoleProjectService as projectService, userConsoleDomainService as domainService } from '~/services/api'
+import apiClient from '~/services/api'
 
 definePageMeta({ layout: 'default' })
+
+const CF_GATEWAY = '/cloudflare'
 
 interface DomainGroup { id: string; name: string }
 
 const GROUPS_KEY = 'cf-domain-groups'
 const ASSIGN_KEY = 'cf-domain-assignments'
 
-const projects = ref<any[]>([])
-const domains = ref<any[]>([])
+const zones = ref<any[]>([])
 const loading = ref(false)
-const selectedGroupId = ref<string>('default')
+const selectedGroupId = ref<string>('all')
 
 // --- Groups ---
 const groups = ref<DomainGroup[]>([])
-const groupMap = computed(() => {
-  const m = new Map<string, DomainGroup>()
-  for (const g of groups.value) m.set(g.id, g)
-  return m
-})
 
 function loadGroups() {
-  try {
-    const raw = localStorage.getItem(GROUPS_KEY)
-    groups.value = raw ? JSON.parse(raw) : []
-  } catch { groups.value = [] }
+  try { groups.value = JSON.parse(localStorage.getItem(GROUPS_KEY) || '[]') } catch { groups.value = [] }
 }
-function saveGroups() {
-  localStorage.setItem(GROUPS_KEY, JSON.stringify(groups.value))
-}
+function saveGroups() { localStorage.setItem(GROUPS_KEY, JSON.stringify(groups.value)) }
 function loadAssignments(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(ASSIGN_KEY) || '{}') } catch { return {} }
 }
-function saveAssignments(map: Record<string, string>) {
-  localStorage.setItem(ASSIGN_KEY, JSON.stringify(map))
-}
-
+function saveAssignments(map: Record<string, string>) { localStorage.setItem(ASSIGN_KEY, JSON.stringify(map)) }
 const assignments = ref<Record<string, string>>({})
 
-// --- Domain → Group mapping ---
-const ungroupedDomains = computed(() =>
-  domains.value.filter(d => !assignments.value[d.id])
-)
-
-const domainsInGroup = computed(() => {
-  if (selectedGroupId.value === 'default') return ungroupedDomains.value
-  return domains.value.filter(d => assignments.value[d.id] === selectedGroupId.value)
+// --- Domain lists ---
+const ungroupedZones = computed(() => zones.value.filter(z => !assignments.value[z.zone_id]))
+const allZones = computed(() => zones.value)
+const zonesInGroup = computed(() => {
+  if (selectedGroupId.value === 'all') return allZones.value
+  if (selectedGroupId.value === 'default') return ungroupedZones.value
+  return zones.value.filter(z => assignments.value[z.zone_id] === selectedGroupId.value)
 })
 
 const groupCounts = computed(() => {
-  const m: Record<string, number> = { default: ungroupedDomains.value.length }
+  const m: Record<string, number> = { all: zones.value.length, default: ungroupedZones.value.length }
   for (const g of groups.value) {
-    m[g.id] = domains.value.filter(d => assignments.value[d.id] === g.id).length
+    m[g.id] = zones.value.filter(z => assignments.value[z.zone_id] === g.id).length
   }
   return m
 })
@@ -63,93 +50,71 @@ const addDialog = ref(false)
 const newGroupName = ref('')
 function addGroup() {
   if (!newGroupName.value.trim()) return
-  const id = `g_${Date.now()}`
-  groups.value.push({ id, name: newGroupName.value.trim() })
-  saveGroups()
-  newGroupName.value = ''
-  addDialog.value = false
+  groups.value.push({ id: `g_${Date.now()}`, name: newGroupName.value.trim() })
+  saveGroups(); newGroupName.value = ''; addDialog.value = false
 }
 
 // --- Rename Group ---
 const renameDialog = ref(false)
 const renameTarget = ref<DomainGroup | null>(null)
 const renameName = ref('')
-function openRename(g: DomainGroup) {
-  renameTarget.value = g
-  renameName.value = g.name
-  renameDialog.value = true
-}
+function openRename(g: DomainGroup) { renameTarget.value = g; renameName.value = g.name; renameDialog.value = true }
 function doRename() {
   if (!renameTarget.value || !renameName.value.trim()) return
-  renameTarget.value.name = renameName.value.trim()
-  saveGroups()
-  renameDialog.value = false
+  renameTarget.value.name = renameName.value.trim(); saveGroups(); renameDialog.value = false
 }
 
 // --- Delete Group ---
 function deleteGroup(g: DomainGroup) {
-  if (!confirm(`Delete group "${g.name}"? Domains will move to Default.`)) return
-  // Remove assignments for this group
+  if (!confirm(`Delete "${g.name}"? Domains will move to Default.`)) return
   const map = { ...assignments.value }
-  for (const [did, gid] of Object.entries(map)) {
-    if (gid === g.id) delete map[did]
-  }
-  assignments.value = map
-  saveAssignments(map)
-  groups.value = groups.value.filter(x => x.id !== g.id)
-  saveGroups()
-  if (selectedGroupId.value === g.id) selectedGroupId.value = 'default'
+  for (const [did, gid] of Object.entries(map)) { if (gid === g.id) delete map[did] }
+  assignments.value = map; saveAssignments(map)
+  groups.value = groups.value.filter(x => x.id !== g.id); saveGroups()
+  if (selectedGroupId.value === g.id) selectedGroupId.value = 'all'
 }
 
 // --- Move Domain ---
 const moveDialog = ref(false)
 const moveTarget = ref<any>(null)
 const moveTargetGroup = ref<string>('')
-function openMove(domain: any) {
-  moveTarget.value = domain
-  moveTargetGroup.value = assignments.value[domain.id] || ''
-  moveDialog.value = true
+function openMove(zone: any) {
+  moveTarget.value = zone; moveTargetGroup.value = assignments.value[zone.zone_id] || ''; moveDialog.value = true
 }
 function doMove() {
   if (!moveTarget.value) return
   const map = { ...assignments.value }
-  if (moveTargetGroup.value) {
-    map[moveTarget.value.id] = moveTargetGroup.value
-  } else {
-    delete map[moveTarget.value.id]  // back to default
-  }
-  assignments.value = map
-  saveAssignments(map)
-  moveDialog.value = false
+  if (moveTargetGroup.value) map[moveTarget.value.zone_id] = moveTargetGroup.value
+  else delete map[moveTarget.value.zone_id]
+  assignments.value = map; saveAssignments(map); moveDialog.value = false
 }
 
-// --- Fetch ---
-async function fetchData() {
+// --- Fetch zones from all accounts ---
+async function fetchZones() {
   loading.value = true
   try {
-    const projectData = await projectService.list()
-    projects.value = projectData || []
-    const allDomains: any[] = []
-    await Promise.all(
-      projects.value.map(async (p: any) => {
-        try {
-          const data = await domainService.list(String(p.id))
-          if (Array.isArray(data)) allDomains.push(...data)
-        } catch { /* skip */ }
-      })
+    const { data: accData } = await apiClient.get(`${CF_GATEWAY}/accounts`)
+    const accounts = accData?.data || []
+
+    const results = await Promise.all(
+      accounts.map((a: any) =>
+        apiClient.get(`${CF_GATEWAY}/zones`, { params: { account_id: a.id } })
+          .then(r => (r.data?.data || []).map((z: any) => ({ ...z, accountName: a.name })))
+          .catch(() => [])
+      )
     )
-    domains.value = allDomains
+    const all: any[] = []
+    results.forEach(r => all.push(...r))
+    zones.value = all
   } catch (e) {
-    console.error('Failed to fetch', e)
+    console.error('Failed to fetch zones', e)
   } finally {
     loading.value = false
   }
 }
 
 onMounted(() => {
-  loadGroups()
-  assignments.value = loadAssignments()
-  fetchData()
+  loadGroups(); assignments.value = loadAssignments(); fetchZones()
 })
 </script>
 
@@ -160,24 +125,29 @@ onMounted(() => {
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <VIcon icon="bx-group" color="primary" />
         <span class="text-h6">Domain Groups</span>
-        <VChip size="small" color="info" variant="tonal">Total: {{ domains.length }}</VChip>
+        <VChip size="small" color="info" variant="tonal">Zones: {{ zones.length }}</VChip>
         <VSpacer />
         <VBtn color="primary" size="small" prepend-icon="bx-plus" @click="addDialog = true">Add Group</VBtn>
-        <VBtn icon="bx-refresh" size="small" variant="tonal" color="primary" @click="fetchData" :loading="loading" />
+        <VBtn icon="bx-refresh" size="small" variant="tonal" color="primary" @click="fetchZones" :loading="loading" />
       </VCardText>
     </VCard>
 
-    <!-- Main Content: Sidebar + Table -->
+    <!-- Main Content -->
     <div style="display: flex; flex: 1; min-height: 0; gap: 12px;">
       <!-- Left: Group List -->
       <VCard style="width: 220px; min-width: 220px; display: flex; flex-direction: column;">
         <VList density="compact" nav class="group-list">
-          <VListItem
-            :active="selectedGroupId === 'default'"
-            @click="selectedGroupId = 'default'"
-            prepend-icon="bx-folder"
-            title="Default"
-          >
+          <!-- All -->
+          <VListItem :active="selectedGroupId === 'all'" @click="selectedGroupId = 'all'" prepend-icon="bx-globe">
+            <VListItemTitle>All</VListItemTitle>
+            <template #append>
+              <VChip size="x-small" color="default" variant="tonal">{{ groupCounts.all }}</VChip>
+            </template>
+          </VListItem>
+
+          <!-- Default (ungrouped) -->
+          <VListItem :active="selectedGroupId === 'default'" @click="selectedGroupId = 'default'" prepend-icon="bx-folder">
+            <VListItemTitle>Default</VListItemTitle>
             <template #append>
               <VChip size="x-small" color="default" variant="tonal">{{ groupCounts.default }}</VChip>
             </template>
@@ -185,6 +155,7 @@ onMounted(() => {
 
           <VDivider class="my-1" />
 
+          <!-- Custom Groups -->
           <VListItem
             v-for="g in groups"
             :key="g.id"
@@ -209,47 +180,44 @@ onMounted(() => {
         </VList>
       </VCard>
 
-      <!-- Right: Domain Table -->
+      <!-- Right: Zone Table -->
       <VCard style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
         <div class="card-scroll">
           <div v-if="loading" class="text-center py-8">
             <VProgressCircular indeterminate color="primary" />
           </div>
 
-          <div v-else-if="domainsInGroup.length === 0" class="text-center py-8 text-medium-emphasis">
+          <div v-else-if="zonesInGroup.length === 0" class="text-center py-8 text-medium-emphasis">
             <VIcon icon="bx-folder-open" size="48" class="mb-2" />
-            <p>No domains in this group.</p>
+            <p>No zones in this group.</p>
           </div>
 
           <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
             <thead>
               <tr class="text-caption text-medium-emphasis">
-                <th style="width: 250px;">Domain</th>
-                <th style="width: 100px;">Project</th>
-                <th style="width: 70px;">Type</th>
-                <th style="width: 70px;">Env</th>
-                <th style="width: 150px;">Zone ID</th>
-                <th>Remark</th>
+                <th style="width: 250px;">Zone</th>
+                <th style="width: 100px;">Account</th>
+                <th style="width: 80px;">Status</th>
+                <th style="width: 80px;">Type</th>
+                <th style="width: 80px;">Plan</th>
+                <th>Zone ID</th>
                 <th style="width: 80px;">Action</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="d in domainsInGroup" :key="d.id">
-                <td><code class="text-body-2">{{ d.domain }}</code></td>
-                <td class="text-body-2">{{ projects.find(p => p.id === d.projectId)?.name || '-' }}</td>
+              <tr v-for="z in zonesInGroup" :key="z.zone_id">
+                <td><code class="text-body-2">{{ z.name }}</code></td>
+                <td class="text-body-2">{{ z.accountName || '-' }}</td>
                 <td>
-                  <VChip size="x-small" :color="d.type === 'web' ? 'success' : 'warning'" variant="tonal">
-                    {{ (d.type || '-').toUpperCase() }}
+                  <VChip size="x-small" :color="z.status === 'active' ? 'success' : 'warning'" variant="tonal">
+                    {{ z.status || '-' }}
                   </VChip>
                 </td>
+                <td class="text-body-2">{{ z.type || '-' }}</td>
+                <td class="text-body-2">{{ z.plan?.name || '-' }}</td>
+                <td><code class="text-caption">{{ z.zone_id }}</code></td>
                 <td>
-                  <VChip v-if="d.env" size="x-small" color="info" variant="tonal">{{ d.env.toUpperCase() }}</VChip>
-                  <span v-else class="text-medium-emphasis">-</span>
-                </td>
-                <td><code class="text-caption">{{ d.zoneId || '-' }}</code></td>
-                <td class="text-body-2 text-medium-emphasis">{{ d.remark || '-' }}</td>
-                <td>
-                  <VBtn size="x-small" variant="tonal" color="primary" @click="openMove(d)">Move</VBtn>
+                  <VBtn size="x-small" variant="tonal" color="primary" @click="openMove(z)">Move</VBtn>
                 </td>
               </tr>
             </tbody>
@@ -291,9 +259,9 @@ onMounted(() => {
     <!-- Move Domain Dialog -->
     <VDialog v-model="moveDialog" max-width="400">
       <VCard>
-        <VCardTitle>Move Domain</VCardTitle>
+        <VCardTitle>Move Zone</VCardTitle>
         <VCardText>
-          <p class="text-body-2 mb-3"><code>{{ moveTarget?.domain }}</code></p>
+          <p class="text-body-2 mb-3"><code>{{ moveTarget?.name }}</code></p>
           <VSelect
             v-model="moveTargetGroup"
             :items="[
@@ -353,11 +321,11 @@ onMounted(() => {
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(2),
 .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(3),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 70px !important; min-width: 70px !important; max-width: 70px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(4),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 70px !important; min-width: 70px !important; max-width: 70px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(5),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 150px !important; min-width: 150px !important; max-width: 150px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(7),
 .sticky-table :deep(.v-table__wrapper) table td:nth-child(7) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
