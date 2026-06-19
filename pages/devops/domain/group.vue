@@ -8,6 +8,11 @@ const CF_GATEWAY = '/cloudflare'
 
 const TYPE_OPTIONS = ['antiblock', 'admin', 'callback', 'api', 'web', 'entry', 'other']
 
+const filterDomain = ref('')
+const filterSource = ref('')
+const filterType = ref('')
+const filterRemark = ref('')
+
 const zones = ref<any[]>([])
 const loading = ref(false)
 const selectedGroupId = ref<string>('all')
@@ -59,6 +64,12 @@ const zonesInGroup = computed(() => {
   if (selectedGroupId.value === 'all') list = allZones.value
   else if (selectedGroupId.value === 'default') list = ungroupedZones.value
   else list = zones.value.filter(z => getZoneGroupId(z) === selectedGroupId.value)
+
+  // Filter
+  if (filterDomain.value) { const s = filterDomain.value.toLowerCase(); list = list.filter(z => z.name?.toLowerCase().includes(s)) }
+  if (filterSource.value) { const s = filterSource.value.toLowerCase(); list = list.filter(z => getCloudflareSource(z.accountName).toLowerCase().includes(s)) }
+  if (filterType.value) { const s = filterType.value.toLowerCase(); list = list.filter(z => getZoneType(z).toLowerCase().includes(s)) }
+  if (filterRemark.value) { const s = filterRemark.value.toLowerCase(); list = list.filter(z => getZoneRemark(z).toLowerCase().includes(s)) }
 
   const key = sortKey.value
   const dir = sortDir.value === 'asc' ? 1 : -1
@@ -303,6 +314,14 @@ onMounted(init)
                 <th style="width: 130px; cursor: pointer;" @click="toggleSort('type')">Type <VIcon :icon="sortIcon('type')" size="14" /></th>
                 <th style="cursor: pointer;" @click="toggleSort('remark')">Remark <VIcon :icon="sortIcon('remark')" size="14" /></th>
                 <th style="width: 120px;">Action</th>
+              </tr>
+              <tr>
+                <th></th>
+                <th><VTextField v-model="filterDomain" density="compact" hide-details placeholder="Filter..." clearable style="font-size: 12px" /></th>
+                <th><VTextField v-model="filterSource" density="compact" hide-details placeholder="Filter..." clearable style="font-size: 12px" /></th>
+                <th><VTextField v-model="filterType" density="compact" hide-details placeholder="Filter..." clearable style="font-size: 12px" /></th>
+                <th><VTextField v-model="filterRemark" density="compact" hide-details placeholder="Filter..." clearable style="font-size: 12px" /></th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
