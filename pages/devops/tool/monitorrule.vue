@@ -163,7 +163,7 @@ onMounted(fetchRules)
               <th style="width: 80px;">Enabled</th>
               <th style="width: 100px;">Status</th>
               <th style="width: 160px;">Last Check</th>
-              <th style="width: 120px;">Action</th>
+              <th style="width: 70px;">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -250,6 +250,6 @@ onMounted(fetchRules)
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(3), .sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(4), .sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(5), .sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 160px !important; min-width: 160px !important; max-width: 160px !important; }
-.sticky-table :deep(.v-table__wrapper) table th:nth-child(6), .sticky-table :deep(.v-table__wrapper) table td:nth-child(6) { width: 120px !important; min-width: 120px !important; max-width: 120px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(6), .sticky-table :deep(.v-table__wrapper) table td:nth-child(6) { width: 70px !important; min-width: 70px !important; max-width: 70px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>
