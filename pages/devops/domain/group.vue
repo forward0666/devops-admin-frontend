@@ -63,12 +63,7 @@ const zonesInGroup = computed(() => {
   else list = zones.value.filter(z => getZoneGroupId(z) === selectedGroupId.value)
 
   // Filter
-  if (filterDomain.value) {
-    const s = filterDomain.value.toLowerCase()
-    const before = list.length
-    list = list.filter(z => (z.name || '').toLowerCase().includes(s))
-    console.log(`[Filter] '${s}': ${before} -> ${list.length}, sample names:`, list.slice(0, 3).map(z => z.name))
-  }
+  if (filterDomain.value) { const s = filterDomain.value.toLowerCase(); list = list.filter(z => (z.name || '').toLowerCase().includes(s)) }
 
   const key = sortKey.value
   const dir = sortDir.value === 'asc' ? 1 : -1
@@ -323,7 +318,7 @@ onMounted(init)
               </tr>
             </thead>
             <tbody>
-              <tr v-for="z in zonesInGroup" :key="z.zone_id" :class="{ 'row-selected': selectedIds.has(z.zone_id) }">
+              <tr v-for="(z, idx) in zonesInGroup" :key="`${z.zone_id}-${idx}`" :class="{ 'row-selected': selectedIds.has(z.zone_id) }">
                 <td><VCheckbox :model-value="selectedIds.has(z.zone_id)" @click="toggleOne(z.zone_id)" density="compact" hide-details /></td>
                 <td><code class="text-body-2">{{ z.name }}</code></td>
                 <td><VChip size="x-small" color="orange" variant="tonal">{{ getCloudflareSource(z.accountName) }}</VChip></td>
