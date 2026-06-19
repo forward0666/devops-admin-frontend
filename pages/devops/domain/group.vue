@@ -9,9 +9,6 @@ const CF_GATEWAY = '/cloudflare'
 const TYPE_OPTIONS = ['antiblock', 'admin', 'callback', 'api', 'web', 'entry', 'other']
 
 const filterDomain = ref('')
-const filterSource = ref('')
-const filterType = ref('')
-const filterRemark = ref('')
 
 const zones = ref<any[]>([])
 const loading = ref(false)
@@ -67,9 +64,6 @@ const zonesInGroup = computed(() => {
 
   // Filter
   if (filterDomain.value) { const s = filterDomain.value.toLowerCase(); list = list.filter(z => z.name?.toLowerCase().includes(s)) }
-  if (filterSource.value) { const s = filterSource.value.toLowerCase(); list = list.filter(z => getCloudflareSource(z.accountName).toLowerCase().includes(s)) }
-  if (filterType.value) { const s = filterType.value.toLowerCase(); list = list.filter(z => getZoneType(z).toLowerCase().includes(s)) }
-  if (filterRemark.value) { const s = filterRemark.value.toLowerCase(); list = list.filter(z => getZoneRemark(z).toLowerCase().includes(s)) }
 
   const key = sortKey.value
   const dir = sortDir.value === 'asc' ? 1 : -1
@@ -316,10 +310,10 @@ onMounted(init)
               </tr>
               <tr>
                 <th></th>
-                <th><VTextField v-model="filterDomain" density="compact" hide-details placeholder="Filter..." clearable style="font-size: 12px" /></th>
-                <th><VTextField v-model="filterSource" density="compact" hide-details placeholder="Filter..." clearable style="font-size: 12px" /></th>
-                <th><VTextField v-model="filterType" density="compact" hide-details placeholder="Filter..." clearable style="font-size: 12px" /></th>
-                <th><VTextField v-model="filterRemark" density="compact" hide-details placeholder="Filter..." clearable style="font-size: 12px" /></th>
+                <th><VTextField v-model="filterDomain" density="compact" hide-details placeholder="Search domain..." clearable style="font-size: 12px" /></th>
+                <th></th>
+                <th></th>
+                <th></th>
                 <th></th>
               </tr>
             </thead>
