@@ -122,7 +122,7 @@ async function fetchDnsRecords() {
   try {
     const params: Record<string, any> = {}
     if (selectedAccountId.value && selectedAccountId.value !== -1) params.account_id = selectedAccountId.value
-    const { data } = await apiClient.get(`${CF_GATEWAY}/dnsDomain`, { params })
+    const { data } = await apiClient.get(`/domain/dnsDomain`, { params })
     dnsRecords.value = data.data || []
   } catch (e: any) {
     console.error('Failed to fetch DNS domains', e)
@@ -137,7 +137,7 @@ async function fetchDnsRecords() {
 async function syncDns() {
   syncing.value = true
   try {
-    const { data } = await apiClient.post(`${CF_GATEWAY}/dnsDomain/sync`, null, { timeout: 30000 })
+    const { data } = await apiClient.post(`/domain/dnsDomain/sync`, null, { timeout: 30000 })
     const synced = data.data?.synced || 0
     const accCount = data.data?.accounts || 0
     snackbar.value = { show: true, text: `Sync complete: ${synced} records from ${accCount} accounts`, color: 'success' }
@@ -243,7 +243,7 @@ function collapseAll() {
 
 async function togglePublic(record: any, value: boolean) {
   try {
-    await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record.id || record._id}`, { is_public: value })
+    await apiClient.put(`/domain/dnsDomain/${record.id || record._id}`, { is_public: value })
     record.is_public = value
     snackbar.value = { show: true, text: value ? 'Marked as public' : 'Marked as private', color: 'success' }
   } catch (e: any) {
@@ -253,7 +253,7 @@ async function togglePublic(record: any, value: boolean) {
 
 async function toggleIgnore(record: any, value: boolean) {
   try {
-    await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record.id || record._id}`, { is_ignored: value })
+    await apiClient.put(`/domain/dnsDomain/${record.id || record._id}`, { is_ignored: value })
     record.is_ignored = value
     snackbar.value = { show: true, text: value ? 'Ignored' : 'Unignored', color: 'success' }
   } catch (e: any) {
@@ -263,7 +263,7 @@ async function toggleIgnore(record: any, value: boolean) {
 
 async function updateRemark(record: any) {
   try {
-    await apiClient.put(`${CF_GATEWAY}/dnsDomain/${record.id || record._id}`, { remark: record.remark || '' })
+    await apiClient.put(`/domain/dnsDomain/${record.id || record._id}`, { remark: record.remark || '' })
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to update remark', color: 'error' }
   }
