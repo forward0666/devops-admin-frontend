@@ -98,7 +98,7 @@ async function fetchRules(zoneId: string) {
   if (!selectedAccountId.value) return
   try {
     const { data } = await apiClient.get(`${CF_GATEWAY}/zones/${zoneId}/cache/rules`, {
-      params: { account_id: selectedAccountId.value, zone_id: zoneId },
+      params: { account_id: aid, zone_id: zoneId },
     })
     rulesMap.value = { ...rulesMap.value, [zoneId]: data.data || [] }
   } catch (e: any) {
@@ -107,14 +107,16 @@ async function fetchRules(zoneId: string) {
 }
 
 async function syncZone(zoneId: string) {
-  if (!selectedAccountId.value) return
+  const zone = zones.value.find((z: any) => z.zone_id === zoneId)
+  if (!zone) return
+  const aid = zone.account_id
   syncingZone.value = zoneId
   try {
-    const token = await getToken(selectedAccountId.value)
+    const token = await getToken(String(aid))
     const { data } = await apiClient.post(
       `${CF_GATEWAY}/zones/${zoneId}/cache/sync`,
       {},
-      { params: { account_id: selectedAccountId.value, zone_id: zoneId }, headers: { 'X-Cf-Token': token }, timeout: 200000 },
+      { params: { account_id: aid, zone_id: zoneId }, headers: { 'X-Cf-Token': token }, timeout: 200000 },
     )
     snackbar.value = { show: true, text: `Synced ${data.data?.synced || 0} cache rules`, color: 'success' }
     await fetchRules(zoneId)

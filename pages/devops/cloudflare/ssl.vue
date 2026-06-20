@@ -87,18 +87,20 @@ async function fetchAllSsl() {
 }
 
 async function syncZone(zoneId: string) {
-  if (!selectedAccountId.value) return
+  const zone = zones.value.find((z: any) => z.zone_id === zoneId)
+  if (!zone) return
+  const aid = zone.account_id
   syncingZone.value = zoneId
   try {
-    const token = await getToken(selectedAccountId.value)
+    const token = await getToken(String(aid))
     await apiClient.post(`${CF_GATEWAY}/zones/${zoneId}/ssl/sync`, null, {
-      params: { account_id: selectedAccountId.value, zone_id: zoneId },
+      params: { account_id: aid, zone_id: zoneId },
       headers: { 'X-Cf-Token': token },
     })
     snackbar.value = { show: true, text: 'SSL synced', color: 'success' }
     // Re-fetch single zone
     const { data } = await apiClient.get(`${CF_GATEWAY}/zones/${zoneId}/ssl`, {
-      params: { account_id: selectedAccountId.value, zone_id: zoneId },
+      params: { account_id: aid, zone_id: zoneId },
     })
     sslMap.value = { ...sslMap.value, [zoneId]: (data.data || [])[0] }
   } catch (e: any) {
@@ -144,7 +146,7 @@ async function updateSsl(zoneId: string, mode: string) {
   try {
     const token = await getToken(selectedAccountId.value)
     await apiClient.patch(`${CF_GATEWAY}/zones/${zoneId}/ssl`, { value: mode }, {
-      params: { account_id: selectedAccountId.value, zone_id: zoneId },
+      params: { account_id: aid, zone_id: zoneId },
       headers: { 'X-Cf-Token': token },
     })
     sslMap.value = { ...sslMap.value, [zoneId]: { ...sslMap.value[zoneId], ssl_mode: mode } }
