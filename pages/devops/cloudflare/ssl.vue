@@ -68,11 +68,18 @@ async function fetchZones() {
 }
 
 async function fetchAllSsl() {
-  if (!selectedAccountId.value || selectedAccountId.value === -1) return
+  if (!selectedAccountId.value) return
   try {
-    const { data } = await apiClient.get(`${CF_GATEWAY}/ssl`, { params: { account_id: selectedAccountId.value } })
+    const accountIds = selectedAccountId.value === -1 ? accounts.value.map((a: any) => a.id) : [selectedAccountId.value]
+    const allData: any[] = []
+    for (const aid of accountIds) {
+      try {
+        const { data } = await apiClient.get(`${CF_GATEWAY}/ssl`, { params: { account_id: aid } })
+        allData.push(...(data.data || []))
+      } catch { /* skip */ }
+    }
     const map: Record<string, any> = {}
-    ;(data.data || []).forEach((r: any) => { map[r.zone_id] = r })
+    allData.forEach((r: any) => { map[r.zone_id] = r })
     sslMap.value = map
   } catch (e: any) {
     console.error('Failed to fetch SSL settings', e)

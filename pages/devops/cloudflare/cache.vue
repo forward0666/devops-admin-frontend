@@ -72,11 +72,18 @@ async function fetchZones() {
 }
 
 async function fetchAllRules() {
-  if (!selectedAccountId.value || selectedAccountId.value === -1) return
+  if (!selectedAccountId.value) return
   try {
-    const { data } = await apiClient.get(`${CF_GATEWAY}/cache`, { params: { account_id: selectedAccountId.value } })
+    const accountIds = selectedAccountId.value === -1 ? accounts.value.map((a: any) => a.id) : [selectedAccountId.value]
+    const allRulesData: any[] = []
+    for (const aid of accountIds) {
+      try {
+        const { data } = await apiClient.get(`${CF_GATEWAY}/cache`, { params: { account_id: aid } })
+        allRulesData.push(...(data.data || []))
+      } catch { /* skip */ }
+    }
     const map: Record<string, any[]> = {}
-    ;(data.data || []).forEach((r: any) => {
+    allRulesData.forEach((r: any) => {
       const zid = r.zone_id
       if (!map[zid]) map[zid] = []
       map[zid].push(r)
