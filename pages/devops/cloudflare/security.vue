@@ -161,10 +161,12 @@ async function syncAll() {
 }
 
 async function fetchRules(zoneId: string) {
-  if (!selectedAccountId.value) return
+  const zone = zones.value.find((z: any) => z.zone_id === zoneId)
+  const aid = zone?.account_id || selectedAccountId.value
+  if (!aid) return
   try {
     const { data } = await apiClient.get(`${CF_GATEWAY}/zones/${zoneId}/security`, {
-      params: { account_id: selectedAccountId.value, zone_id: zoneId },
+      params: { account_id: aid, zone_id: zoneId },
     })
     rulesMap.value = { ...rulesMap.value, [zoneId]: data.data || [] }
   } catch (e: any) {

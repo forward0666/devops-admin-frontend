@@ -95,7 +95,9 @@ async function fetchAllRules() {
 }
 
 async function fetchRules(zoneId: string) {
-  if (!selectedAccountId.value) return
+  const zone = zones.value.find((z: any) => z.zone_id === zoneId)
+  const aid = zone?.account_id || selectedAccountId.value
+  if (!aid) return
   try {
     const { data } = await apiClient.get(`${CF_GATEWAY}/zones/${zoneId}/cache/rules`, {
       params: { account_id: aid, zone_id: zoneId },
