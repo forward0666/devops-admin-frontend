@@ -123,17 +123,26 @@ async function syncAll() {
   syncingAll.value = true
   let totalSynced = 0
   try {
-    const token = await getToken(selectedAccountId.value)
+    // 按 account 分组 zones
+    const accountZones: Record<number, any[]> = {}
     for (const z of zones.value) {
-      try {
-        const { data } = await apiClient.post(
-          `${CF_GATEWAY}/zones/${z.zone_id}/cache/sync`,
-          {},
-          { params: { account_id: selectedAccountId.value, zone_id: z.zone_id }, headers: { 'X-Cf-Token': token }, timeout: 200000 },
-        )
-        totalSynced += data.data?.synced || 0
-      } catch (e: any) {
-        console.error(`Failed to sync zone ${z.name}`, e)
+      const aid = z.account_id
+      if (!accountZones[aid]) accountZones[aid] = []
+      accountZones[aid].push(z)
+    }
+    for (const [aid, zs] of Object.entries(accountZones)) {
+      const token = await getToken(String(aid))
+      for (const z of zs) {
+        try {
+          const { data } = await apiClient.post(
+            `${CF_GATEWAY}/zones/${z.zone_id}/cache/sync`,
+            {},
+            { params: { account_id: aid, zone_id: z.zone_id }, headers: { 'X-Cf-Token': token }, timeout: 200000 },
+          )
+          totalSynced += data.data?.synced || 0
+        } catch (e: any) {
+          console.error(`Failed to sync zone ${z.name}`, e)
+        }
       }
     }
     snackbar.value = { show: true, text: `Synced ${totalSynced} cache rules`, color: 'success' }
@@ -235,7 +244,7 @@ onMounted(async () => {
           <VChip size="small" color="info" variant="tonal">Rules: {{ totalRules }}</VChip>
         </div>
         <VSpacer />
-        <VBtn color="primary" variant="tonal" :loading="syncingAll" :disabled="!selectedAccountId || selectedAccountId === -1" prepend-icon="bx-refresh" @click="syncAll">Sync</VBtn>
+        <VBtn color="primary" variant="tonal" :loading="syncingAll" :disabled="!selectedAccountId" prepend-icon="bx-refresh" @click="syncAll">Sync</VBtn>
         <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
         <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
         <VBtn icon="bx-chevron-right" size="small" variant="text" :disabled="page >= totalPages" @click="page++" />

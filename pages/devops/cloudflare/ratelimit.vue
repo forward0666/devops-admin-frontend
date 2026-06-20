@@ -112,18 +112,25 @@ async function syncZone(zoneId: string) {
 }
 
 async function syncAll() {
-  if (!selectedAccountId.value || zones.value.length === 0) return
+  if (!selectedAccountId.value) return
   syncingAll.value = true
   let totalSynced = 0
   try {
-    const token = await getToken(selectedAccountId.value)
+    const accountZones: Record<number, any[]> = {}
     for (const z of zones.value) {
+      const aid = z.account_id
+      if (!accountZones[aid]) accountZones[aid] = []
+      accountZones[aid].push(z)
+    }
+    for (const [aid, zs] of Object.entries(accountZones)) {
+      const token = await getToken(String(aid))
+      for (const z of zs) {
       try {
         const { data } = await apiClient.post(
           `${CF_GATEWAY}/zones/${z.zone_id}/ratelimit/sync`,
           null,
           {
-            params: { account_id: selectedAccountId.value, zone_id: z.zone_id },
+            params: { account_id: aid, zone_id: z.zone_id },
             headers: { 'X-Cf-Token': token },
             timeout: 200000,
           },
@@ -271,7 +278,7 @@ function exportCSV() {
           color="primary"
           variant="tonal"
           :loading="syncingAll"
-          :disabled="!selectedAccountId || selectedAccountId === -1"
+          :disabled="!selectedAccountId"
           prepend-icon="bx-refresh"
           @click="syncAll"
         >

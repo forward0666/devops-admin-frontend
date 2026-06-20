@@ -106,17 +106,24 @@ async function syncZone(zoneId: string) {
 }
 
 async function syncAll() {
-  if (!selectedAccountId.value || zones.value.length === 0) return
+  if (!selectedAccountId.value) return
   syncingAll.value = true
   let totalSynced = 0
   try {
-    const token = await getToken(selectedAccountId.value)
+    const accountZones: Record<number, any[]> = {}
     for (const z of zones.value) {
+      const aid = z.account_id
+      if (!accountZones[aid]) accountZones[aid] = []
+      accountZones[aid].push(z)
+    }
+    for (const [aid, zs] of Object.entries(accountZones)) {
+      const token = await getToken(String(aid))
+      for (const z of zs) {
       try {
         const { data } = await apiClient.post(
           `${CF_GATEWAY}/zones/${z.zone_id}/ddos/sync`,
           null,
-          { params: { account_id: selectedAccountId.value, zone_id: z.zone_id }, headers: { 'X-Cf-Token': token }, timeout: 200000 },
+          { params: { account_id: aid, zone_id: z.zone_id }, headers: { 'X-Cf-Token': token }, timeout: 200000 },
         )
         totalSynced += data.data?.synced || 0
         await fetchRules(z.zone_id)
@@ -239,7 +246,7 @@ function exportCSV() {
           <VChip v-for="(count, action) in actionCounts" :key="action" size="small" :color="actionColors[action] || 'grey'" variant="tonal">{{ action }}: {{ count }}</VChip>
         </div>
         <VSpacer />
-        <VBtn color="primary" variant="tonal" :loading="syncingAll" :disabled="!selectedAccountId || selectedAccountId === -1" prepend-icon="bx-refresh" @click="syncAll">Sync</VBtn>
+        <VBtn color="primary" variant="tonal" :loading="syncingAll" :disabled="!selectedAccountId" prepend-icon="bx-refresh" @click="syncAll">Sync</VBtn>
         <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!selectedAccountId" @click="exportCSV" class="ms-1">Export</VBtn>
         <VBtn icon="bx-chevron-left" size="small" variant="text" :disabled="page <= 1" @click="page--" class="ms-2" />
         <span class="text-body-2 mx-1">{{ page }}/{{ totalPages }}</span>
