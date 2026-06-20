@@ -141,10 +141,12 @@ async function syncAll() {
 }
 
 async function updateSsl(zoneId: string, mode: string) {
-  if (!selectedAccountId.value) return
+  const zone = zones.value.find((z: any) => z.zone_id === zoneId)
+  const aid = zone?.account_id || selectedAccountId.value
+  if (!aid) return
   saving.value = true
   try {
-    const token = await getToken(selectedAccountId.value)
+    const token = await getToken(String(aid))
     await apiClient.patch(`${CF_GATEWAY}/zones/${zoneId}/ssl`, { value: mode }, {
       params: { account_id: aid, zone_id: zoneId },
       headers: { 'X-Cf-Token': token },
