@@ -129,20 +129,21 @@ async function syncAll() {
     for (const [aid, zs] of Object.entries(accountZones)) {
       const token = await getToken(String(aid))
       for (const z of zs) {
-      try {
-        const { data } = await apiClient.post(
-          `${CF_GATEWAY}/zones/${z.zone_id}/security/sync`,
-          null,
-          {
-            params: { account_id: aid, zone_id: z.zone_id },
-            headers: { 'X-Cf-Token': token },
-            timeout: 200000,
-          },
-        )
-        totalSynced += data.data?.synced || 0
-        await fetchRules(z.zone_id)
-      } catch (e: any) {
-        console.error(`Failed to sync zone ${z.name}`, e)
+        try {
+          const { data } = await apiClient.post(
+            `${CF_GATEWAY}/zones/${z.zone_id}/security/sync`,
+            null,
+            {
+              params: { account_id: aid, zone_id: z.zone_id },
+              headers: { 'X-Cf-Token': token },
+              timeout: 200000,
+            },
+          )
+          totalSynced += data.data?.synced || 0
+          await fetchRules(z.zone_id)
+        } catch (e: any) {
+          console.error(`Failed to sync zone ${z.name}`, e)
+        }
       }
     }
     snackbar.value = { show: true, text: `Synced ${totalSynced} rules across ${zones.value.length} zones`, color: 'success' }

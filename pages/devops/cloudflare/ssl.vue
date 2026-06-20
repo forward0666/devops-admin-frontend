@@ -114,12 +114,13 @@ async function syncAll() {
     for (const [aid, zs] of Object.entries(accountZones)) {
       const token = await getToken(String(aid))
       for (const z of zs) {
-      try {
-        await apiClient.post(`${CF_GATEWAY}/zones/${z.zone_id}/ssl/sync`, null, {
-          params: { account_id: aid, zone_id: z.zone_id },
-          headers: { 'X-Cf-Token': token },
-        })
-      } catch (e) { /* skip failed zone */ }
+        try {
+          await apiClient.post(`${CF_GATEWAY}/zones/${z.zone_id}/ssl/sync`, null, {
+            params: { account_id: aid, zone_id: z.zone_id },
+            headers: { 'X-Cf-Token': token },
+          })
+        } catch (e) { /* skip failed zone */ }
+      }
     }
     snackbar.value = { show: true, text: `Synced ${zones.value.length} zones`, color: 'success' }
     await fetchAllSsl()
