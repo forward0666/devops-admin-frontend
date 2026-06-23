@@ -39,11 +39,13 @@ if (import.meta.client) {
   const route = useRoute()
   if (route.path.includes('/project') || route.path.includes('/admin')) {
     fetchAdminProjects()
-    fetchUserProjects()
   }
+  // Always try to fetch user projects (for sidebar nav)
+  fetchUserProjects()
   watch(() => projectStore.value?.projects.length, () => { projectKey.value++ })
   watch(() => authStore.isAuthenticated, (v) => { if (v) { fetchAdminProjects(); fetchUserProjects() } })
   watch(() => authStore.consoleRole, fetchUserProjects)
+  watch(route, () => { fetchUserProjects() })
 }
 
 function switchConsole(role: 'admin' | 'user' | 'devops') {
