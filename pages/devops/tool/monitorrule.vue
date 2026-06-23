@@ -1,267 +1,455 @@
 <script setup lang="ts">
-import apiClient, { domainGroupService, projectService, userConsoleDomainService } from '~/services/api'
+import { ref, computed, onMounted, watch } from 'vue'
+import apiClient from '~/services/api'
+import { useCfAccount } from '~/composables/useCfAccount'
 
 definePageMeta({ layout: 'default' })
 
-const loading = ref(false)
-const syncing = ref(false)
-const snackbar = ref({ show: false, text: '', color: 'success' })
+const CF_GATEWAY = '/cloudflare'
+const { accounts, loading: loadingAccounts, fetchAccounts, getToken } = useCfAccount()
 
-// Data
-const groups = ref<any[]>([])
-const projects = ref<any[]>([])
-const groupMeta = ref<Record<string, { type: string; remark: string; groupId: string }>>({})
-const groupZones = ref<any[]>([])
-
-// Monitor rules (saved sync configs)
+// State
 const rules = ref<any[]>([])
+const loading = ref(false)
 const dialog = ref(false)
-const editingId = ref<number | null>(null)
-const form = ref({ name: '', groupId: '', projectId: '', env: 'prod', type: 'web', enabled: true })
+const editingId = ref<string | null>(null)
+const snackbar = ref({ show: false, text: '', color: 'success' })
+const saving = ref(false)
+const checkingIds = ref<number[]>([])
 
-const envOptions = ['prod', 'uat', 'test', 'dev']
-const typeOptions = ['web', 'admin', 'callback', 'api']
+// Form
+const form = ref({
+  name: '',
+  source: 'cloudflare' as 'cloudflare' | 'tencent' | 'custom',
+  accountId: null as number | null,
+  domains: [] as string[],
+  customDomains: '',
+  description: '',
+  enabled: true,
+})
 
-// Stats
-const totalRules = computed(() => rules.value.length)
-const activeRules = computed(() => rules.value.filter(r => r.enabled))
+// Domain source options
+const sourceOptions = [
+  { title: 'Cloudflare', value: 'cloudflare' },
+  { title: 'Tencent', value: 'tencent' },
+  { title: 'Custom', value: 'custom' },
+]
 
-async function fetchData() {
+// Cloudflare domains (from dnsDomain)
+const cfDomains = ref<string[]>([])
+const loadingCfDomains = ref(false)
+
+// Tencent domains (placeholder)
+const tencentDomains = ref<string[]>([])
+const loadingTencentDomains = ref(false)
+
+
+
+// Computed
+const accountOptions = computed(() => [
+  { title: 'All', value: -1 },
+  ...accounts.value.map((a: any) => ({ title: a.name, value: a.id })),
+])
+
+const domainOptions = computed(() => {
+  if (form.value.source === 'cloudflare') {
+    return [{ title: 'All', value: 'all' }, ...cfDomains.value.map((d: string) => ({ title: d, value: d }))]
+  } else if (form.value.source === 'tencent') {
+    return [{ title: 'All', value: 'all' }, ...tencentDomains.value.map((d: string) => ({ title: d, value: d }))]
+  }
+  return []
+})
+
+// Methods
+async function fetchCfDomains() {
+  loadingCfDomains.value = true
+  try {
+    const params: Record<string, any> = {}
+    if (form.value.accountId && form.value.accountId !== -1) params.account_id = form.value.accountId
+    const { data } = await apiClient.get(`${CF_GATEWAY}/dnsDomain`, { params })
+    const records = data.data || []
+    // Extract unique domain names
+    const names = [...new Set(records.map((r: any) => r.name).filter(Boolean))]
+    cfDomains.value = names.sort()
+  } catch (e: any) {
+    console.error('Failed to fetch CF domains', e)
+  } finally {
+    loadingCfDomains.value = false
+  }
+}
+
+async function fetchTencentDomains() {
+  loadingTencentDomains.value = true
+  try {
+    // TODO: Replace with actual Tencent API call
+    tencentDomains.value = []
+  } catch (e: any) {
+    console.error('Failed to fetch Tencent domains', e)
+  } finally {
+    loadingTencentDomains.value = false
+  }
+}
+
+const MONITOR_GATEWAY = '/monitor'
+
+async function fetchRules() {
   loading.value = true
   try {
-    const [g, meta, projRes] = await Promise.all([
-      domainGroupService.listGroups(),
-      domainGroupService.listMeta(),
-      projectService.list(),
-    ])
-    groups.value = g || []
-    const m: Record<string, { type: string; remark: string; groupId: string }> = {}
-    for (const item of (meta || [])) {
-      if (item.zoneId) m[item.zoneId] = { type: item.type || '', remark: item.remark || '', groupId: item.groupId || '' }
-    }
-    groupMeta.value = m
-    projects.value = Array.isArray(projRes) ? projRes : projRes?.data || []
-    // Fetch zones per account
-    try {
-      const { data: accData } = await apiClient.get('/cloudflare/accounts')
-      const accounts = accData?.data || []
-      const results = await Promise.all(
-        accounts.map((a: any) =>
-          apiClient.get('/cloudflare/zones', { params: { account_id: a.id } })
-            .then((r: any) => (r.data?.data || []).map((z: any) => ({ ...z, accountName: a.name })))
-            .catch(() => [])
-        )
-      )
-      const all: any[] = []
-      results.forEach((r: any) => all.push(...r))
-      groupZones.value = all
-    } catch { groupZones.value = [] }
+    const { data } = await apiClient.get(`${MONITOR_GATEWAY}/rules`)
+    rules.value = (data.data || []).map((r: any) => {
+      let domains = r.domains
+      if (typeof domains === 'string') {
+        try { domains = JSON.parse(domains) } catch { domains = [] }
+      }
+      return {
+        ...r,
+        domains: domains || [],
+        accountId: r.account_id ?? r.accountId,
+        customDomains: r.custom_domains ?? r.customDomains ?? '',
+        lastCheck: r.last_check ?? r.lastCheck,
+      }
+    })
   } catch (e: any) {
-    console.error('Failed to fetch', e)
+    console.error('Failed to fetch rules', e)
   } finally {
     loading.value = false
   }
 }
 
-// Local storage for rules (no backend endpoint yet)
-function loadRules() {
-  try {
-    const saved = localStorage.getItem('monitor_rules')
-    rules.value = saved ? JSON.parse(saved) : []
-  } catch { rules.value = [] }
-}
-
-function saveRules() {
-  localStorage.setItem('monitor_rules', JSON.stringify(rules.value))
-}
-
-onMounted(() => {
-  fetchData()
-  loadRules()
-})
-
-function getGroupDomains(groupId: string) {
-  return groupZones.value.filter(z => groupMeta.value[z.zone_id]?.groupId === groupId).map(z => ({
-    domain: z.name,
-    env: 'prod',
-    type: groupMeta.value[z.zone_id]?.type || 'web',
-    remark: '',
-    cdn: '',
-  }))
-}
-
-function getGroupName(groupId: string) {
-  return groups.value.find(g => g.id === groupId)?.name || groupId
-}
-
-function getProjectName(projectId: string) {
-  return projects.value.find(p => String(p.id) === projectId)?.name || projectId
-}
-
 function openCreate() {
   editingId.value = null
-  form.value = { name: '', groupId: '', projectId: '', env: 'prod', type: 'web', enabled: true }
+  form.value = {
+    name: '',
+    source: 'cloudflare',
+    accountId: null,
+    domains: [],
+    customDomains: '',
+    description: '',
+  }
   dialog.value = true
 }
 
 function openEdit(rule: any) {
   editingId.value = rule.id
-  form.value = { ...rule }
+  form.value = {
+    name: rule.name,
+    source: rule.source,
+    accountId: rule.accountId || rule.account_id || null,
+    domains: Array.isArray(rule.domains) ? [...rule.domains] : [],
+    customDomains: rule.customDomains || rule.custom_domains || '',
+    description: rule.description || '',
+    enabled: !!rule.enabled,
+  }
+  if (form.value.source === 'cloudflare' && form.value.accountId) {
+    fetchCfDomains()
+  }
   dialog.value = true
 }
 
-function saveRule() {
-  if (!form.value.name.trim() || !form.value.groupId || !form.value.projectId) return
-  if (editingId.value) {
-    const idx = rules.value.findIndex(r => r.id === editingId.value)
-    if (idx >= 0) rules.value[idx] = { ...form.value, id: editingId.value }
-  } else {
-    rules.value.push({ ...form.value, id: Date.now(), lastRun: null, lastStatus: null })
-  }
-  saveRules()
-  dialog.value = false
-}
-
-function deleteRule(rule: any) {
-  if (!confirm(`Delete "${rule.name}"?`)) return
-  rules.value = rules.value.filter(r => r.id !== rule.id)
-  saveRules()
-}
-
-function toggleRule(rule: any) {
-  rule.enabled = !rule.enabled
-  saveRules()
-}
-
-async function runRule(rule: any) {
-  const domains = getGroupDomains(rule.groupId)
-  if (!domains.length) {
-    snackbar.value = { show: true, text: 'No domains in this group', color: 'error' }
+async function save() {
+  if (!form.value.name.trim()) {
+    snackbar.value = { show: true, text: 'Name is required', color: 'error' }
     return
   }
-  // Apply env/type overrides
-  const syncDomains = domains.map(d => ({
-    ...d,
-    env: rule.env || d.env,
-    type: rule.type || d.type,
-  }))
-  syncing.value = true
+
+  if (form.value.source === 'custom' && !form.value.customDomains.trim()) {
+    snackbar.value = { show: true, text: 'Please enter at least one domain', color: 'error' }
+    return
+  }
+
+  if (form.value.source !== 'custom' && form.value.domains.length === 0) {
+    snackbar.value = { show: true, text: 'Please select at least one domain', color: 'error' }
+    return
+  }
+
+  saving.value = true
   try {
-    await userConsoleDomainService.importDomains({ projectId: rule.projectId, domains: syncDomains })
-    rule.lastRun = new Date().toISOString()
-    rule.lastStatus = 'success'
-    saveRules()
-    snackbar.value = { show: true, text: `Synced ${syncDomains.length} domains to ${getProjectName(rule.projectId)}`, color: 'success' }
+    const body = {
+      name: form.value.name,
+      source: form.value.source,
+      accountId: form.value.accountId,
+      domains: form.value.domains,
+      customDomains: form.value.customDomains,
+      description: form.value.description,
+      enabled: form.value.enabled,
+    }
+    if (editingId.value) {
+      await apiClient.put(`${MONITOR_GATEWAY}/rules/${editingId.value}`, body)
+      snackbar.value = { show: true, text: 'Rule updated', color: 'success' }
+    } else {
+      await apiClient.post(`${MONITOR_GATEWAY}/rules`, body)
+      snackbar.value = { show: true, text: 'Rule created', color: 'success' }
+    }
+    dialog.value = false
+    await fetchRules()
   } catch (e: any) {
-    rule.lastRun = new Date().toISOString()
-    rule.lastStatus = 'failed'
-    saveRules()
-    snackbar.value = { show: true, text: e?.message || 'Sync failed', color: 'error' }
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to save', color: 'error' }
   } finally {
-    syncing.value = false
+    saving.value = false
   }
 }
 
-function formatTime(iso: string | null) {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })
+async function handleDelete(id: string) {
+  if (!confirm('Delete this rule?')) return
+  try {
+    await apiClient.delete(`${MONITOR_GATEWAY}/rules/${id}`)
+    snackbar.value = { show: true, text: 'Rule deleted', color: 'success' }
+    await fetchRules()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to delete', color: 'error' }
+  }
 }
+
+async function triggerCheck(id: number) {
+  checkingIds.value.push(id)
+  try {
+    await apiClient.post(`${MONITOR_GATEWAY}/rules/${id}/check`)
+    snackbar.value = { show: true, text: 'Check triggered', color: 'success' }
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Failed to trigger check', color: 'error' }
+  } finally {
+    checkingIds.value = checkingIds.value.filter(i => i !== id)
+  }
+}
+
+// Watchers
+watch(() => form.value.domains, (val) => {
+  if (val.includes('all') && val.length > 1) {
+    // If 'all' is selected along with specific domains, just keep 'all'
+    form.value.domains = ['all']
+  }
+}, { deep: true })
+
+watch(() => form.value.source, (val) => {
+  form.value.domains = []
+  form.value.accountId = null
+  if (val === 'tencent' && tencentDomains.value.length === 0) {
+    fetchTencentDomains()
+  }
+})
+
+watch(() => form.value.accountId, (val) => {
+  form.value.domains = []
+  if (val) fetchCfDomains()
+})
+
+// Lifecycle
+onMounted(async () => {
+  await fetchAccounts()
+  await fetchRules()
+})
 </script>
 
 <template>
   <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-    <!-- Stats -->
-    <div class="d-flex gap-4 mb-3 flex-wrap">
-      <VCard class="pa-3" style="min-width: 120px; flex: 1;">
-        <div class="text-caption text-medium-emphasis">Total</div>
-        <div class="text-h5 font-weight-bold">{{ totalRules }}</div>
-      </VCard>
-      <VCard class="pa-3" style="min-width: 120px; flex: 1;">
-        <div class="text-caption text-medium-emphasis">Active</div>
-        <div class="text-h5 font-weight-bold text-success">{{ activeRules.length }}</div>
-      </VCard>
-    </div>
-
-    <!-- Table -->
-    <VCard style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
-      <VCardText class="d-flex align-center gap-3 py-2">
-        <VIcon icon="bx-radar" color="primary" size="20" />
-        <span class="text-subtitle-1 font-weight-bold">Monitor Rule</span>
-        <VSpacer />
-        <VBtn color="primary" size="small" prepend-icon="bx-plus" @click="openCreate">Add Rule</VBtn>
+    <!-- Header -->
+    <VCard class="mb-4">
+      <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
+        <div class="flex-grow-1">
+          <h4 class="text-h4 mb-1">Monitor</h4>
+          <p class="text-body-2 text-medium-emphasis mb-0">Description</p>
+        </div>
+        <VBtn color="primary" @click="openCreate">
+          <VIcon icon="bx-plus" class="me-1" /> Add Rule
+        </VBtn>
       </VCardText>
+    </VCard>
 
-      <div v-if="loading" class="text-center py-8"><VProgressCircular indeterminate color="primary" /></div>
-
-      <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
+    <!-- Rules Table -->
+    <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+      <VProgressLinear v-if="loading" indeterminate color="primary" />
+      <VTable v-if="rules.length > 0" class="sticky-table" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
+        <colgroup>
+          <col style="width: 200px" />
+          <col style="width: 120px" />
+          <col style="width: 250px" />
+          <col style="width: 200px" />
+          <col style="width: 180px" />
+          <col style="width: 130px" />
+        </colgroup>
         <thead>
-          <tr class="text-caption text-medium-emphasis">
-            <th style="width: 50px;">#</th>
-            <th>Name</th>
-            <th>Source Group</th>
-            <th>Target Project</th>
-            <th style="width: 80px;">Env</th>
-            <th style="width: 80px;">Type</th>
-            <th style="width: 80px;">Enabled</th>
-            <th style="width: 160px;">Last Run</th>
-            <th style="width: 80px;">Status</th>
-            <th style="width: 200px;">Actions</th>
+          <tr>
+            <th style="width: 200px">Name</th>
+            <th style="width: 120px">Source</th>
+            <th style="width: 250px">Domain</th>
+            <th style="width: 200px">Description</th>
+            <th style="width: 180px">Last Check</th>
+            <th style="width: 130px; text-align: center;">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="rules.length === 0">
-            <td colspan="10" class="text-center text-medium-emphasis py-8">No rules. Click "Add Rule" to create one.</td>
-          </tr>
-          <tr v-for="(rule, idx) in rules" :key="rule.id">
-            <td class="text-caption">{{ idx + 1 }}</td>
-            <td><strong>{{ rule.name }}</strong></td>
-            <td><VChip size="x-small" color="info" variant="tonal">{{ getGroupName(rule.groupId) }}</VChip></td>
-            <td><VChip size="x-small" color="success" variant="tonal">{{ getProjectName(rule.projectId) }}</VChip></td>
-            <td><VChip size="x-small" variant="tonal">{{ rule.env }}</VChip></td>
-            <td><VChip size="x-small" variant="tonal">{{ rule.type }}</VChip></td>
+          <tr v-for="rule in rules" :key="rule.id">
+            <td class="font-weight-medium">{{ rule.name }}</td>
             <td>
-              <VSwitch :model-value="rule.enabled" density="compact" hide-details color="success" @update:model-value="toggleRule(rule)" />
-            </td>
-            <td class="text-caption">{{ formatTime(rule.lastRun) }}</td>
-            <td>
-              <VChip v-if="rule.lastStatus === 'success'" size="x-small" color="success" variant="tonal">OK</VChip>
-              <VChip v-else-if="rule.lastStatus === 'failed'" size="x-small" color="error" variant="tonal">FAIL</VChip>
-              <span v-else class="text-caption text-medium-emphasis">-</span>
+              <VChip
+                size="x-small"
+                :color="rule.source === 'cloudflare' ? 'primary' : rule.source === 'tencent' ? 'success' : 'warning'"
+                variant="tonal"
+              >
+                {{ rule.source }}
+              </VChip>
             </td>
             <td>
-              <VBtn size="x-small" color="primary" variant="tonal" :loading="syncing" :disabled="!rule.enabled" @click="runRule(rule)">Run</VBtn>
-              <VBtn size="x-small" color="info" variant="tonal" class="ms-1" @click="openEdit(rule)">Edit</VBtn>
-              <VBtn size="x-small" color="error" variant="tonal" class="ms-1" @click="deleteRule(rule)">Delete</VBtn>
+              <template v-if="Array.isArray(rule.domains) && rule.domains.length">
+                <VChip v-for="d in rule.domains" :key="d" size="x-small" variant="tonal" color="primary" class="me-1 mb-1">{{ d === 'all' ? 'All' : d }}</VChip>
+              </template>
+              <template v-else-if="rule.customDomains">
+                <span class="text-caption">{{ rule.customDomains }}</span>
+              </template>
+              <template v-else>
+                <span class="text-caption text-medium-emphasis">-</span>
+              </template>
+            </td>
+            <td class="text-caption text-medium-emphasis">{{ rule.description || '-' }}</td>
+            <td>
+              <div v-if="rule.last_check" class="text-caption">
+                <div>{{ new Date(rule.last_check + 'Z').toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) }}</div>
+                <VChip size="x-small" :color="rule.status === 'ok' ? 'success' : rule.status === 'error' ? 'error' : 'grey'" variant="tonal" class="mt-1">{{ rule.status || '-' }}</VChip>
+              </div>
+              <span v-else class="text-caption text-medium-emphasis">Never</span>
+            </td>
+            <td style="text-align: center;">
+              <VBtn icon size="x-small" variant="text" color="success" @click="triggerCheck(rule.id)" :loading="checkingIds.includes(rule.id)">
+                <VIcon icon="bx-play" size="16" />
+              </VBtn>
+              <VBtn icon size="x-small" variant="text" color="primary" @click="openEdit(rule)">
+                <VIcon icon="bx-edit" size="16" />
+              </VBtn>
+              <VBtn icon size="x-small" variant="text" color="error" @click="handleDelete(rule.id)">
+                <VIcon icon="bx-trash" size="16" />
+              </VBtn>
             </td>
           </tr>
         </tbody>
       </VTable>
+      <VCardText v-else-if="!loading" class="text-center py-8 text-medium-emphasis">
+        <VIcon icon="bx-radar" size="48" class="mb-2" />
+        <p>No monitoring rules yet. Click "Add Rule" to create one.</p>
+      </VCardText>
     </VCard>
 
-    <!-- Add/Edit Dialog -->
-    <VDialog v-model="dialog" max-width="500">
+    <!-- Dialog -->
+    <VDialog v-model="dialog" max-width="600">
       <VCard>
-        <VCardItem><VCardTitle>{{ editingId ? 'Edit Rule' : 'Add Rule' }}</VCardTitle></VCardItem>
+        <VCardTitle>{{ editingId ? 'Edit Rule' : 'Add Rule' }}</VCardTitle>
         <VCardText>
-          <VTextField v-model="form.name" label="Rule Name" density="compact" hide-details class="mb-3" />
-          <VSelect v-model="form.groupId" :items="groups.map(g => ({ title: g.name, value: g.id }))" label="Source Group" density="compact" hide-details clearable class="mb-3" />
-          <VSelect v-model="form.projectId" :items="projects.map(p => ({ title: p.name, value: String(p.id) }))" label="Target Project" density="compact" hide-details clearable class="mb-3" />
-          <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" hide-details class="mb-3" />
-          <VSelect v-model="form.type" :items="typeOptions" label="Type" density="compact" hide-details />
+          <!-- Name -->
+          <VTextField
+            v-model="form.name"
+            label="Rule Name"
+            density="compact"
+            class="mb-3"
+            hint="e.g. Production Monitor"
+            persistent-hint
+          />
+
+          <!-- Source -->
+          <VSelect
+            v-model="form.source"
+            :items="sourceOptions"
+            label="Domain Source"
+            density="compact"
+            class="mb-3"
+          />
+
+          <!-- Cloudflare: Account + Domain -->
+          <template v-if="form.source === 'cloudflare'">
+            <VSelect
+              v-model="form.accountId"
+              :items="accountOptions"
+              label="Cloudflare Account"
+              density="compact"
+              class="mb-3"
+              :loading="loadingAccounts"
+              clearable
+            />
+            <VSelect
+              v-model="form.domains"
+              :items="domainOptions"
+              label="Domain"
+              density="compact"
+              class="mb-3"
+              :loading="loadingCfDomains"
+              :disabled="!form.accountId"
+              clearable
+              multiple
+              chips
+            />
+          </template>
+
+          <!-- Tencent: Domain -->
+          <template v-if="form.source === 'tencent'">
+            <VSelect
+              v-model="form.domains"
+              :items="domainOptions"
+              label="Domain"
+              density="compact"
+              class="mb-3"
+              :loading="loadingTencentDomains"
+              clearable
+              multiple
+              chips
+            />
+          </template>
+
+          <!-- Custom: Text input -->
+          <template v-if="form.source === 'custom'">
+            <VTextarea
+              v-model="form.customDomains"
+              label="Domains"
+              density="compact"
+              class="mb-3"
+              rows="3"
+              hint="Enter one domain per line"
+              persistent-hint
+            />
+          </template>
+
+          <!-- Description -->
+          <VTextarea
+            v-model="form.description"
+            label="Description"
+            density="compact"
+            rows="2"
+            hide-details
+          />
         </VCardText>
-        <VCardActions class="justify-end">
-          <VBtn variant="tonal" @click="dialog = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!form.name.trim() || !form.groupId || !form.projectId" @click="saveRule">Save</VBtn>
+        <VCardActions>
+          <VSpacer />
+          <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
+          <VBtn color="primary" :loading="saving" @click="save">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
 
-    <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</VSnackbar>
+    <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
+      {{ snackbar.text }}
+    </VSnackbar>
   </div>
 </template>
 
 <style scoped>
-.sticky-table { display: flex; flex-direction: column; width: 100%; }
-.sticky-table :deep(.v-table__wrapper) { flex: 1; min-height: 0; overflow-y: auto; }
-.sticky-table :deep(thead) { position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface)); }
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.sortable:hover {
+  color: rgb(var(--v-theme-primary));
+}
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}
 </style>
