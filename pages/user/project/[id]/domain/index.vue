@@ -293,23 +293,11 @@ const importGroups = ref<any[]>([])
 const importSelectedGroupId = ref('')
 const importGroupMeta = ref<Record<string, { type: string; remark: string; groupId: string }>>({})
 const importGroupZones = ref<any[]>([])
-const importEnv = ref('prod')
-const importType = ref('web')
-const importDnsRecords = ref<any[]>([])
-const importDnsLoading = ref(false)
-const importDnsExpanded = ref<Record<string, boolean>>({})
-
-const importEnvOptions = ['prod', 'uat', 'test', 'dev']
-const importTypeOptions = ['web', 'admin', 'callback', 'api']
 
 async function openImportDialog() {
   importMode.value = 'file'
   importFile.value = null
   importSelectedGroupId.value = ''
-  importEnv.value = 'prod'
-  importType.value = 'web'
-  importDnsRecords.value = []
-  importDnsExpanded.value = {}
   isImportDialogVisible.value = true
   try {
     const [groups, meta, zones] = await Promise.all([
@@ -324,44 +312,24 @@ async function openImportDialog() {
     }
     importGroupMeta.value = m
     importGroupZones.value = zones || []
+    console.log('[Import] Groups:', groups?.length, 'Meta:', Object.keys(m).length, 'Zones:', zones?.length)
+    console.log('[Import] Sample meta:', Object.keys(m).slice(0, 3).map(k => `${k}=${m[k].groupId}`))
+    console.log('[Import] Sample zone:', zones?.[0]?.zone_id, zones?.[0]?.name)
   } catch { /* ignore */ }
-}
-
-async function fetchImportDnsRecords() {
-  if (!importSelectedGroupId.value) { importDnsRecords.value = []; return }
-  const groupZones = importGroupZones.value.filter(z => importGroupMeta.value[z.zone_id]?.groupId === importSelectedGroupId.value)
-  if (!groupZones.length) { importDnsRecords.value = []; return }
-  importDnsLoading.value = true
-  try {
-    const { data } = await apiClient.get('/cloudflare/dns')
-    const allRecords = data?.data || []
-    const zoneNames = new Set(groupZones.map((z: any) => z.name))
-    importDnsRecords.value = allRecords.filter((r: any) => {
-      const name = (r.name || '').toLowerCase()
-      for (const zn of zoneNames) {
-        if (name === zn.toLowerCase() || name.endsWith('.' + zn.toLowerCase())) return true
-      }
-      return false
-    })
-  } catch { importDnsRecords.value = [] }
-  finally { importDnsLoading.value = false }
-}
-
-watch(importSelectedGroupId, () => {
-  importDnsExpanded.value = {}
-  fetchImportDnsRecords()
-})
-
-function importDnsByZone(zoneName: string) {
-  return importDnsRecords.value.filter((r: any) => (r.name || '').toLowerCase().endsWith(zoneName.toLowerCase()) || (r.name || '').toLowerCase() === zoneName.toLowerCase())
 }
 
 const importGroupDomains = computed(() => {
   if (!importSelectedGroupId.value) return []
-  return importGroupZones.value.filter(z => importGroupMeta.value[z.zone_id]?.groupId === importSelectedGroupId.value).map(z => ({
+  const matched = importGroupZones.value.filter(z => importGroupMeta.value[z.zone_id]?.groupId === importSelectedGroupId.value)
+  console.log('[Import] Filter: groupId=', importSelectedGroupId.value, 'zones=', importGroupZones.value.length, 'matched=', matched.length, 'metaKeys=', Object.keys(importGroupMeta.value).length)
+  if (matched.length === 0 && importGroupZones.value.length > 0) {
+    const sample = importGroupZones.value[0]
+    console.log('[Import] Sample zone_id:', sample.zone_id, 'meta for it:', importGroupMeta.value[sample.zone_id])
+  }
+  return matched.map(z => ({
     domain: z.name,
-    env: importEnv.value,
-    type: importType.value,
+    env: 'prod',
+    type: importGroupMeta.value[z.zone_id]?.type || 'web',
     remark: importGroupMeta.value[z.zone_id]?.remark || '',
     cdn: '',
   }))
@@ -408,6 +376,7 @@ async function confirmImport() {
     }
   }
 }
+
 
 // Export
 function exportDomains() {
@@ -546,7 +515,7 @@ function exportDomains() {
               </div>
             </VWindowItem>
             <!-- Domain Group Mode -->
-            <VWindowItem value="group" style="min-height: 120px; overflow: visible; padding-top: 8px;">
+                        <VWindowItem value="group" style="min-height: 120px; overflow: visible; padding-top: 8px;">
               <VSelect
                 v-model="importSelectedGroupId"
                 :items="importGroups.map(g => ({ title: g.name, value: g.id }))"
@@ -557,30 +526,12 @@ function exportDomains() {
                 class="mb-3"
                 :menu-props="{ contentClass: 'elevation-3' }"
               />
-              <div v-if="importSelectedGroupId" class="d-flex gap-3 mb-3">
-                <VSelect v-model="importEnv" :items="importEnvOptions" label="Environment" density="compact" hide-details style="flex: 1;" />
-                <VSelect v-model="importType" :items="importTypeOptions" label="Type" density="compact" hide-details style="flex: 1;" />
-              </div>
               <div v-if="importSelectedGroupId && importGroupDomains.length > 0" class="border rounded-lg pa-3" style="max-height: 300px; overflow-y: auto;">
-                <p class="text-caption text-medium-emphasis mb-2">{{ importGroupDomains.length }} domains will be imported as <strong>{{ importEnv }}</strong> / <strong>{{ importType }}</strong>:</p>
-                <div v-for="d in importGroupDomains" :key="d.domain" class="mb-2">
-                  <div class="d-flex align-center gap-2 cursor-pointer" @click="importDnsExpanded[d.domain] = !importDnsExpanded[d.domain]">
-                    <VIcon :icon="importDnsExpanded[d.domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="14" />
-                    <VIcon icon="bx-globe" size="14" color="medium-emphasis" />
-                    <code class="text-body-2">{{ d.domain }}</code>
-                    <VChip size="x-small" color="info" variant="tonal">{{ importDnsByZone(d.domain).length }} records</VChip>
-                  </div>
-                  <div v-if="importDnsExpanded[d.domain]" class="ms-6 mt-1">
-                    <div v-if="importDnsLoading" class="text-caption text-medium-emphasis">Loading...</div>
-                    <div v-else-if="importDnsByZone(d.domain).length === 0" class="text-caption text-medium-emphasis">No DNS records cached</div>
-                    <div v-else>
-                      <div v-for="r in importDnsByZone(d.domain)" :key="r.id || r.name" class="d-flex align-center gap-2 py-1" style="font-size: 12px;">
-                        <VChip size="x-small" variant="tonal" color="secondary" style="min-width: 40px; justify-content: center;">{{ r.type }}</VChip>
-                        <code>{{ r.name }}</code>
-                        <span class="text-medium-emphasis">→ {{ r.content }}</span>
-                      </div>
-                    </div>
-                  </div>
+                <p class="text-caption text-medium-emphasis mb-2">{{ importGroupDomains.length }} domains will be imported:</p>
+                <div v-for="d in importGroupDomains" :key="d.domain" class="d-flex align-center gap-2 py-1">
+                  <VIcon icon="bx-globe" size="14" color="medium-emphasis" />
+                  <code class="text-body-2">{{ d.domain }}</code>
+                  
                 </div>
               </div>
               <div v-else-if="importSelectedGroupId" class="text-center py-4 text-medium-emphasis">
