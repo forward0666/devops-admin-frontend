@@ -171,22 +171,22 @@ function formatTime(iso: string | null) {
 <template>
   <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
     <!-- Stats -->
-    <div class="d-flex gap-4 mb-4 flex-wrap">
-      <VCard class="pa-4" style="min-width: 140px; flex: 1;">
+    <div class="d-flex gap-4 mb-3 flex-wrap">
+      <VCard class="pa-3" style="min-width: 120px; flex: 1;">
         <div class="text-caption text-medium-emphasis">Total</div>
-        <div class="text-h4 font-weight-bold">{{ totalRules }}</div>
+        <div class="text-h5 font-weight-bold">{{ totalRules }}</div>
       </VCard>
-      <VCard class="pa-4" style="min-width: 140px; flex: 1;">
+      <VCard class="pa-3" style="min-width: 120px; flex: 1;">
         <div class="text-caption text-medium-emphasis">Active</div>
-        <div class="text-h4 font-weight-bold text-success">{{ activeRules.length }}</div>
+        <div class="text-h5 font-weight-bold text-success">{{ activeRules.length }}</div>
       </VCard>
     </div>
 
     <!-- Table -->
     <VCard style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
-      <VCardText class="d-flex align-center gap-3 py-3">
-        <VIcon icon="bx-radar" color="primary" />
-        <span class="text-h6">Monitor Rule</span>
+      <VCardText class="d-flex align-center gap-3 py-2">
+        <VIcon icon="bx-radar" color="primary" size="20" />
+        <span class="text-subtitle-1 font-weight-bold">Monitor Rule</span>
         <VSpacer />
         <VBtn color="primary" size="small" prepend-icon="bx-plus" @click="openCreate">Add Rule</VBtn>
       </VCardText>
