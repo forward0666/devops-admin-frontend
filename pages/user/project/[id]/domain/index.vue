@@ -487,7 +487,7 @@ function exportDomains() {
           <VForm ref="editFormRef">
             <VTextField v-model="editingItem.domain" label="Domain" density="comfortable" class="mb-3" variant="outlined" :rules="[v => !!v || 'Domain is required']" />
             <VSelect v-model="editingItem.type" label="Type" :items="['landingpage', 'antiblock', 'bucket', 'web', 'admin', 'callback', 'api']" density="comfortable" class="mb-3" variant="outlined" />
-            <VTextField v-model="editingItem.remark" label="Remark" density="comfortable" variant="outlined" />
+            <VTextField v-model="editingItem.remark" label="Remark" density="comfortable" class="mb-3" variant="outlined" />
             <VSelect v-model="editingItem.cdn" :items="['cloudflare', 'tencent']" label="CDN" clearable density="comfortable" variant="outlined" />
           </VForm>
         </VCardText>

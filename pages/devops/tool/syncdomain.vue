@@ -5,7 +5,7 @@ import apiClient, { domainGroupService, projectService } from '~/services/api'
 definePageMeta({ layout: 'default' })
 
 const CF_GATEWAY = '/cloudflare'
-const MONITOR_GATEWAY = '/sync_domain'
+const MONITOR_GATEWAY = '/cloudflare/sync_domain'
 
 // Groups & Projects
 const groups = ref<any[]>([])
@@ -17,7 +17,6 @@ const dnsLoading = ref(false)
 const expandedDomains = ref<Record<string, boolean>>({})
 
 const envOptions = ['prod', 'uat', 'test', 'dev']
-const typeOptions = ['web', 'admin', 'callback', 'api']
 
 // State
 const rules = ref<any[]>([])
@@ -33,7 +32,6 @@ const form = ref({
   groupId: '',
   projectId: '',
   env: 'prod',
-  type: 'web',
   description: '',
   enabled: true,
 })
@@ -152,7 +150,7 @@ async function fetchRules() {
 
 function openCreate() {
   editingId.value = null
-  form.value = { name: '', groupId: '', projectId: '', env: 'prod', type: 'web', description: '', enabled: true }
+  form.value = { name: '', groupId: '', projectId: '', env: 'prod', description: '', enabled: true }
   dialog.value = true
 }
 
@@ -163,7 +161,6 @@ function openEdit(rule: any) {
     groupId: rule.groupId || '',
     projectId: rule.projectId || '',
     env: rule.env || 'prod',
-    type: rule.type || 'web',
     description: rule.description || '',
     enabled: !!rule.enabled,
   }
@@ -186,7 +183,6 @@ async function save() {
       group_id: form.value.groupId,
       project_id: form.value.projectId,
       env: form.value.env,
-      type: form.value.type,
       description: form.value.description,
       enabled: form.value.enabled,
     }
@@ -262,7 +258,6 @@ onMounted(async () => {
           <col style="width: 150px" />
           <col style="width: 150px" />
           <col style="width: 100px" />
-          <col style="width: 100px" />
           <col style="width: 180px" />
           <col style="width: 130px" />
         </colgroup>
@@ -272,7 +267,6 @@ onMounted(async () => {
             <th>Source Group</th>
             <th>Target Project</th>
             <th>Env</th>
-            <th>Type</th>
             <th>Last Check</th>
             <th style="text-align: center;">Action</th>
           </tr>
@@ -283,7 +277,6 @@ onMounted(async () => {
             <td><VChip size="x-small" color="info" variant="tonal">{{ getGroupName(rule.groupId) }}</VChip></td>
             <td><VChip size="x-small" color="success" variant="tonal">{{ getProjectName(rule.projectId) }}</VChip></td>
             <td><VChip size="x-small" variant="tonal">{{ rule.env }}</VChip></td>
-            <td><VChip size="x-small" variant="tonal">{{ rule.type }}</VChip></td>
             <td>
               <div v-if="rule.lastCheck" class="text-caption">
                 <div>{{ formatTime(rule.lastCheck) }}</div>
@@ -343,10 +336,7 @@ onMounted(async () => {
 
           <VSelect v-model="form.projectId" :items="projects.map(p => ({ title: p.name, value: String(p.id) }))" label="Target Project" density="compact" class="mb-3" clearable />
 
-          <div class="d-flex gap-3 mb-3">
-            <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" style="flex: 1;" />
-            <VSelect v-model="form.type" :items="typeOptions" label="Type" density="compact" style="flex: 1;" />
-          </div>
+          <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" class="mb-3" />
 
           <VTextarea v-model="form.description" label="Description" density="compact" rows="2" hide-details />
         </VCardText>
