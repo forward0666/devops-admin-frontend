@@ -47,7 +47,7 @@ export const DEVOPS = {
   TOOL_DOMAIN: '/devops/tool/domain',
   TOOL_PURGE_CACHE: '/devops/tool/purgecache',
   TOOL_SYNC_RULE: '/devops/tool/syncrule',
-  TOOL_SYNC_DOMAIN: '/devops/tool/syncdomain',
+  TOOL_MONITOR_RULE: '/devops/tool/monitorrule',
   TOOL_WHITELIST: '/devops/tool/list',
   TOOL_MONITOR: '/devops/tool/monitorrule',
   AGENT: '/devops/agent/agent',
