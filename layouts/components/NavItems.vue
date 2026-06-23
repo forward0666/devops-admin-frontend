@@ -245,7 +245,6 @@ const isProjectActive = (projectId: number) => {
         <VerticalNavLink :item="{ title: 'Sync Rule', to: DEVOPS.TOOL_SYNC_RULE }" />
         <VerticalNavLink :item="{ title: 'Sync Domain', to: DEVOPS.TOOL_SYNC_DOMAIN }" />
         <VerticalNavLink :item="{ title: 'List', to: DEVOPS.TOOL_WHITELIST }" />
-        <VerticalNavLink :item="{ title: 'Monitor Rule', to: DEVOPS.TOOL_MONITOR }" />
         <VerticalNavLink :item="{ title: 'Task', to: DEVOPS.TOOL_TASK }" />
       </VerticalNavGroup>
 
