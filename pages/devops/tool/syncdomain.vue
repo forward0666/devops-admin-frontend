@@ -17,6 +17,11 @@ const groupZones = ref<any[]>([])
 const projects = ref<any[]>([])
 const selectedProjectId = ref('')
 
+// DNS records
+const dnsRecords = ref<any[]>([])
+const dnsLoading = ref(false)
+const expandedDomains = ref<Record<string, boolean>>({})
+
 // Sync options
 const syncEnv = ref('')
 const syncType = ref('')
@@ -61,20 +66,56 @@ async function fetchData() {
 
 onMounted(fetchData)
 
+const groupZoneList = computed(() => {
+  if (!selectedGroupId.value) return []
+  return groupZones.value.filter(z => groupMeta.value[z.zone_id]?.groupId === selectedGroupId.value)
+})
+
+async function fetchDnsRecords() {
+  if (!selectedGroupId.value) { dnsRecords.value = []; return }
+  const zones = groupZoneList.value
+  if (!zones.length) { dnsRecords.value = []; return }
+  dnsLoading.value = true
+  try {
+    const { data } = await apiClient.get('/cloudflare/dns')
+    const allRecords = data?.data || []
+    const zoneNames = new Set(zones.map((z: any) => z.name))
+    dnsRecords.value = allRecords.filter((r: any) => {
+      const name = (r.name || '').toLowerCase()
+      const rtype = (r.type || '').toUpperCase()
+      if (rtype !== 'A' && rtype !== 'CNAME') return false
+      for (const zn of zoneNames) {
+        if (name === zn.toLowerCase() || name.endsWith('.' + zn.toLowerCase())) return true
+      }
+      return false
+    })
+  } catch { dnsRecords.value = [] }
+  finally { dnsLoading.value = false }
+}
+
+watch(selectedGroupId, () => {
+  expandedDomains.value = {}
+  syncEnv.value = ''
+  syncType.value = ''
+  fetchDnsRecords()
+})
+
+function dnsByZone(zoneName: string) {
+  return dnsRecords.value.filter((r: any) => {
+    const name = (r.name || '').toLowerCase()
+    return name === zoneName.toLowerCase() || name.endsWith('.' + zoneName.toLowerCase())
+  })
+}
+
 const groupDomains = computed(() => {
   if (!selectedGroupId.value) return []
-  return groupZones.value.filter(z => groupMeta.value[z.zone_id]?.groupId === selectedGroupId.value).map(z => ({
+  return groupZoneList.value.map(z => ({
     domain: z.name,
     env: syncEnv.value || 'prod',
     type: syncType.value || groupMeta.value[z.zone_id]?.type || 'web',
     remark: '',
     cdn: '',
   }))
-})
-
-watch(selectedGroupId, () => {
-  syncEnv.value = ''
-  syncType.value = ''
 })
 
 const selectedProjectName = computed(() => projects.value.find(p => String(p.id) === selectedProjectId.value)?.name || '')
@@ -137,7 +178,7 @@ async function doSync() {
         </VCardText>
       </VCard>
 
-      <!-- Right: Domain List -->
+      <!-- Right: Domain List with DNS -->
       <VCard style="flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0;">
         <div v-if="!selectedGroupId" class="text-center py-8 text-medium-emphasis">
           <VIcon icon="bx-list-ul" size="48" class="mb-2" /><p>Select a source group to preview domains</p>
@@ -145,20 +186,26 @@ async function doSync() {
         <div v-else-if="groupDomains.length === 0" class="text-center py-8 text-medium-emphasis">
           <VIcon icon="bx-info-circle" size="48" class="mb-2" /><p>No domains in this group</p>
         </div>
-        <VTable v-else class="text-no-wrap" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
-          <thead>
-            <tr class="text-caption text-medium-emphasis">
-              <th style="width: 40px;">#</th>
-              <th>Domain</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(d, idx) in groupDomains" :key="d.domain">
-              <td class="text-caption">{{ idx + 1 }}</td>
-              <td><code>{{ d.domain }}</code></td>
-            </tr>
-          </tbody>
-        </VTable>
+        <div v-else style="flex: 1; overflow-y: auto; padding: 12px;">
+          <div v-for="(d, idx) in groupDomains" :key="d.domain" class="mb-3">
+            <div class="d-flex align-center gap-2 cursor-pointer" @click="expandedDomains[d.domain] = !expandedDomains[d.domain]">
+              <VIcon :icon="expandedDomains[d.domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="16" />
+              <span class="text-caption text-medium-emphasis" style="min-width: 24px;">{{ idx + 1 }}.</span>
+              <code class="text-body-2 font-weight-bold">{{ d.domain }}</code>
+              <VChip size="x-small" color="info" variant="tonal">{{ dnsByZone(d.domain).length }} records</VChip>
+            </div>
+            <div v-if="expandedDomains[d.domain]" class="ms-8 mt-1">
+              <div v-if="dnsLoading" class="text-caption text-medium-emphasis py-1">Loading DNS records...</div>
+              <div v-else-if="dnsByZone(d.domain).length === 0" class="text-caption text-medium-emphasis py-1">No DNS records</div>
+              <div v-else>
+                <div v-for="r in dnsByZone(d.domain)" :key="r.id || r.name" class="d-flex align-center gap-2 py-1" style="font-size: 12px;">
+                  <VChip size="x-small" variant="tonal" color="secondary" style="min-width: 50px; justify-content: center;">{{ r.type }}</VChip>
+                  <code>{{ r.name }}</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </VCard>
     </div>
 
