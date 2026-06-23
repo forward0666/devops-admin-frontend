@@ -85,6 +85,8 @@ async function fetchDnsRecords() {
     const zoneNames = new Set(zones.map((z: any) => z.name))
     dnsRecords.value = allRecords.filter((r: any) => {
       const name = (r.name || '').toLowerCase()
+      const rtype = (r.type || '').toUpperCase()
+      if (rtype !== 'A' && rtype !== 'CNAME') return false
       for (const zn of zoneNames) {
         if (name === zn.toLowerCase() || name.endsWith('.' + zn.toLowerCase())) return true
       }
