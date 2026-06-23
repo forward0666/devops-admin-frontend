@@ -27,15 +27,20 @@ if (import.meta.client) {
 
   // Fetch user's own projects only when authenticated & in user console
   const fetchUserProjects = async () => {
-    if (!authStore.isAuthenticated) return
+    if (!authStore.isAuthenticated || authStore.isUser === false) return
+    if (userProjectList.value?.length) return
     try {
       const res = await userConsoleProjectService.list()
       userProjectList.value = Array.isArray(res) ? res : res?.data || []
     } catch { userProjectList.value = [] }
   }
 
-  fetchAdminProjects()
-  fetchUserProjects()
+  // Only fetch on project-related pages
+  const route = useRoute()
+  if (route.path.includes('/project') || route.path.includes('/admin')) {
+    fetchAdminProjects()
+    fetchUserProjects()
+  }
   watch(() => projectStore.value?.projects.length, () => { projectKey.value++ })
   watch(() => authStore.isAuthenticated, (v) => { if (v) { fetchAdminProjects(); fetchUserProjects() } })
   watch(() => authStore.consoleRole, fetchUserProjects)
@@ -235,9 +240,8 @@ const isProjectActive = (projectId: number) => {
         }"
       >
         <VerticalNavLink :item="{ title: 'Purge Cache', to: DEVOPS.TOOL_PURGE_CACHE }" />
-        <VerticalNavLink :item="{ title: 'Security Rule', to: DEVOPS.TOOL_SECURITY }" />
         <VerticalNavLink :item="{ title: 'Sync Rule', to: DEVOPS.TOOL_SYNC_RULE }" />
-        <VerticalNavLink :item="{ title: 'WhiteList IP', to: DEVOPS.TOOL_WHITELIST }" />
+        <VerticalNavLink :item="{ title: 'List', to: DEVOPS.TOOL_WHITELIST }" />
         <VerticalNavLink :item="{ title: 'Monitor Rule', to: DEVOPS.TOOL_MONITOR }" />
         <VerticalNavLink :item="{ title: 'Task', to: DEVOPS.TOOL_TASK }" />
       </VerticalNavGroup>

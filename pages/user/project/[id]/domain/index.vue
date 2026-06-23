@@ -1,6 +1,6 @@
 <script lang="ts">definePageMeta({ middleware: ["user-project-guard"] })</script>
 <script setup lang="ts">
-import { userConsoleDomainService } from '~/services/api'
+import apiClient, { userConsoleDomainService, domainGroupService } from '~/services/api'
 
 const route = useRoute()
 const projectId = computed(() => route.params.id as string)
@@ -286,8 +286,86 @@ async function confirmDelete() {
 
 // Import
 const isImportDialogVisible = ref(false)
+const importMode = ref<'file' | 'group'>('file')
 const importFile = ref<File | null>(null)
 const isDragging = ref(false)
+const importGroups = ref<any[]>([])
+const importSelectedGroupId = ref('')
+const importGroupMeta = ref<Record<string, { type: string; remark: string; groupId: string }>>({})
+const importGroupZones = ref<any[]>([])
+const importEnv = ref('prod')
+const importType = ref('web')
+const importDnsRecords = ref<any[]>([])
+const importDnsLoading = ref(false)
+const importDnsExpanded = ref<Record<string, boolean>>({})
+
+const importEnvOptions = ['prod', 'uat', 'test', 'dev']
+const importTypeOptions = ['web', 'admin', 'callback', 'api']
+
+async function openImportDialog() {
+  importMode.value = 'file'
+  importFile.value = null
+  importSelectedGroupId.value = ''
+  importEnv.value = 'prod'
+  importType.value = 'web'
+  importDnsRecords.value = []
+  importDnsExpanded.value = {}
+  isImportDialogVisible.value = true
+  try {
+    const [groups, meta, zones] = await Promise.all([
+      domainGroupService.listGroups(),
+      domainGroupService.listMeta(),
+      apiClient.get('/cloudflare/zones').then((r: any) => r.data?.data || r.data || []).catch(() => []),
+    ])
+    importGroups.value = groups || []
+    const m: Record<string, { type: string; remark: string; groupId: string }> = {}
+    for (const item of (meta || [])) {
+      if (item.zoneId) m[item.zoneId] = { type: item.type || '', remark: item.remark || '', groupId: item.groupId || '' }
+    }
+    importGroupMeta.value = m
+    importGroupZones.value = zones || []
+  } catch { /* ignore */ }
+}
+
+async function fetchImportDnsRecords() {
+  if (!importSelectedGroupId.value) { importDnsRecords.value = []; return }
+  const groupZones = importGroupZones.value.filter(z => importGroupMeta.value[z.zone_id]?.groupId === importSelectedGroupId.value)
+  if (!groupZones.length) { importDnsRecords.value = []; return }
+  importDnsLoading.value = true
+  try {
+    const { data } = await apiClient.get('/cloudflare/dns')
+    const allRecords = data?.data || []
+    const zoneNames = new Set(groupZones.map((z: any) => z.name))
+    importDnsRecords.value = allRecords.filter((r: any) => {
+      const name = (r.name || '').toLowerCase()
+      for (const zn of zoneNames) {
+        if (name === zn.toLowerCase() || name.endsWith('.' + zn.toLowerCase())) return true
+      }
+      return false
+    })
+  } catch { importDnsRecords.value = [] }
+  finally { importDnsLoading.value = false }
+}
+
+watch(importSelectedGroupId, () => {
+  importDnsExpanded.value = {}
+  fetchImportDnsRecords()
+})
+
+function importDnsByZone(zoneName: string) {
+  return importDnsRecords.value.filter((r: any) => (r.name || '').toLowerCase().endsWith(zoneName.toLowerCase()) || (r.name || '').toLowerCase() === zoneName.toLowerCase())
+}
+
+const importGroupDomains = computed(() => {
+  if (!importSelectedGroupId.value) return []
+  return importGroupZones.value.filter(z => importGroupMeta.value[z.zone_id]?.groupId === importSelectedGroupId.value).map(z => ({
+    domain: z.name,
+    env: importEnv.value,
+    type: importType.value,
+    remark: importGroupMeta.value[z.zone_id]?.remark || '',
+    cdn: '',
+  }))
+})
 
 function handleFileDrop(e: DragEvent) {
   isDragging.value = false
@@ -301,21 +379,33 @@ function handleFileSelect(e: Event) {
 }
 
 async function confirmImport() {
-  if (!importFile.value) return
-  try {
-    const text = await importFile.value.text()
-    const data = JSON.parse(text)
-    if (Array.isArray(data)) {
-      await userConsoleDomainService.importDomains({ projectId: projectId.value, domains: data })
-      importFile.value = null
+  if (importMode.value === 'file') {
+    if (!importFile.value) return
+    try {
+      const text = await importFile.value.text()
+      const data = JSON.parse(text)
+      if (Array.isArray(data)) {
+        await userConsoleDomainService.importDomains({ projectId: projectId.value, domains: data })
+        importFile.value = null
+        isImportDialogVisible.value = false
+        await fetchDomains()
+        snackbar.value = { show: true, text: `Imported ${data.length} domains`, color: 'success' }
+        return
+      }
+      snackbar.value = { show: true, text: 'Invalid JSON format, expected array', color: 'error' }
+    } catch (e: any) {
+      snackbar.value = { show: true, text: e?.message || 'Import failed', color: 'error' }
+    }
+  } else {
+    if (!importGroupDomains.value.length) return
+    try {
+      await userConsoleDomainService.importDomains({ projectId: projectId.value, domains: importGroupDomains.value })
       isImportDialogVisible.value = false
       await fetchDomains()
-      snackbar.value = { show: true, text: `Imported ${data.length} domains`, color: 'success' }
-      return
+      snackbar.value = { show: true, text: `Imported ${importGroupDomains.value.length} domains from group`, color: 'success' }
+    } catch (e: any) {
+      snackbar.value = { show: true, text: e?.message || 'Import failed', color: 'error' }
     }
-    snackbar.value = { show: true, text: 'Invalid JSON format, expected array', color: 'error' }
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.message || 'Import failed', color: 'error' }
   }
 }
 
@@ -348,7 +438,7 @@ function exportDomains() {
         <VChip size="small" color="primary" variant="tonal">Total: {{ domains.length }}</VChip>
         <VSpacer />
         <VBtn prepend-icon="bx-plus" color="primary" size="small" :disabled="!canManage" @click="isAddDialogVisible = true">Add Domain</VBtn>
-        <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="isImportDialogVisible = true">Import</VBtn>
+        <VBtn prepend-icon="bx-download" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="openImportDialog">Import</VBtn>
         <VBtn prepend-icon="bx-upload" variant="tonal" color="secondary" size="small" :disabled="!canManage" @click="exportDomains">Export</VBtn>
         <VBtn prepend-icon="bx-edit" variant="tonal" color="warning" size="small" :disabled="!canManage || !selectedDomains.length" @click="isBulkEditDialogVisible = true">Edit ({{ selectedDomains.length }})</VBtn>
         <VBtn prepend-icon="bx-trash" variant="tonal" color="error" size="small" :disabled="!canManage || !selectedDomains.length" @click="isBulkDeleteDialogVisible = true">Delete ({{ selectedDomains.length }})</VBtn>
@@ -419,38 +509,103 @@ function exportDomains() {
     </VCard>
 
     <!-- Import Dialog -->
-    <VDialog v-model="isImportDialogVisible" max-width="500">
+    <VDialog v-model="isImportDialogVisible" max-width="550" content-class="import-dialog">
       <VCard>
         <VCardItem>
           <VCardTitle>Import Domains</VCardTitle>
         </VCardItem>
         <VCardText>
-          <div
-            class="drop-zone pa-8 text-center border rounded-lg"
-            :class="isDragging ? 'border-primary bg-primary-lighten-5' : 'border-dashed border-medium-emphasis'"
-            @dragover.prevent="isDragging = true"
-            @dragleave="isDragging = false"
-            @drop.prevent="handleFileDrop"
-            @click="($refs.fileInput as any)?.click()"
-          >
-            <VIcon icon="bx-upload" size="40" color="medium-emphasis" class="mb-2" />
-            <p class="text-body-1 mb-1">Drag & drop JSON file here</p>
-            <p class="text-caption text-medium-emphasis">or click to browse</p>
-            <input ref="fileInput" type="file" accept=".json" class="d-none" @change="handleFileSelect" />
-          </div>
-          <div v-if="importFile" class="d-flex align-center gap-2 mt-3">
-            <VIcon icon="bx-file" size="20" color="primary" />
-            <span class="text-body-2">{{ importFile.name }}</span>
-            <VBtn icon variant="text" size="x-small" @click="importFile = null"><VIcon icon="bx-x" size="16" /></VBtn>
-          </div>
-          <div class="mt-4 pa-3 bg-grey-lighten-4 rounded">
-            <p class="text-caption text-medium-emphasis mb-1">JSON format example:</p>
-            <code class="text-caption">[{"domain": "prod.example.com", "env": "prod", "type": "web", "remark": "", "cdn": ""}]</code>
-          </div>
+          <VTabs v-model="importMode" density="compact" class="mb-4">
+            <VTab value="file" prepend-icon="bx-file">JSON File</VTab>
+            <VTab value="group" prepend-icon="bx-group">Domain Group</VTab>
+          </VTabs>
+          <VWindow v-model="importMode">
+            <!-- JSON File Mode -->
+            <VWindowItem value="file">
+              <div
+                class="drop-zone pa-8 text-center border rounded-lg"
+                :class="isDragging ? 'border-primary bg-primary-lighten-5' : 'border-dashed border-medium-emphasis'"
+                @dragover.prevent="isDragging = true"
+                @dragleave="isDragging = false"
+                @drop.prevent="handleFileDrop"
+                @click="($refs.fileInput as any)?.click()"
+              >
+                <VIcon icon="bx-upload" size="40" color="medium-emphasis" class="mb-2" />
+                <p class="text-body-1 mb-1">Drag & drop JSON file here</p>
+                <p class="text-caption text-medium-emphasis">or click to browse</p>
+                <input ref="fileInput" type="file" accept=".json" class="d-none" @change="handleFileSelect" />
+              </div>
+              <div v-if="importFile" class="d-flex align-center gap-2 mt-3">
+                <VIcon icon="bx-file" size="20" color="primary" />
+                <span class="text-body-2">{{ importFile.name }}</span>
+                <VBtn icon variant="text" size="x-small" @click="importFile = null"><VIcon icon="bx-x" size="16" /></VBtn>
+              </div>
+              <div class="mt-4 pa-3 bg-grey-lighten-4 rounded">
+                <p class="text-caption text-medium-emphasis mb-1">JSON format example:</p>
+                <code class="text-caption">[{"domain": "prod.example.com", "env": "prod", "type": "web", "remark": "", "cdn": ""}]</code>
+              </div>
+            </VWindowItem>
+            <!-- Domain Group Mode -->
+            <VWindowItem value="group" style="min-height: 120px; overflow: visible; padding-top: 8px;">
+              <VSelect
+                v-model="importSelectedGroupId"
+                :items="importGroups.map(g => ({ title: g.name, value: g.id }))"
+                label="Select Group"
+                density="compact"
+                hide-details
+                clearable
+                class="mb-3"
+                :menu-props="{ contentClass: 'elevation-3' }"
+              />
+              <div v-if="importSelectedGroupId" class="d-flex gap-3 mb-3">
+                <VSelect v-model="importEnv" :items="importEnvOptions" label="Environment" density="compact" hide-details style="flex: 1;" />
+                <VSelect v-model="importType" :items="importTypeOptions" label="Type" density="compact" hide-details style="flex: 1;" />
+              </div>
+              <div v-if="importSelectedGroupId && importGroupDomains.length > 0" class="border rounded-lg pa-3" style="max-height: 300px; overflow-y: auto;">
+                <p class="text-caption text-medium-emphasis mb-2">{{ importGroupDomains.length }} domains will be imported as <strong>{{ importEnv }}</strong> / <strong>{{ importType }}</strong>:</p>
+                <div v-for="d in importGroupDomains" :key="d.domain" class="mb-2">
+                  <div class="d-flex align-center gap-2 cursor-pointer" @click="importDnsExpanded[d.domain] = !importDnsExpanded[d.domain]">
+                    <VIcon :icon="importDnsExpanded[d.domain] ? 'bx-chevron-down' : 'bx-chevron-right'" size="14" />
+                    <VIcon icon="bx-globe" size="14" color="medium-emphasis" />
+                    <code class="text-body-2">{{ d.domain }}</code>
+                    <VChip size="x-small" color="info" variant="tonal">{{ importDnsByZone(d.domain).length }} records</VChip>
+                  </div>
+                  <div v-if="importDnsExpanded[d.domain]" class="ms-6 mt-1">
+                    <div v-if="importDnsLoading" class="text-caption text-medium-emphasis">Loading...</div>
+                    <div v-else-if="importDnsByZone(d.domain).length === 0" class="text-caption text-medium-emphasis">No DNS records cached</div>
+                    <div v-else>
+                      <div v-for="r in importDnsByZone(d.domain)" :key="r.id || r.name" class="d-flex align-center gap-2 py-1" style="font-size: 12px;">
+                        <VChip size="x-small" variant="tonal" color="secondary" style="min-width: 40px; justify-content: center;">{{ r.type }}</VChip>
+                        <code>{{ r.name }}</code>
+                        <span class="text-medium-emphasis">→ {{ r.content }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else-if="importSelectedGroupId" class="text-center py-4 text-medium-emphasis">
+                <VIcon icon="bx-info-circle" size="24" class="mb-1" />
+                <p class="text-body-2">No domains in this group</p>
+              </div>
+            </VWindowItem>
+          </VWindow>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="isImportDialogVisible = false">Cancel</VBtn>
-          <VBtn color="primary" :disabled="!importFile" :loading="loading" @click="confirmImport">Import</VBtn>
+          <VBtn
+            v-if="importMode === 'file'"
+            color="primary"
+            :disabled="!importFile"
+            :loading="loading"
+            @click="confirmImport"
+          >Import</VBtn>
+          <VBtn
+            v-else
+            color="primary"
+            :disabled="!importGroupDomains.length"
+            :loading="loading"
+            @click="confirmImport"
+          >Import {{ importGroupDomains.length }} domains</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -561,5 +716,14 @@ function exportDomains() {
   top: 0;
   z-index: 10;
   background: rgb(var(--v-theme-surface));
+}
+</style>
+
+<style>
+.import-dialog .v-overlay__content {
+  overflow: visible !important;
+}
+.import-dialog .v-card {
+  overflow: visible !important;
 }
 </style>

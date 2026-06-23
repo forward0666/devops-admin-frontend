@@ -25,7 +25,10 @@ const filteredDomains = computed(() => {
   return allDomains.value.filter(d => d.toLowerCase().includes(s))
 })
 const allFilteredSelected = computed(() =>
-  filteredDomains.value.length > 0 && filteredDomains.value.every(d => form.value.domains.includes(d))
+  form.value.domains.length === 1 && form.value.domains[0] === 'all'
+)
+const someSelected = computed(() =>
+  form.value.domains.length > 0 && !allFilteredSelected.value
 )
 
 async function fetchAllDomains() {
@@ -41,11 +44,9 @@ async function fetchAllDomains() {
 
 function toggleAllDomains() {
   if (allFilteredSelected.value) {
-    form.value.domains = form.value.domains.filter(d => !filteredDomains.value.includes(d))
+    form.value.domains = []
   } else {
-    const s = new Set(form.value.domains)
-    filteredDomains.value.forEach(d => s.add(d))
-    form.value.domains = [...s]
+    form.value.domains = ['all']
   }
 }
 
@@ -207,9 +208,10 @@ onMounted(fetchRules)
             <VTextField v-model="domainSearch" prepend-inner-icon="bx-search" placeholder="Search domains..." density="compact" hide-details clearable class="mb-2" />
             <div class="d-flex align-center gap-2 mb-1">
               <VCheckbox :model-value="allFilteredSelected" :indeterminate="form.domains.length > 0 && !allFilteredSelected" @click="toggleAllDomains" label="Select All" density="compact" hide-details class="ma-0 pa-0" />
-              <VChip size="x-small" color="primary" variant="tonal">{{ form.domains.length }} selected</VChip>
+              <VChip v-if="allFilteredSelected" size="x-small" color="success" variant="tonal">All domains</VChip>
+              <VChip v-else size="x-small" color="primary" variant="tonal">{{ form.domains.length }} selected</VChip>
             </div>
-            <div style="max-height: 200px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.12); border-radius: 4px; padding: 4px 8px;">
+            <div v-if="!allFilteredSelected" style="max-height: 200px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.12); border-radius: 4px; padding: 4px 8px;">
               <div v-if="loadingDomains" class="text-center py-2"><VProgressCircular indeterminate size="20" /></div>
               <div v-else-if="filteredDomains.length === 0" class="text-caption text-medium-emphasis py-2">No domains found</div>
               <VCheckbox
@@ -222,6 +224,9 @@ onMounted(fetchRules)
                 hide-details
                 class="ma-0 pa-0"
               />
+            </div>
+            <div v-else class="text-caption text-medium-emphasis py-2">
+              Will monitor all domains dynamically.
             </div>
           </div>
 
