@@ -17,6 +17,17 @@ const groupZones = ref<any[]>([])
 const projects = ref<any[]>([])
 const selectedProjectId = ref('')
 
+// DNS records
+const dnsRecords = ref<any[]>([])
+const dnsLoading = ref(false)
+const expandedDomains = ref<Record<string, boolean>>({})
+
+// Sync options
+const syncEnv = ref('')
+const syncType = ref('')
+const envOptions = ['', 'prod', 'uat', 'test', 'dev']
+const typeOptions = ['', 'web', 'admin', 'callback', 'api']
+
 // Fetch data
 async function fetchData() {
   loading.value = true
@@ -58,25 +69,67 @@ async function fetchData() {
 
 onMounted(fetchData)
 
-const groupDomains = computed(() => {
+const groupZoneList = computed(() => {
   if (!selectedGroupId.value) return []
-  return groupZones.value.filter(z => groupMeta.value[z.zone_id]?.groupId === selectedGroupId.value).map(z => ({
-    domain: z.name,
-    env: 'prod',
-    type: groupMeta.value[z.zone_id]?.type || 'web',
-    remark: groupMeta.value[z.zone_id]?.remark || '',
-    cdn: '',
-  }))
+  return groupZones.value.filter(z => groupMeta.value[z.zone_id]?.groupId === selectedGroupId.value)
+})
+
+async function fetchDnsRecords() {
+  if (!selectedGroupId.value) { dnsRecords.value = []; return }
+  const zones = groupZoneList.value
+  if (!zones.length) { dnsRecords.value = []; return }
+  dnsLoading.value = true
+  try {
+    const { data } = await apiClient.get('/cloudflare/dns')
+    const allRecords = data?.data || []
+    const zoneNames = new Set(zones.map((z: any) => z.name))
+    dnsRecords.value = allRecords.filter((r: any) => {
+      const name = (r.name || '').toLowerCase()
+      for (const zn of zoneNames) {
+        if (name === zn.toLowerCase() || name.endsWith('.' + zn.toLowerCase())) return true
+      }
+      return false
+    })
+  } catch { dnsRecords.value = [] }
+  finally { dnsLoading.value = false }
+}
+
+watch(selectedGroupId, () => {
+  expandedDomains.value = {}
+  syncEnv.value = ''
+  syncType.value = ''
+  fetchDnsRecords()
+})
+
+function dnsByZone(zoneName: string) {
+  return dnsRecords.value.filter((r: any) => {
+    const name = (r.name || '').toLowerCase()
+    return name === zoneName.toLowerCase() || name.endsWith('.' + zoneName.toLowerCase())
+  })
+}
+
+const syncDomains = computed(() => {
+  if (!selectedGroupId.value) return []
+  return groupZoneList.value.map(z => {
+    const meta = groupMeta.value[z.zone_id]
+    return {
+      domain: z.name,
+      env: syncEnv.value || 'prod',
+      type: syncType.value || meta?.type || 'web',
+      remark: '',
+      cdn: '',
+    }
+  })
 })
 
 const selectedProjectName = computed(() => projects.value.find(p => String(p.id) === selectedProjectId.value)?.name || '')
 
 async function doSync() {
-  if (!selectedGroupId.value || !selectedProjectId.value || !groupDomains.value.length) return
+  if (!selectedGroupId.value || !selectedProjectId.value || !syncDomains.value.length) return
   syncing.value = true
   try {
-    await userConsoleDomainService.importDomains({ projectId: selectedProjectId.value, domains: groupDomains.value })
-    snackbar.value = { show: true, text: `Synced ${groupDomains.value.length} domains to ${selectedProjectName.value}`, color: 'success' }
+    await userConsoleDomainService.importDomains({ projectId: selectedProjectId.value, domains: syncDomains.value })
+    snackbar.value = { show: true, text: `Synced ${syncDomains.value.length} domains to ${selectedProjectName.value}`, color: 'success' }
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.message || 'Sync failed', color: 'error' }
   } finally {
@@ -92,8 +145,8 @@ async function doSync() {
         <VIcon icon="bx-sync" color="primary" />
         <span class="text-h6">Sync Domain</span>
         <VSpacer />
-        <VBtn color="primary" size="small" prepend-icon="bx-sync" :disabled="!selectedGroupId || !selectedProjectId || !groupDomains.length" :loading="syncing" @click="doSync">
-          Sync {{ groupDomains.length }} domains
+        <VBtn color="primary" size="small" prepend-icon="bx-sync" :disabled="!selectedGroupId || !selectedProjectId || !syncDomains.length" :loading="syncing" @click="doSync">
+          Sync {{ syncDomains.length }} domains
         </VBtn>
       </VCardText>
     </VCard>
@@ -120,7 +173,12 @@ async function doSync() {
             density="compact"
             hide-details
             clearable
+            class="mb-4"
           />
+          <VDivider class="my-3" />
+          <p class="text-caption text-medium-emphasis mb-2">Sync Options (optional)</p>
+          <VSelect v-model="syncEnv" :items="envOptions" label="Environment" density="compact" hide-details clearable class="mb-3" />
+          <VSelect v-model="syncType" :items="typeOptions" label="Type" density="compact" hide-details clearable />
         </VCardText>
       </VCard>
 
@@ -129,38 +187,34 @@ async function doSync() {
         <div v-if="!selectedGroupId" class="text-center py-8 text-medium-emphasis">
           <VIcon icon="bx-list-ul" size="48" class="mb-2" /><p>Select a source group to preview domains</p>
         </div>
-        <div v-else-if="groupDomains.length === 0" class="text-center py-8 text-medium-emphasis">
+        <div v-else-if="syncDomains.length === 0" class="text-center py-8 text-medium-emphasis">
           <VIcon icon="bx-info-circle" size="48" class="mb-2" /><p>No domains in this group</p>
         </div>
-        <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; width: 100%;">
-          <thead>
-            <tr class="text-caption text-medium-emphasis">
-              <th style="width: 40px;">#</th>
-              <th>Domain</th>
-              <th style="width: 100px;">Env</th>
-              <th style="width: 100px;">Type</th>
-              <th>Remark</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(d, idx) in groupDomains" :key="d.domain">
-              <td class="text-caption">{{ idx + 1 }}</td>
-              <td><code>{{ d.domain }}</code></td>
-              <td><VChip size="x-small" color="success" variant="tonal">{{ d.env }}</VChip></td>
-              <td><VChip size="x-small" color="info" variant="tonal">{{ d.type }}</VChip></td>
-              <td class="text-caption text-medium-emphasis">{{ d.remark || '-' }}</td>
-            </tr>
-          </tbody>
-        </VTable>
+        <div v-else style="flex: 1; overflow-y: auto; padding: 12px;">
+          <div v-for="zone in groupZoneList" :key="zone.zone_id" class="mb-3">
+            <div class="d-flex align-center gap-2 cursor-pointer" @click="expandedDomains[zone.name] = !expandedDomains[zone.name]">
+              <VIcon :icon="expandedDomains[zone.name] ? 'bx-chevron-down' : 'bx-chevron-right'" size="16" />
+              <VIcon icon="bx-globe" size="14" color="medium-emphasis" />
+              <code class="text-body-2 font-weight-bold">{{ zone.name }}</code>
+              <VChip size="x-small" color="info" variant="tonal">{{ dnsByZone(zone.name).length }} records</VChip>
+            </div>
+            <div v-if="expandedDomains[zone.name]" class="ms-6 mt-1">
+              <div v-if="dnsLoading" class="text-caption text-medium-emphasis py-1">Loading DNS records...</div>
+              <div v-else-if="dnsByZone(zone.name).length === 0" class="text-caption text-medium-emphasis py-1">No DNS records cached</div>
+              <div v-else>
+                <div v-for="r in dnsByZone(zone.name)" :key="r.id || r.name" class="d-flex align-center gap-3 py-1" style="font-size: 12px;">
+                  <VChip size="x-small" variant="tonal" color="secondary" style="min-width: 45px; justify-content: center;">{{ r.type }}</VChip>
+                  <code style="min-width: 200px;">{{ r.name }}</code>
+                  <span class="text-medium-emphasis text-truncate">{{ r.content }}</span>
+                  <span v-if="r.ttl" class="text-caption text-medium-emphasis">TTL:{{ r.ttl }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </VCard>
     </div>
 
     <VSnackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</VSnackbar>
   </div>
 </template>
-
-<style scoped>
-.sticky-table { display: flex; flex-direction: column; width: 100%; }
-.sticky-table :deep(.v-table__wrapper) { flex: 1; min-height: 0; overflow-y: auto; }
-.sticky-table :deep(thead) { position: sticky; top: 0; z-index: 10; background: rgb(var(--v-theme-surface)); }
-</style>
