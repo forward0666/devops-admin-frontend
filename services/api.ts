@@ -40,7 +40,9 @@ apiClient.interceptors.request.use(
       } else if (url.startsWith('/agent/')) {
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_AGENT_SECRET || import.meta.env.VITE_GATEWAY_SECRET || ''
       } else if (url.startsWith('/monitor/')) {
-        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_GATEWAY_SECRET || ''
+        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_MONITOR_SECRET || import.meta.env.VITE_GATEWAY_SECRET || ''
+      } else if (url.startsWith('/task/')) {
+        config.headers['X-Encrypted-Data'] = import.meta.env.VITE_TASK_SECRET || import.meta.env.VITE_GATEWAY_SECRET || ''
       } else if (url.startsWith('/login/') || url.startsWith('/auth/')) {
         config.headers['X-Encrypted-Data'] = import.meta.env.VITE_LOGIN_SECRET || ''
       } else {
