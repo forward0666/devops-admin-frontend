@@ -29,6 +29,7 @@ const typeOptions = [
   { title: 'Check Domain', value: 'check_domain', color: 'warning' },
   { title: 'Sync Cloudflare Zone', value: 'sync_zone', color: 'info' },
   { title: 'Sync Domain', value: 'sync_domain', color: 'info' },
+  { title: 'Sync Project Domain', value: 'sync_project_domain', color: 'info' },
   { title: 'Sync Cloudflare DNS', value: 'sync_dns', color: 'primary' },
   { title: 'Sync Cloudflare Security', value: 'sync_security', color: 'error' },
   { title: 'Sync Cloudflare Cache', value: 'sync_cache', color: 'success' },
@@ -76,12 +77,15 @@ const isCustomCron = computed(() => form.value.cron === 'custom')
 const isCheckDomain = computed(() => form.value.type === 'check_domain')
 const isSyncZone = computed(() => ['sync_zone', 'sync_dns', 'sync_security', 'sync_cache'].includes(form.value.type))
 const isSyncRule = computed(() => form.value.type === 'sync_rule')
+const isSyncProjectDomain = computed(() => form.value.type === 'sync_project_domain')
 const monitorRules = ref<any[]>([])
 const selectedRuleIds = ref<number[]>([])
 const cfAccounts = ref<any[]>([])
 const selectedAccountIds = ref<string[]>(['all'])
 const syncRules = ref<any[]>([])
 const selectedSyncRuleIds = ref<number[]>([])
+const syncProjectDomainRules = ref<any[]>([])
+const selectedSyncProjectDomainRuleIds = ref<number[]>([])
 
 // When 'all' is selected, clear others; when empty, default to 'all'
 watch(selectedAccountIds, (val) => {
@@ -89,6 +93,13 @@ watch(selectedAccountIds, (val) => {
     selectedAccountIds.value = ['all']
   } else if (val.length === 0) {
     selectedAccountIds.value = ['all']
+  }
+})
+watch(selectedSyncProjectDomainRuleIds, (val) => {
+  if (val.includes(-1) && val.length > 1) {
+    selectedSyncProjectDomainRuleIds.value = [-1]
+  } else if (val.length === 0) {
+    selectedSyncProjectDomainRuleIds.value = [-1]
   }
 })
 
@@ -106,6 +117,7 @@ function resetForm() {
   selectedRuleIds.value = []
   selectedAccountIds.value = ['all']
   selectedSyncRuleIds.value = []
+  selectedSyncProjectDomainRuleIds.value = []
 }
 
 function openCreateDialog() {
@@ -127,6 +139,7 @@ function openEditDialog(task: any) {
   selectedRuleIds.value = task.config?.rule_ids || []
   selectedAccountIds.value = task.config?.account_ids || ['all']
   selectedSyncRuleIds.value = task.config?.sync_rule_ids || []
+  selectedSyncProjectDomainRuleIds.value = task.config?.sync_project_domain_rule_ids || []
   if (!cronPresetOptions.find(o => o.value === task.cron)) {
     form.value.cron = 'custom'
     customCron.value = task.cron
@@ -149,6 +162,15 @@ async function fetchMonitorRules() {
     monitorRules.value = (data.data || data || []).filter((r: any) => r.enabled)
   } catch (e) {
     console.error('Failed to fetch monitor rules', e)
+  }
+}
+
+async function fetchSyncProjectDomainRules() {
+  try {
+    const { data } = await apiClient.get('/cloudflare/sync_domain/rules')
+    syncProjectDomainRules.value = (data.data || []).map((r: any) => ({ id: r.id, name: r.name || `Rule #${r.id}` }))
+  } catch (e) {
+    console.error('Failed to fetch sync project domain rules', e)
   }
 }
 
@@ -199,9 +221,13 @@ async function saveTask() {
     snackbar.value = { show: true, text: 'Select at least one sync rule', color: 'error' }
     return
   }
+  if (isSyncProjectDomain.value && selectedSyncProjectDomainRuleIds.value.length === 0) {
+    snackbar.value = { show: true, text: 'Select at least one rule', color: 'error' }
+    return
+  }
   saving.value = true
   try {
-    const payload = { ...form.value, cron, config: { rule_ids: selectedRuleIds.value, account_ids: selectedAccountIds.value, sync_rule_ids: selectedSyncRuleIds.value } }
+    const payload = { ...form.value, cron, config: { rule_ids: selectedRuleIds.value, account_ids: selectedAccountIds.value, sync_rule_ids: selectedSyncRuleIds.value, sync_project_domain_rule_ids: selectedSyncProjectDomainRuleIds.value } }
     if (editingId.value) {
       await apiClient.put(`${GATEWAY}/tasks/${editingId.value}`, payload)
       snackbar.value = { show: true, text: 'Task updated', color: 'success' }
@@ -252,6 +278,7 @@ onMounted(() => {
   fetchMonitorRules()
   fetchCfAccounts()
   fetchSyncRules()
+  fetchSyncProjectDomainRules()
 })
 </script>
 
@@ -429,6 +456,20 @@ onMounted(() => {
             multiple
             chips
             hint="Select sync rules to push (required)"
+            persistent-hint
+          />
+          <VSelect
+            v-if="isSyncProjectDomain"
+            v-model="selectedSyncProjectDomainRuleIds"
+            :items="[{ id: -1, name: 'All' }, ...syncProjectDomainRules]"
+            item-title="name"
+            item-value="id"
+            label="Sync Project Domain Rules"
+            class="mb-4"
+            variant="outlined"
+            multiple
+            chips
+            hint="Select rules to sync (required, or select All)"
             persistent-hint
           />
           <VSwitch v-model="form.enabled" label="Enabled" color="success" hide-details />

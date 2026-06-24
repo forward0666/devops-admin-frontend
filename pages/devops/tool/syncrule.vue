@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import apiClient from '~/services/api'
+import apiClient, { domainGroupService } from '~/services/api'
 import { useCfAccount } from '~/composables/useCfAccount'
 
 definePageMeta({ layout: 'default' })
@@ -103,6 +103,7 @@ async function fetchSyncRules() {
 
 onMounted(async () => {
   await fetchAccounts()
+  await fetchGroups()
   if (!selectedAccountId.value && accounts.value.length > 0) {
     selectedAccountId.value = -1
   }
@@ -116,6 +117,37 @@ watch(selectedAccountId, async () => {
   await fetchZones()
   await fetchSyncRules()
 })
+
+// Groups
+const groups = ref<any[]>([])
+const groupMeta = ref<Record<string, { groupId: string }>>({})
+const selectedGroupId = ref<string | null>(null)
+const groupOptions = computed(() => [
+  { title: 'None', value: null },
+  ...groups.value.map((g: any) => ({ title: g.name, value: g.id })),
+])
+const groupTargetZones = computed(() => {
+  if (!selectedGroupId.value) return []
+  return zones.value.filter(z => groupMeta.value[z.zone_id]?.groupId === selectedGroupId.value)
+})
+watch(selectedGroupId, () => {
+  form.value.targetZoneIds = []
+})
+
+async function fetchGroups() {
+  try {
+    const [g, meta] = await Promise.all([
+      domainGroupService.listGroups(),
+      domainGroupService.listMeta(),
+    ])
+    groups.value = g || []
+    const m: Record<string, { groupId: string }> = {}
+    for (const item of (meta || [])) {
+      if (item.zoneId) m[item.zoneId] = { groupId: item.groupId || '' }
+    }
+    groupMeta.value = m
+  } catch { /* ignore */ }
+}
 
 // Create/Edit dialog
 const dialog = ref(false)
@@ -132,6 +164,7 @@ const form = ref({
 function openCreate() {
   editingId.value = null
   form.value = { name: '', description: '', sourceZoneId: null, targetZoneIds: [], ruleTypes: ['security'] }
+  selectedGroupId.value = null
   dialog.value = true
 }
 
@@ -146,6 +179,9 @@ function openEdit(rule: any) {
     targetZoneIds: targetIds,
     ruleTypes: types,
   }
+  // Auto-detect group from target zones
+  const firstTargetMeta = targetIds.length > 0 ? groupMeta.value[targetIds[0]] : null
+  selectedGroupId.value = firstTargetMeta?.groupId || null
   dialog.value = true
 }
 
@@ -218,6 +254,7 @@ async function handleDelete(rule: any) {
 function getZoneName(zoneId: string): string {
   return zones.value.find((z: any) => z.zone_id === zoneId)?.name || zoneId
 }
+
 
 const ruleTypeColors: Record<string, string> = { security: 'primary', ratelimit: 'warning', cache: 'success', ddos: 'error', managed: 'info', dns: 'secondary', ssl: 'grey' }
 
@@ -314,9 +351,18 @@ function getRuleTypes(rule: any): string[] {
             clearable
             placeholder="Search source domain"
           />
+          <VSelect
+            v-model="selectedGroupId"
+            :items="groupOptions"
+            label="Group (auto-fill targets)"
+            density="compact"
+            class="mb-3"
+            clearable
+            hide-details
+          />
           <VAutocomplete
             v-model="form.targetZoneIds"
-            :items="domainOptions.filter(o => o.value !== form.sourceZoneId)"
+            :items="(selectedGroupId ? groupTargetZones.map(z => ({ title: z.name, value: z.zone_id })) : domainOptions).filter(o => o.value !== form.sourceZoneId)"
             label="Target Domains"
             density="compact"
             class="mb-3"
@@ -324,6 +370,8 @@ function getRuleTypes(rule: any): string[] {
             chips
             clearable
             placeholder="Search target domains"
+            item-title="title"
+            item-value="value"
           />
           <VSelect
             v-model="form.ruleTypes"

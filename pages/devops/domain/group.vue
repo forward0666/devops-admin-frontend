@@ -198,6 +198,37 @@ function getCloudflareSource(accountName: string): string {
 }
 
 // --- Add Domain ---
+// --- Import Domain from Default ---
+const importDialog = ref(false)
+const importSelected = ref<Set<string>>(new Set())
+const importFilter = ref('')
+const importableZones = computed(() => {
+  const q = importFilter.value.toLowerCase()
+  let list = ungroupedZones.value
+  if (q) list = list.filter(z => (z.name || '').toLowerCase().includes(q))
+  return list
+})
+function toggleImportAll() {
+  if (importSelected.value.size === importableZones.value.length) importSelected.value = new Set()
+  else importSelected.value = new Set(importableZones.value.map(z => z.zone_id))
+}
+async function doImport() {
+  if (!selectedGroupId.value || selectedGroupId.value === 'all' || selectedGroupId.value === 'default') return
+  for (const zid of importSelected.value) {
+    const z = zones.value.find(zz => zz.zone_id === zid)
+    if (!z) continue
+    await domainGroupService.upsertMeta({
+      zoneId: zid,
+      name: z.name,
+      groupId: selectedGroupId.value,
+      source: getCloudflareSource(z.accountName),
+    })
+  }
+  await fetchMeta()
+  importDialog.value = false
+  importSelected.value = new Set()
+}
+
 const addDomainDialog = ref(false)
 const newDomainName = ref('')
 async function addDomain() {
@@ -269,12 +300,12 @@ onMounted(init)
             <VListItemTitle>All</VListItemTitle>
             <template #append><VChip size="x-small" color="default" variant="tonal">{{ groupCounts.all }}</VChip></template>
           </VListItem>
-          <VListItem :active="selectedGroupId === 'default'" @click="selectedGroupId = 'default'" prepend-icon="bx-folder">
+          <VListItem :active="selectedGroupId === 'default'" @click="selectedGroupId = 'default'">
             <VListItemTitle>Default</VListItemTitle>
             <template #append><VChip size="x-small" color="default" variant="tonal">{{ groupCounts.default }}</VChip></template>
           </VListItem>
           <VDivider class="my-1" />
-          <VListItem v-for="g in groups" :key="g.id" :active="selectedGroupId === g.id" @click="selectedGroupId = g.id" prepend-icon="bx-folder-open">
+          <VListItem v-for="g in groups" :key="g.id" :active="selectedGroupId === g.id" @click="selectedGroupId = g.id">
             <VListItemTitle>{{ g.name }}</VListItemTitle>
             <template #append>
               <VChip size="x-small" color="primary" variant="tonal" class="me-1">{{ groupCounts[g.id] || 0 }}</VChip>
@@ -310,7 +341,10 @@ onMounted(init)
               </tr>
               <tr>
                 <th></th>
-                <th><VTextField v-model="filterDomain" density="compact" hide-details placeholder="Search domain..." clearable style="font-size: 12px" /></th>
+                <th class="d-flex align-center gap-1">
+                  <VTextField v-model="filterDomain" density="compact" hide-details placeholder="Search domain..." clearable style="font-size: 12px" />
+                  <VBtn v-if="selectedGroupId && selectedGroupId !== 'all' && selectedGroupId !== 'default'" size="x-small" color="primary" variant="tonal" @click="importDialog = true; importSelected = new Set(); importFilter = ''">+ Add</VBtn>
+                </th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -344,6 +378,28 @@ onMounted(init)
           <p class="text-caption text-medium-emphasis mt-2">Type: other | Group: Default</p>
         </VCardText>
         <VCardActions><VSpacer /><VBtn variant="text" @click="addDomainDialog = false">Cancel</VBtn><VBtn color="success" :disabled="!newDomainName.trim()" @click="addDomain">Add</VBtn></VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Import Domain from Default Dialog -->
+    <VDialog v-model="importDialog" max-width="500">
+      <VCard>
+        <VCardTitle>Add Domain to Group</VCardTitle>
+        <VCardText>
+          <VTextField v-model="importFilter" density="compact" hide-details placeholder="Search ungrouped domains..." clearable class="mb-3" />
+          <div class="d-flex align-center mb-2">
+            <VCheckbox :model-value="importSelected.size === importableZones.length && importableZones.length > 0" :indeterminate="importSelected.size > 0 && importSelected.size < importableZones.length" @click="toggleImportAll" density="compact" hide-details label="Select All" />
+            <VChip size="x-small" color="info" variant="tonal" class="ms-2">{{ importSelected.size }} selected</VChip>
+          </div>
+          <div style="max-height: 300px; overflow-y: auto; border: 1px solid rgba(var(--v-border-color), 0.2); border-radius: 4px;">
+            <div v-for="z in importableZones" :key="z.zone_id" class="d-flex align-center px-3 py-1" style="border-bottom: 1px solid rgba(var(--v-border-color), 0.1);">
+              <VCheckbox :model-value="importSelected.has(z.zone_id)" @click="importSelected.has(z.zone_id) ? importSelected.delete(z.zone_id) : importSelected.add(z.zone_id)" density="compact" hide-details />
+              <code class="text-body-2">{{ z.name }}</code>
+            </div>
+            <div v-if="importableZones.length === 0" class="text-center py-4 text-medium-emphasis text-body-2">No ungrouped domains</div>
+          </div>
+        </VCardText>
+        <VCardActions><VSpacer /><VBtn variant="text" @click="importDialog = false">Cancel</VBtn><VBtn color="primary" :disabled="importSelected.size === 0" :loading="loading" @click="doImport">Add {{ importSelected.size }}</VBtn></VCardActions>
       </VCard>
     </VDialog>
 

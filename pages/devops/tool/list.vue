@@ -116,24 +116,37 @@ function selectAll() {
 // --- Selected list items ---
 const selectedListItems = ref<any[]>([])
 
-// --- Edit List Item ---
+// --- Edit List Item (delete + add) ---
 const editListItemDialog = ref(false)
 const editListItemSaving = ref(false)
-const editListItemForm = ref({ listId: '', itemId: '', ip: '', comment: '' })
+const editListItemForm = ref({ listId: '', itemId: '', ip: '', comment: '', kind: 'ip' as string })
 
 function openEditListItem(item: any, listId: string) {
-  editListItemForm.value = { listId, itemId: item.id, ip: item.ip || '', comment: item.comment || '' }
+  const list = cfLists.value.find((l: any) => l.id === listId)
+  const kind = list?.kind || item._listKind || 'ip'
+  editListItemForm.value = {
+    listId,
+    itemId: item.id,
+    ip: item.ip || item.asn?.toString() || item.hostname?.hostname || '',
+    comment: item.comment || '',
+    kind,
+  }
   editListItemDialog.value = true
 }
 
 async function saveEditListItem() {
-  if (!editListItemForm.value.ip.trim()) return
   editListItemSaving.value = true
   try {
     const list = cfLists.value.find((l: any) => l.id === editListItemForm.value.listId)
     const accountId = list?.account_id
-    await apiClient.put(`${CF_GATEWAY}/configurations/lists/${editListItemForm.value.listId}/items`, {
-      items: [{ id: editListItemForm.value.itemId, ip: { ip: editListItemForm.value.ip, comment: editListItemForm.value.comment || undefined } }],
+    const kind = editListItemForm.value.kind
+    const newItem: any = {}
+    if (kind === 'asn') newItem.asn = Number(editListItemForm.value.ip)
+    else if (kind === 'hostname') newItem.hostname = { hostname: editListItemForm.value.ip }
+    else newItem.ip = editListItemForm.value.ip
+    if (editListItemForm.value.comment) newItem.comment = editListItemForm.value.comment
+    await apiClient.post(`${CF_GATEWAY}/configurations/lists/${editListItemForm.value.listId}/items`, {
+      items: [newItem],
     }, { params: { account_id: accountId } })
     snackbar.value = { show: true, text: 'Item updated', color: 'success' }
     editListItemDialog.value = false
@@ -277,6 +290,7 @@ const sortDir = ref<'asc' | 'desc'>('asc')
 // --- Pagination ---
 const page = ref(1)
 const pageSize = ref(50)
+watch(search, () => { page.value = 1 })
 const pageSizeOptions = [50, 100, 200, 500, 1000]
 function toggleSort(key: string) {
   if (sortKey.value === key) sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
@@ -747,13 +761,13 @@ async function saveWhitelist() {
       <VCard>
         <VCardTitle>Edit List Item</VCardTitle>
         <VCardText class="pt-2">
-          <VTextField v-model="editListItemForm.ip" label="IP" density="compact" hide-details class="mb-3" placeholder="1.2.3.4" />
+          <VTextField v-model="editListItemForm.ip" :label="editListItemForm.kind === 'asn' ? 'ASN' : editListItemForm.kind === 'hostname' ? 'Hostname' : 'IP'" density="compact" hide-details class="mb-3" :placeholder="editListItemForm.kind === 'asn' ? '12345' : editListItemForm.kind === 'hostname' ? 'example.com' : '1.2.3.4'" :disabled="editListItemForm.kind === 'ip'" />
           <VTextField v-model="editListItemForm.comment" label="Comment" density="compact" hide-details placeholder="备注" />
         </VCardText>
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="editListItemDialog = false">Cancel</VBtn>
-          <VBtn color="primary" :loading="editListItemSaving" :disabled="!editListItemForm.ip.trim()" @click="saveEditListItem">Save</VBtn>
+          <VBtn color="primary" :loading="editListItemSaving" @click="saveEditListItem">Save</VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

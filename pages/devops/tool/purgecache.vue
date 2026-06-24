@@ -63,11 +63,11 @@ async function fetchData() {
       domains.value = allDomains
       const allRules: any[] = []
       ruleResults.forEach(r => allRules.push(...(r || [])))
-      rules.value = allRules
+      rules.value = allRules.map(normRule)
     } else if (selectedProject.value) {
       const domainData = await domainService.list(String(selectedProject.value))
       domains.value = domainData || []
-      rules.value = await cacheRuleService.list(selectedProject.value, selectedEnv.value || undefined) || []
+      rules.value = (await cacheRuleService.list(selectedProject.value, selectedEnv.value || undefined) || []).map(normRule)
     } else {
       domains.value = []
       rules.value = []
@@ -87,7 +87,11 @@ watch(selectedEnv, fetchRules)
 const dialog = ref(false)
 const editingId = ref<string | null>(null)
 const editingProjectId = ref<number | null>(null)
-const form = ref({ name: '', url: '', env: '' })
+const form = ref({ name: '', url: '', env: '', type: 'web', projectId: null as number | null })
+const domainTypeOptions = ['landingpage', 'antiblock', 'bucket', 'web', 'admin', 'callback', 'api', 'entry']
+function normRule(r: any) {
+  return { ...r, projectId: r.projectId ?? r.project_id, createdAt: r.createdAt ?? r.created_at, updatedAt: r.updatedAt ?? r.updated_at }
+}
 const saving = ref(false)
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
@@ -97,14 +101,14 @@ function openCreate() {
     return
   }
   editingId.value = null
-  form.value = { name: '', url: '', env: selectedEnv.value || '' }
+  form.value = { name: '', url: '', env: selectedEnv.value || '', type: 'web', projectId: selectedProject.value && selectedProject.value !== -1 ? selectedProject.value : null }
   dialog.value = true
 }
 
 function openEdit(rule: any) {
   editingId.value = rule.id
   editingProjectId.value = rule.projectId
-  form.value = { name: rule.name, url: rule.url, env: rule.env || '' }
+  form.value = { name: rule.name, url: rule.url, env: rule.env || '', type: rule.type || 'web', projectId: rule.projectId }
   dialog.value = true
 }
 
@@ -117,9 +121,9 @@ async function fetchRules() {
       )
       const allRules: any[] = []
       results.forEach(r => allRules.push(...(r || [])))
-      rules.value = allRules
+      rules.value = allRules.map(normRule)
     } else {
-      rules.value = await cacheRuleService.list(selectedProject.value, selectedEnv.value || undefined) || []
+      rules.value = (await cacheRuleService.list(selectedProject.value, selectedEnv.value || undefined) || []).map(normRule)
     }
   } catch (e) {
     console.error('Failed to fetch rules', e)
@@ -127,10 +131,10 @@ async function fetchRules() {
 }
 
 async function save() {
-  if (!form.value.name.trim() || !form.value.url.trim() || !selectedProject.value) return
+  if (!form.value.name.trim() || !form.value.url.trim() || !form.value.projectId) return
   saving.value = true
   try {
-    const payload = { ...form.value, projectId: editingId.value ? editingProjectId.value : selectedProject.value }
+    const payload = { ...form.value, projectId: form.value.projectId }
     if (editingId.value) {
       await cacheRuleService.update(editingId.value, payload)
       snackbar.value = { show: true, text: 'Rule updated', color: 'success' }
@@ -147,6 +151,13 @@ async function save() {
   }
 }
 
+function openCopy(rule: any) {
+  editingId.value = null
+  editingProjectId.value = null
+  form.value = { name: `Copy of ${rule.name}`, url: rule.url, env: rule.env || '', type: rule.type || 'web', projectId: rule.projectId }
+  dialog.value = true
+}
+
 async function deleteRule(rule: any) {
   if (!confirm(`Delete "${rule.name}"?`)) return
   try {
@@ -160,15 +171,26 @@ async function deleteRule(rule: any) {
 
 // --- Purge ---
 const purging = ref<string | null>(null)
+const purgeAllDialog = ref(false)
+const purgeAllMode = ref<'all' | 'hostname'>('hostname')
+const purgeAllTypes = ref<string[]>(['web'])
+const availableTypes = computed(() => {
+  const types = new Set(filteredDomains.value.map((d: any) => d.type).filter(Boolean))
+  // Ensure default types are always shown
+  for (const t of ['web', 'landingpage', 'antiblock', 'entry']) types.add(t)
+  return [...types].sort()
+})
 
 async function purgeCache(rule: any) {
   if (!selectedProject.value) return
+  const ruleType = rule.type || 'web'
+  const ruleEnv = rule.env || null
   const targetDomains = (selectedProject.value === -1
     ? domains.value.filter((d: any) => d.projectId === rule.projectId)
     : filteredDomains.value
-  ).filter((d: any) => d.type === 'web')
+  ).filter((d: any) => d.type && d.type === ruleType && (!ruleEnv || d.env === ruleEnv))
   if (!targetDomains.length) {
-    snackbar.value = { show: true, text: 'No web domains found for current project/env', color: 'warning' }
+    snackbar.value = { show: true, text: `No ${ruleType} domains found for ${ruleEnv || 'current'} env`, color: 'warning' }
     return
   }
   purging.value = `rule-${rule.id}`
@@ -199,19 +221,41 @@ async function purgeCache(rule: any) {
   }
 }
 
-async function purgeAll() {
+function openPurgeAll() {
   if (!selectedProject.value || selectedProject.value === -1) return
-  const targetDomains = filteredDomains.value.filter((d: any) => d.type === 'web')
-  if (!targetDomains.length) {
-    snackbar.value = { show: true, text: 'No web domains found for current project/env', color: 'warning' }
+  if (!filteredDomains.value.length) {
+    snackbar.value = { show: true, text: 'No domains found for current project/env', color: 'warning' }
     return
   }
-  if (!confirm(`Purge ALL cache for ${targetDomains.length} domains?`)) return
+  purgeAllMode.value = 'hostname'
+  purgeAllTypes.value = ['web', 'landingpage', 'antiblock', 'entry']
+  purgeAllDialog.value = true
+}
+
+async function doPurgeAll() {
+  if (!selectedProject.value || selectedProject.value === -1) return
+  let targetDomains: any[] = []
+  const allProjectDomains = selectedProject.value === -1
+    ? domains.value
+    : domains.value.filter((d: any) => d.projectId === selectedProject.value || d.project_id === selectedProject.value)
+  if (purgeAllMode.value === 'all') {
+    targetDomains = selectedEnv.value ? allProjectDomains.filter((d: any) => d.env === selectedEnv.value) : allProjectDomains
+  } else {
+    targetDomains = allProjectDomains.filter((d: any) => d.type && purgeAllTypes.value.includes(d.type) && (!selectedEnv.value || d.env === selectedEnv.value))
+  }
+  if (!targetDomains.length) {
+    snackbar.value = { show: true, text: 'No matching domains found', color: 'warning' }
+    return
+  }
+  const modeLabel = purgeAllMode.value === 'all' ? 'EVERYTHING' : purgeAllTypes.value.join(', ')
+  if (!confirm(`Purge ${modeLabel} for ${targetDomains.length} domains?`)) return
+  purgeAllDialog.value = false
   purging.value = 'all'
   try {
     const domainNames = targetDomains.map((d: any) => d.domain)
+    const endpoint = purgeAllMode.value === 'all' ? 'purgeEverything' : 'purgeAll'
     const { data } = await apiClient.post(
-      `${CF_GATEWAY}/cacheRule/purgeAll`,
+      `${CF_GATEWAY}/cacheRule/${endpoint}`,
       { domains: domainNames },
     )
     const result = data?.data
@@ -249,7 +293,7 @@ async function purgeAll() {
           <VChip size="small" color="info" variant="tonal">Rules: {{ rules.length }}</VChip>
         </div>
         <VSpacer />
-        <VBtn color="error" variant="tonal" :loading="purging === 'all'" :disabled="!selectedProject || selectedProject === -1" @click="purgeAll" prepend-icon="bx-trash" class="me-2">Purge All</VBtn>
+        <VBtn color="error" variant="tonal" :loading="purging === 'all'" :disabled="!selectedProject || selectedProject === -1" @click="openPurgeAll" prepend-icon="bx-trash" class="me-2">Purge All</VBtn>
         <VBtn color="primary" @click="openCreate" prepend-icon="bx-plus">Add Rule</VBtn>
       </VCardText>
     </VCard>
@@ -262,21 +306,24 @@ async function purgeAll() {
             <tr class="text-caption text-medium-emphasis">
               <th style="width: 50px;">Project</th>
               <th style="width: 50px;">Env</th>
+              <th style="width: 80px;">Type</th>
               <th style="width: 100px;">Name</th>
               <th style="width: 300px;">URL</th>
-              <th style="width: 140px;">Action</th>
+              <th style="width: 180px;">Action</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="r in rules" :key="r.id">
               <td class="text-body-2">{{ projects.find(p => p.id === r.projectId)?.name || '-' }}</td>
               <td><VChip size="x-small" color="primary" variant="tonal">{{ (r.env || '-').toUpperCase() }}</VChip></td>
+              <td><VChip size="x-small" variant="tonal">{{ r.type || 'web' }}</VChip></td>
               <td>{{ r.name }}</td>
               <td><code class="text-caption">{{ r.url }}</code></td>
 
               <td>
                 <VBtn size="x-small" variant="tonal" color="warning" :loading="purging === `rule-${r.id}`" :disabled="!selectedProject" class="me-1" @click="purgeCache(r)">Purge</VBtn>
                 <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(r)">Edit</VBtn>
+                <VBtn size="x-small" variant="tonal" color="secondary" class="me-1" @click="openCopy(r)">Copy</VBtn>
                 <VBtn size="x-small" variant="tonal" color="error" @click="deleteRule(r)">Delete</VBtn>
               </td>
             </tr>
@@ -295,15 +342,41 @@ async function purgeAll() {
       <VCard>
         <VCardTitle>{{ editingId ? 'Edit Rule' : 'Add Rule' }}</VCardTitle>
         <VCardText class="pt-2">
+          <VSelect v-model="form.projectId" :items="projects.map(p => ({ title: p.name, value: p.id }))" label="Project" density="compact" hide-details class="mb-3" />
           <VSelect v-model="form.env" :items="envOptions" label="Environment" density="compact" hide-details class="mb-3" clearable />
           <VTextField v-model="form.name" label="Name" density="compact" hide-details class="mb-3" placeholder="getGameList" />
           <VTextField v-model="form.url" label="URL" density="compact" hide-details class="mb-3" placeholder="/apiKK/api/game/getGameList" />
+          <VSelect v-model="form.type" :items="domainTypeOptions" label="Type" density="compact" hide-details class="mb-3" />
 
         </VCardText>
         <VCardActions>
           <VSpacer />
           <VBtn variant="text" @click="dialog = false">Cancel</VBtn>
           <VBtn color="primary" :loading="saving" :disabled="!form.name.trim() || !form.url.trim()" @click="save">Save</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Purge All Dialog -->
+    <VDialog v-model="purgeAllDialog" max-width="400">
+      <VCard>
+        <VCardTitle>Purge All Cache</VCardTitle>
+        <VCardText class="pt-2">
+          <VRadioGroup v-model="purgeAllMode" inline class="mb-3">
+            <VRadio label="All (everything)" value="all" />
+            <VRadio label="By Hostname" value="hostname" />
+          </VRadioGroup>
+          <template v-if="purgeAllMode === 'hostname'">
+            <p class="text-body-2 mb-2">Select domain types to purge:</p>
+            <VCheckbox v-for="t in availableTypes" :key="t" v-model="purgeAllTypes" :value="t" :label="t" density="compact" hide-details />
+          </template>
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn variant="text" @click="purgeAllDialog = false">Cancel</VBtn>
+          <VBtn color="error" :loading="purging === 'all'" :disabled="purgeAllMode === 'hostname' && purgeAllTypes.length === 0" @click="doPurgeAll">
+            Purge {{ purgeAllMode === 'all' ? 'Everything' : purgeAllTypes.length + ' types' }}
+          </VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
@@ -349,10 +422,12 @@ async function purgeAll() {
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(2),
 .sticky-table :deep(.v-table__wrapper) table td:nth-child(2) { width: 50px !important; min-width: 50px !important; max-width: 50px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(3),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(3) { width: 80px !important; min-width: 80px !important; max-width: 80px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(4),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 300px !important; min-width: 300px !important; max-width: 300px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(4) { width: 100px !important; min-width: 100px !important; max-width: 100px !important; }
 .sticky-table :deep(.v-table__wrapper) table th:nth-child(5),
-.sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 140px !important; min-width: 140px !important; max-width: 140px !important; }
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(5) { width: 300px !important; min-width: 300px !important; max-width: 300px !important; }
+.sticky-table :deep(.v-table__wrapper) table th:nth-child(6),
+.sticky-table :deep(.v-table__wrapper) table td:nth-child(6) { width: 180px !important; min-width: 180px !important; max-width: 180px !important; }
 .card-scroll { overflow-y: auto; max-height: calc(100vh - 200px); }
 </style>

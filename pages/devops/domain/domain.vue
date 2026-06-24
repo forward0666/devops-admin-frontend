@@ -36,6 +36,21 @@ const typeColors: Record<string, string> = {
   A: 'success', CNAME: 'primary',
 }
 
+const groupFilteredRecords = computed(() => {
+  let records = dnsRecords.value
+  if (domainFilter.value) {
+    const s = domainFilter.value.toLowerCase()
+    records = records.filter(r => r.name?.toLowerCase().includes(s) || r.content?.toLowerCase().includes(s))
+  }
+  if (groupFilter.value) {
+    records = records.filter(r => getZoneGroupId(r) === groupFilter.value)
+  }
+  if (sourceFilter.value) {
+    records = records.filter(r => getSource(r.account_name) === sourceFilter.value)
+  }
+  return records
+})
+
 const statusCodeStats = computed(() => {
   const stats: Record<string, { count: number, label: string, icon: string, color: string, filter: string }> = {
     total: { count: 0, label: 'Total', icon: 'bx-globe', color: 'primary', filter: '' },
@@ -50,7 +65,7 @@ const statusCodeStats = computed(() => {
     priv: { count: 0, label: 'Private', icon: 'bx-lock', color: 'warning', filter: 'private' },
     ignored: { count: 0, label: 'Ignored', icon: 'bx-hide', color: 'grey', filter: 'ignored' },
   }
-  for (const r of dnsRecords.value) {
+  for (const r of groupFilteredRecords.value) {
     stats.total.count++
     if (r.last_status_code === 200) {
       stats.up.count++
@@ -80,7 +95,7 @@ const statusCodeStats = computed(() => {
 })
 
 const sourceOptions = computed(() => {
-  const platforms = [...new Set(dnsRecords.value.map(r => getSource(r.account_name)).filter(Boolean))]
+  const platforms = [...new Set(groupFilteredRecords.value.map(r => getSource(r.account_name)).filter(Boolean))]
   return platforms.map(p => ({ title: p, value: p }))
 })
 
