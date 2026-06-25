@@ -135,21 +135,33 @@ async function deleteGroup(g: any) {
 
 // --- Move Domain ---
 const moveDialog = ref(false)
-const moveTarget = ref<any>(null)
 const moveTargetGroup = ref<string>('')
+const moveTargets = ref<any[]>([])
 function openMove(zone: any) {
-  moveTarget.value = zone; moveTargetGroup.value = getZoneGroupId(zone); moveDialog.value = true
+  moveTargets.value = [zone]
+  moveTargetGroup.value = getZoneGroupId(zone)
+  moveDialog.value = true
+}
+function openBatchMove() {
+  if (selectedIds.value.size === 0) return
+  moveTargets.value = zonesInGroup.value.filter(z => selectedIds.value.has(z.zone_id))
+  moveTargetGroup.value = ''
+  moveDialog.value = true
 }
 async function doMove() {
-  if (!moveTarget.value) return
+  if (!moveTargets.value.length || !moveTargetGroup.value) return
   try {
-    await domainGroupService.upsertMeta({
-      zoneId: moveTarget.value.zone_id,
-      name: moveTarget.value.name,
-      groupId: moveTargetGroup.value,
-      source: getCloudflareSource(moveTarget.value.accountName),
-    })
-    await fetchMeta(); moveDialog.value = false
+    for (const zone of moveTargets.value) {
+      await domainGroupService.upsertMeta({
+        zoneId: zone.zone_id,
+        name: zone.name,
+        groupId: moveTargetGroup.value,
+        source: getCloudflareSource(zone.accountName),
+      })
+    }
+    selectedIds.value = new Set()
+    await fetchMeta()
+    moveDialog.value = false
   } catch (e: any) { alert(e?.response?.data?.detail || e.message) }
 }
 
@@ -285,7 +297,8 @@ onMounted(init)
         <VChip size="small" color="info" variant="tonal">Zones: {{ zones.length }}</VChip>
         <VChip v-if="selectedIds.size > 0" size="small" color="primary" variant="tonal">Selected: {{ selectedIds.size }}</VChip>
         <VSpacer />
-        <VBtn v-if="selectedIds.size > 0" color="warning" size="small" prepend-icon="bx-edit" @click="openBatchEdit">Batch Edit</VBtn>
+        <VBtn v-if="selectedIds.size > 0" color="warning" size="small" prepend-icon="bx-edit" @click="openBatchEdit" class="me-1">Batch Edit</VBtn>
+        <VBtn v-if="selectedIds.size > 0" color="primary" size="small" prepend-icon="bx-move" @click="openBatchMove">Batch Move</VBtn>
         <VBtn color="primary" size="small" prepend-icon="bx-folder-plus" @click="addDialog = true">Add Group</VBtn>
         <VBtn icon="bx-refresh" size="small" variant="tonal" color="primary" @click="init" :loading="loading" />
       </VCardText>
@@ -424,10 +437,11 @@ onMounted(init)
     <!-- Move Domain Dialog -->
     <VDialog v-model="moveDialog" max-width="400">
       <VCard>
-        <VCardTitle>Move Zone</VCardTitle>
+        <VCardTitle>{{ moveTargets.length > 1 ? `Move ${moveTargets.length} Zones` : 'Move Zone' }}</VCardTitle>
         <VCardText>
-          <p class="text-body-2 mb-3"><code>{{ moveTarget?.name }}</code></p>
-          <VSelect v-model="moveTargetGroup" :items="[{ title: 'Default (Ungrouped)', value: '' }, ...groups.map((g: any) => ({ title: g.name, value: g.id }))]" label="Move to Group" density="compact" hide-details />
+          <p v-if="moveTargets.length <= 1" class="text-body-2 mb-3"><code>{{ moveTargets[0]?.name }}</code></p>
+          <div v-else class="mb-3" style="max-height: 150px; overflow-y: auto;"><VChip v-for="z in moveTargets" :key="z.zone_id" size="x-small" class="me-1 mb-1">{{ z.name }}</VChip></div>
+          <VSelect v-model="moveTargetGroup" :items="[{ title: 'Default (Ungrouped)', value: '' }, ...groups.map((g: any) => ({ title: g.name, value: g.id }))}]" label="Move to Group" density="compact" hide-details />
         </VCardText>
         <VCardActions><VSpacer /><VBtn variant="text" @click="moveDialog = false">Cancel</VBtn><VBtn color="primary" @click="doMove">Move</VBtn></VCardActions>
       </VCard>
