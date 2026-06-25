@@ -108,26 +108,26 @@ async function fetchGroups() {
   } catch { /* ignore */ }
 }
 
-// Fetch data from MongoDB
+// Fetch data from MongoDB via domain service
 async function fetchData() {
   loading.value = true
   try {
-    const { data } = await apiClient.get(`${CF_GATEWAY}/statistic`, { params: { date: selectedDate.value } })
+    const { data } = await apiClient.get('/domain/statistic', { params: { date: selectedDate.value } })
     records.value = data?.data || []
   } catch (e: any) {
-    console.error('Failed to fetch statistics', e)
+    console.error('Failed to fetch statistic', e)
     records.value = []
   } finally {
     loading.value = false
   }
 }
 
-// Sync from CF to MongoDB
+// Sync from CF to MongoDB via cloudflare service
 async function syncData() {
   syncing.value = true
   try {
     const { data } = await apiClient.post(`${CF_GATEWAY}/statistic/sync`, { date: selectedDate.value }, { timeout: 300000 })
-    snackbar.value = { show: true, text: data?.message || `Synced ${data?.data?.synced || 0} records`, color: 'success' }
+    snackbar.value = { show: true, text: data?.message || `Synced ${data?.data?.synced || 0} record`, color: 'success' }
     await fetchData()
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Sync failed', color: 'error' }
