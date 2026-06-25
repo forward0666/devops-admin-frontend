@@ -306,12 +306,6 @@ onMounted(async () => {
 
     <!-- Charts -->
     <div class="d-flex gap-4 mb-4" style="height: 220px; overflow-x: auto;">
-      <VCard style="flex: 1; min-width: 0;">
-        <VCardTitle class="text-body-2 pa-2">Top 10 by ASN</VCardTitle>
-        <VCardText class="pa-1">
-          <apexchart type="bar" :options="asnChart.options" :series="asnChart.series" height="180" />
-        </VCardText>
-      </VCard>
       <VCard style="flex: 2; min-width: 0;">
         <VCardTitle class="text-body-2 pa-2">Top 10 by Request</VCardTitle>
         <VCardText class="pa-1">
@@ -322,12 +316,6 @@ onMounted(async () => {
         <VCardTitle class="text-body-2 pa-2">Top 10 by Bandwidth</VCardTitle>
         <VCardText class="pa-1">
           <apexchart type="bar" :options="bandwidthChart.options" :series="bandwidthChart.series" height="180" />
-        </VCardText>
-      </VCard>
-      <VCard style="flex: 2; min-width: 0;">
-        <VCardTitle class="text-body-2 pa-2">Top 10 by Country</VCardTitle>
-        <VCardText class="pa-1">
-          <apexchart type="bar" :options="countryChart.options" :series="countryChart.series" height="180" />
         </VCardText>
       </VCard>
     </div>
