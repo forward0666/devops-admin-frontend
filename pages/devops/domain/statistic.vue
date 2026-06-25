@@ -112,7 +112,7 @@ async function fetchGroups() {
 async function fetchData() {
   loading.value = true
   try {
-    const { data } = await apiClient.get(`${CF_GATEWAY}/statistics`, { params: { date: selectedDate.value } })
+    const { data } = await apiClient.get(`${CF_GATEWAY}/statistic`, { params: { date: selectedDate.value } })
     records.value = data?.data || []
   } catch (e: any) {
     console.error('Failed to fetch statistics', e)
@@ -126,7 +126,7 @@ async function fetchData() {
 async function syncData() {
   syncing.value = true
   try {
-    const { data } = await apiClient.post(`${CF_GATEWAY}/statistics/sync`, { date: selectedDate.value }, { timeout: 300000 })
+    const { data } = await apiClient.post(`${CF_GATEWAY}/statistic/sync`, { date: selectedDate.value }, { timeout: 300000 })
     snackbar.value = { show: true, text: data?.message || `Synced ${data?.data?.synced || 0} records`, color: 'success' }
     await fetchData()
   } catch (e: any) {
