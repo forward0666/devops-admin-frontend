@@ -115,6 +115,27 @@ const bandwidthChart = computed(() => {
   }
 })
 
+const countryChart = computed(() => {
+  const countryMap: Record<string, number> = {}
+  for (const r of filteredRecords.value) {
+    for (const c of (r.topCountries || [])) {
+      countryMap[c.country] = (countryMap[c.country] || 0) + c.requests
+    }
+  }
+  const sorted = Object.entries(countryMap).sort((a, b) => b[1] - a[1]).slice(0, 10)
+  return {
+    series: [{ name: 'Requests', data: sorted.map(([, v]) => v) }],
+    options: {
+      chart: { type: 'bar', background: 'transparent' },
+      theme: { mode: 'dark' },
+      xaxis: { categories: sorted.map(([k]) => k), labels: { style: { fontSize: '11px' } } },
+      colors: ['#FEB019'],
+      plotOptions: { bar: { borderRadius: 4, horizontal: true } },
+      dataLabels: { enabled: false },
+    },
+  }
+})
+
 const threatChart = computed(() => {
   const withThreats = filteredRecords.value.filter(r => r.threats > 0).sort((a, b) => b.threats - a.threats).slice(0, 10)
   return {
@@ -287,6 +308,12 @@ onMounted(async () => {
         <VCardTitle class="text-body-2 pa-2">Top 10 by Request</VCardTitle>
         <VCardText class="pa-1">
           <apexchart type="bar" :options="topDomainsChart.options" :series="topDomainsChart.series" height="180" />
+        </VCardText>
+      </VCard>
+      <VCard style="flex: 2; min-width: 0;">
+        <VCardTitle class="text-body-2 pa-2">Top 10 by Country</VCardTitle>
+        <VCardText class="pa-1">
+          <apexchart type="bar" :options="countryChart.options" :series="countryChart.series" height="180" />
         </VCardText>
       </VCard>
       <VCard style="flex: 2; min-width: 0;">
