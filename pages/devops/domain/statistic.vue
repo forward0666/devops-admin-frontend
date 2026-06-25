@@ -70,18 +70,26 @@ const totalStats = computed(() => {
 })
 
 // Charts
-const cachedUncachedChart = computed(() => ({
-  series: [totalStats.value.cached, totalStats.value.uncached],
-  options: {
-    labels: ['Cached', 'Uncached'],
-    colors: ['#00E396', '#FF4560'],
-    chart: { type: 'donut', background: 'transparent' },
-    theme: { mode: 'dark' },
-    legend: { position: 'bottom' },
-    dataLabels: { enabled: true, formatter: (val: number) => val.toFixed(1) + '%' },
-    plotOptions: { pie: { donut: { size: '65%' } } },
-  },
-}))
+const asnChart = computed(() => {
+  const asnMap: Record<number, number> = {}
+  for (const r of filteredRecords.value) {
+    for (const a of (r.topAsns || [])) {
+      asnMap[a.asn] = (asnMap[a.asn] || 0) + a.requests
+    }
+  }
+  const sorted = Object.entries(asnMap).sort((a, b) => b[1] - a[1]).slice(0, 10)
+  return {
+    series: [{ name: 'Requests', data: sorted.map(([, v]) => v) }],
+    options: {
+      chart: { type: 'bar', background: 'transparent' },
+      theme: { mode: 'dark' },
+      xaxis: { categories: sorted.map(([k]) => `AS${k}`), labels: { style: { fontSize: '11px' } } },
+      colors: ['#00E396'],
+      plotOptions: { bar: { borderRadius: 4, horizontal: true } },
+      dataLabels: { enabled: false },
+    },
+  }
+})
 
 const topDomainsChart = computed(() => {
   const sorted = [...filteredRecords.value].sort((a, b) => b.total - a.total).slice(0, 10)
@@ -299,9 +307,9 @@ onMounted(async () => {
     <!-- Charts -->
     <div class="d-flex gap-4 mb-4" style="height: 220px; overflow-x: auto;">
       <VCard style="flex: 1; min-width: 0;">
-        <VCardTitle class="text-body-2 pa-2">Cached vs Uncached</VCardTitle>
+        <VCardTitle class="text-body-2 pa-2">Top 10 by ASN</VCardTitle>
         <VCardText class="pa-1">
-          <apexchart type="donut" :options="cachedUncachedChart.options" :series="cachedUncachedChart.series" height="180" />
+          <apexchart type="bar" :options="asnChart.options" :series="asnChart.series" height="180" />
         </VCardText>
       </VCard>
       <VCard style="flex: 2; min-width: 0;">
