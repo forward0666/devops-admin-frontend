@@ -311,15 +311,15 @@ onMounted(async () => {
         </VCardText>
       </VCard>
       <VCard style="flex: 2; min-width: 0;">
-        <VCardTitle class="text-body-2 pa-2">Top 10 by Country</VCardTitle>
-        <VCardText class="pa-1">
-          <apexchart type="bar" :options="countryChart.options" :series="countryChart.series" height="180" />
-        </VCardText>
-      </VCard>
-      <VCard style="flex: 2; min-width: 0;">
         <VCardTitle class="text-body-2 pa-2">Top 10 by Bandwidth</VCardTitle>
         <VCardText class="pa-1">
           <apexchart type="bar" :options="bandwidthChart.options" :series="bandwidthChart.series" height="180" />
+        </VCardText>
+      </VCard>
+      <VCard style="flex: 2; min-width: 0;">
+        <VCardTitle class="text-body-2 pa-2">Top 10 by Country</VCardTitle>
+        <VCardText class="pa-1">
+          <apexchart type="bar" :options="countryChart.options" :series="countryChart.series" height="180" />
         </VCardText>
       </VCard>
     </div>
