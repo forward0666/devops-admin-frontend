@@ -127,9 +127,7 @@ async function fetchData() {
 async function syncData() {
   syncing.value = true
   try {
-    const zoneIds = selectedGroup.value && groupZoneIds.value ? [...groupZoneIds.value] : []
-    console.log('[Statistic] sync:', { selectedGroup: selectedGroup.value, groupZoneIds: groupZoneIds.value?.size, zoneIds: zoneIds.length })
-    const { data } = await apiClient.post(`${CF_GATEWAY}/statistic/sync`, { date: selectedDate.value, zoneIds }, { timeout: 300000 })
+    const { data } = await apiClient.post(`${CF_GATEWAY}/statistic/sync`, { date: selectedDate.value, groupId: selectedGroup.value || '' }, { timeout: 300000 })
     snackbar.value = { show: true, text: data?.message || `Synced ${data?.data?.synced || 0} record`, color: 'success' }
     await fetchData()
   } catch (e: any) {
