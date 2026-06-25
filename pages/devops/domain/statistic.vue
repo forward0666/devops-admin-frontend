@@ -276,7 +276,7 @@ onMounted(async () => {
     </div>
 
     <!-- Charts -->
-    <div class="d-flex gap-4 mb-4">
+    <div class="d-flex gap-4 mb-4" style="height: 220px; overflow-x: auto;">
       <VCard style="flex: 1; min-width: 0;">
         <VCardTitle class="text-body-2 pa-2">Cached vs Uncached</VCardTitle>
         <VCardText class="pa-1">
