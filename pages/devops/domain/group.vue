@@ -324,12 +324,7 @@ onMounted(init)
       <!-- Right: Zone Table -->
       <VCard style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
         <div class="card-scroll">
-          <div v-if="loading" class="text-center py-8"><VProgressCircular indeterminate color="primary" /></div>
-          <div v-else-if="zonesInGroup.length === 0" class="text-center py-8 text-medium-emphasis">
-            <VIcon icon="bx-folder-open" size="48" class="mb-2" /><p>No zones in this group.</p>
-          </div>
-
-          <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
+          <VTable class="text-no-wrap sticky-table" hover density="compact" style="width: 100%;">
             <thead>
               <tr class="text-caption text-medium-emphasis">
                 <th style="width: 40px;"><VCheckbox :model-value="allSelected" :indeterminate="someSelected" @click="toggleAll" density="compact" hide-details /></th>
@@ -361,6 +356,11 @@ onMounted(init)
                 <td>
                   <VBtn size="x-small" variant="tonal" color="info" class="me-1" @click="openEdit(z)">Edit</VBtn>
                   <VBtn size="x-small" variant="tonal" color="primary" @click="openMove(z)">Move</VBtn>
+                </td>
+              </tr>
+              <tr v-if="zonesInGroup.length === 0">
+                <td :colspan="6" class="text-center py-8 text-medium-emphasis">
+                  <VIcon icon="bx-folder-open" size="48" class="mb-2" /><p>No zones in this group.</p>
                 </td>
               </tr>
             </tbody>

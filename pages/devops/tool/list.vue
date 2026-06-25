@@ -600,12 +600,7 @@ async function saveWhitelist() {
 
       <!-- Right: IP Table -->
       <VCard style="flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0;">
-          <div v-if="loading || listItemsLoading" class="text-center py-8"><VProgressCircular indeterminate color="primary" /></div>
-          <div v-else-if="paginatedWhitelists.length === 0" class="text-center py-8 text-medium-emphasis">
-            <VIcon icon="bx-list-ul" size="48" class="mb-2" /><p>No records yet.</p>
-          </div>
-
-          <VTable v-else class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
+          <VTable class="text-no-wrap sticky-table" hover density="compact" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
             <thead>
               <tr class="text-caption text-medium-emphasis">
                 <th style="width: 150px; cursor: pointer;" @click="toggleSort('ip')">{{ currentListKind === 'hostname' ? 'Hostname' : currentListKind === 'asn' ? 'ASN' : 'IP' }} <VIcon :icon="sortIcon('ip')" size="14" /></th>
@@ -700,6 +695,11 @@ async function saveWhitelist() {
                 </td>
               </tr>
               </template>
+              <tr v-if="paginatedWhitelists.length === 0">
+                <td :colspan="6" class="text-center py-8 text-medium-emphasis">
+                  <VIcon icon="bx-list-ul" size="48" class="mb-2" /><p>No records yet.</p>
+                </td>
+              </tr>
             </tbody>
           </VTable>
       </VCard>
