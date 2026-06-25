@@ -17,7 +17,7 @@ const groups = ref<any[]>([])
 const groupMeta = ref<Record<string, { groupId: string }>>({})
 const selectedGroup = ref<string | null>(null)
 const groupOptions = computed(() => [
-  { title: 'All Groups', value: null },
+  { title: 'All', value: null },
   ...groups.value.map((g: any) => ({ title: g.name, value: g.id })),
 ])
 
@@ -153,8 +153,8 @@ onMounted(async () => {
     <VCard class="mb-4">
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <div class="flex-grow-1">
-          <h4 class="text-h4 mb-1">Domain Statistics</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Domain visit analytics from Cloudflare</p>
+          <h4 class="text-h4 mb-1">Domain Statistic</h4>
+          <p class="text-body-2 text-medium-emphasis mb-0">Domain visit analytic from Cloudflare</p>
         </div>
         <VSelect v-model="selectedGroup" :items="groupOptions" density="compact" hide-details style="max-width: 180px" clearable placeholder="Group" />
         <VTextField
@@ -178,7 +178,7 @@ onMounted(async () => {
         <div class="text-h5 font-weight-bold">{{ totalStats.domains }}</div>
       </VCard>
       <VCard class="pa-3" style="min-width: 120px; flex: 1;">
-        <div class="text-caption text-medium-emphasis">Total Requests</div>
+        <div class="text-caption text-medium-emphasis">Total Request</div>
         <div class="text-h5 font-weight-bold text-primary">{{ formatNumber(totalStats.total) }}</div>
       </VCard>
       <VCard class="pa-3" style="min-width: 120px; flex: 1;">
@@ -194,11 +194,11 @@ onMounted(async () => {
         <div class="text-h5 font-weight-bold text-info">{{ formatBytes(totalStats.bandwidth) }}</div>
       </VCard>
       <VCard class="pa-3" style="min-width: 120px; flex: 1;">
-        <div class="text-caption text-medium-emphasis">Threats</div>
+        <div class="text-caption text-medium-emphasis">Threat</div>
         <div class="text-h5 font-weight-bold text-error">{{ formatNumber(totalStats.threats) }}</div>
       </VCard>
       <VCard class="pa-3" style="min-width: 120px; flex: 1;">
-        <div class="text-caption text-medium-emphasis">Page Views</div>
+        <div class="text-caption text-medium-emphasis">Page View</div>
         <div class="text-h5 font-weight-bold">{{ formatNumber(totalStats.pageViews) }}</div>
       </VCard>
     </div>
