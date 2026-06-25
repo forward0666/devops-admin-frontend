@@ -15,7 +15,7 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 // Groups
 const groups = ref<any[]>([])
 const groupMeta = ref<Record<string, { groupId: string }>>({})
-const selectedGroup = ref<string | null>(null)
+const selectedGroup = ref<string | null>(process.client ? localStorage.getItem('statistic-group') : null)
 const groupOptions = computed(() => [
   { title: 'All', value: null },
   ...groups.value.map((g: any) => ({ title: g.name, value: g.id })),
@@ -141,6 +141,10 @@ async function syncData() {
 function onDateChange() {
   fetchData()
 }
+
+watch(selectedGroup, (v) => {
+  if (process.client) localStorage.setItem('statistic-group', v || '')
+})
 
 onMounted(async () => {
   await fetchGroups()
