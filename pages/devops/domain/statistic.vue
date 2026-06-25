@@ -11,6 +11,7 @@ const CF_GATEWAY = '/cloudflare'
 // State
 const loading = ref(false)
 const syncing = ref(false)
+const syncingChart = ref(false)
 const records = ref<any[]>([])
 const chartData = ref<any[]>([])
 const snackbar = ref({ show: false, text: '', color: 'success' })
@@ -221,17 +222,31 @@ async function fetchData() {
   }
 }
 
-// Sync from CF to MongoDB via cloudflare service
+// Sync table data from CF to MongoDB
 async function syncData() {
   syncing.value = true
   try {
     const { data } = await apiClient.post(`${CF_GATEWAY}/statistic/sync`, { date: selectedDate.value, groupId: selectedGroup.value || '' }, { timeout: 300000 })
-    snackbar.value = { show: true, text: data?.message || `Synced ${data?.data?.synced || 0} record`, color: 'success' }
+    snackbar.value = { show: true, text: data?.message || `Synced`, color: 'success' }
     await fetchData()
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Sync failed', color: 'error' }
   } finally {
     syncing.value = false
+  }
+}
+
+// Sync chart data from CF to MongoDB
+async function syncChartData() {
+  syncingChart.value = true
+  try {
+    const { data } = await apiClient.post(`${CF_GATEWAY}/statistic/sync/chart`, { date: selectedDate.value, groupId: selectedGroup.value || '' }, { timeout: 300000 })
+    snackbar.value = { show: true, text: data?.message || `Chart synced`, color: 'success' }
+    await fetchData()
+  } catch (e: any) {
+    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Chart sync failed', color: 'error' }
+  } finally {
+    syncingChart.value = false
   }
 }
 
@@ -270,6 +285,9 @@ onMounted(async () => {
         />
         <VBtn color="primary" :loading="syncing" @click="syncData" prepend-icon="bx-sync">
           Sync
+        </VBtn>
+        <VBtn color="secondary" :loading="syncingChart" @click="syncChartData" prepend-icon="bx-bar-chart">
+          Sync Chart
         </VBtn>
       </VCardText>
     </VCard>
