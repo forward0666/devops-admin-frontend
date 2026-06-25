@@ -5,7 +5,7 @@ import apiClient, { domainGroupService, projectService } from '~/services/api'
 definePageMeta({ layout: 'default' })
 
 const CF_GATEWAY = '/cloudflare'
-const MONITOR_GATEWAY = '/cloudflare/sync_domain'
+const MONITOR_GATEWAY = '/domain/sync_domain'
 
 // Groups & Projects
 const groups = ref<any[]>([])

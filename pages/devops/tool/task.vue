@@ -167,7 +167,7 @@ async function fetchMonitorRules() {
 
 async function fetchSyncProjectDomainRules() {
   try {
-    const { data } = await apiClient.get('/cloudflare/sync_domain/rules')
+    const { data } = await apiClient.get('/domain/sync_domain/rules')
     syncProjectDomainRules.value = (data.data || []).map((r: any) => ({ id: r.id, name: r.name || `Rule #${r.id}` }))
   } catch (e) {
     console.error('Failed to fetch sync project domain rules', e)
