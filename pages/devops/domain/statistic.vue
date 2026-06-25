@@ -300,7 +300,8 @@ onMounted(async () => {
       <VCard style="flex: 1; min-width: 0;">
         <VCardTitle class="text-body-2">Top 10 by Threat</VCardTitle>
         <VCardText>
-          <apexchart type="bar" :options="threatChart.options" :series="threatChart.series" height="250" />
+          <apexchart v-if="threatChart.series[0].data.length > 0" type="bar" :options="threatChart.options" :series="threatChart.series" height="250" />
+          <div v-else class="text-center py-8 text-medium-emphasis">No threat data</div>
         </VCardText>
       </VCard>
     </div>
