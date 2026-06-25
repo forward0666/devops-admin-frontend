@@ -237,13 +237,13 @@ onMounted(async () => {
         <tbody>
           <tr v-for="r in filteredRecords" :key="r.domain">
             <td><code class="text-body-2">{{ r.domain }}</code></td>
-            <td style="text-align: right;">{{ formatNumber(r.total) }}</td>
-            <td style="text-align: right;">{{ formatNumber(r.cached) }}</td>
-            <td style="text-align: right;">{{ formatNumber(r.uncached) }}</td>
-            <td style="text-align: right;">{{ formatBytes(r.bandwidth) }}</td>
-            <td style="text-align: right;">{{ formatNumber(r.threats) }}</td>
-            <td style="text-align: right;">{{ formatNumber(r.pageViews) }}</td>
-            <td style="text-align: right;">{{ formatNumber(r.uniqueVisitor) }}</td>
+            <td>{{ formatNumber(r.total) }}</td>
+            <td>{{ formatNumber(r.cached) }}</td>
+            <td>{{ formatNumber(r.uncached) }}</td>
+            <td>{{ formatBytes(r.bandwidth) }}</td>
+            <td>{{ formatNumber(r.threats) }}</td>
+            <td>{{ formatNumber(r.pageViews) }}</td>
+            <td>{{ formatNumber(r.uniqueVisitor) }}</td>
           </tr>
           <tr v-if="filteredRecords.length === 0">
             <td :colspan="8" class="text-center py-8 text-medium-emphasis">
