@@ -276,36 +276,25 @@ onMounted(async () => {
     </div>
 
     <!-- Charts -->
-    <div style="overflow-y: auto; max-height: 650px;" class="mb-4">
-    <div class="d-flex gap-4" style="min-height: 300px;">
+    <div class="d-flex gap-4 mb-4">
       <VCard style="flex: 1; min-width: 0;">
-        <VCardTitle class="text-body-2">Cached vs Uncached</VCardTitle>
-        <VCardText>
-          <apexchart type="donut" :options="cachedUncachedChart.options" :series="cachedUncachedChart.series" height="250" />
+        <VCardTitle class="text-body-2 pa-2">Cached vs Uncached</VCardTitle>
+        <VCardText class="pa-1">
+          <apexchart type="donut" :options="cachedUncachedChart.options" :series="cachedUncachedChart.series" height="180" />
         </VCardText>
       </VCard>
       <VCard style="flex: 2; min-width: 0;">
-        <VCardTitle class="text-body-2">Top 10 by Request</VCardTitle>
-        <VCardText>
-          <apexchart type="bar" :options="topDomainsChart.options" :series="topDomainsChart.series" height="250" />
+        <VCardTitle class="text-body-2 pa-2">Top 10 by Request</VCardTitle>
+        <VCardText class="pa-1">
+          <apexchart type="bar" :options="topDomainsChart.options" :series="topDomainsChart.series" height="180" />
         </VCardText>
       </VCard>
-    </div>
-    <div class="d-flex gap-4 mb-4" style="min-height: 300px;">
-      <VCard style="flex: 1; min-width: 0;">
-        <VCardTitle class="text-body-2">Top 10 by Bandwidth</VCardTitle>
-        <VCardText>
-          <apexchart type="bar" :options="bandwidthChart.options" :series="bandwidthChart.series" height="250" />
+      <VCard style="flex: 2; min-width: 0;">
+        <VCardTitle class="text-body-2 pa-2">Top 10 by Bandwidth</VCardTitle>
+        <VCardText class="pa-1">
+          <apexchart type="bar" :options="bandwidthChart.options" :series="bandwidthChart.series" height="180" />
         </VCardText>
       </VCard>
-      <VCard style="flex: 1; min-width: 0;">
-        <VCardTitle class="text-body-2">Top 10 by Threat</VCardTitle>
-        <VCardText>
-          <apexchart v-if="threatChart.series[0].data.length > 0" type="bar" :options="threatChart.options" :series="threatChart.series" height="250" />
-          <div v-else class="text-center py-8 text-medium-emphasis">No threat data</div>
-        </VCardText>
-      </VCard>
-    </div>
     </div>
 
     <!-- Table -->
