@@ -12,6 +12,7 @@ const CF_GATEWAY = '/cloudflare'
 const loading = ref(false)
 const syncing = ref(false)
 const records = ref<any[]>([])
+const chartData = ref<any[]>([])
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 // Groups
@@ -125,7 +126,7 @@ const bandwidthChart = computed(() => {
 
 const countryChart = computed(() => {
   const countryMap: Record<string, number> = {}
-  for (const r of filteredRecords.value) {
+  for (const r of chartData.value) {
     for (const c of (r.topCountries || [])) {
       countryMap[c.country] = (countryMap[c.country] || 0) + c.requests
     }
@@ -205,11 +206,16 @@ async function fetchGroups() {
 async function fetchData() {
   loading.value = true
   try {
-    const { data } = await apiClient.get('/domain/statistic', { params: { date: selectedDate.value } })
-    records.value = data?.data || []
+    const [tableRes, chartRes] = await Promise.all([
+      apiClient.get('/domain/statistic', { params: { date: selectedDate.value } }),
+      apiClient.get('/domain/statistic/chart', { params: { date: selectedDate.value } }),
+    ])
+    records.value = tableRes.data?.data || []
+    chartData.value = chartRes.data?.data || []
   } catch (e: any) {
     console.error('Failed to fetch statistic', e)
     records.value = []
+    chartData.value = []
   } finally {
     loading.value = false
   }
