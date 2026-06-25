@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import apiClient, { domainGroupService } from '~/services/api'
+// @ts-ignore
+import VueApexCharts from 'vue3-apexcharts'
 
 definePageMeta({ layout: 'default' })
 
@@ -64,6 +66,67 @@ const totalStats = computed(() => {
     threats: sum('threats'),
     pageViews: sum('pageViews'),
     uniqueVisitor: sum('uniqueVisitor'),
+  }
+})
+
+// Charts
+const cachedUncachedChart = computed(() => ({
+  series: [totalStats.value.cached, totalStats.value.uncached],
+  options: {
+    labels: ['Cached', 'Uncached'],
+    colors: ['#00E396', '#FF4560'],
+    chart: { type: 'donut', background: 'transparent' },
+    theme: { mode: 'dark' },
+    legend: { position: 'bottom' },
+    dataLabels: { enabled: true, formatter: (val: number) => val.toFixed(1) + '%' },
+    plotOptions: { pie: { donut: { size: '65%' } } },
+  },
+}))
+
+const topDomainsChart = computed(() => {
+  const sorted = [...filteredRecords.value].sort((a, b) => b.total - a.total).slice(0, 10)
+  return {
+    series: [{ name: 'Requests', data: sorted.map(r => r.total) }],
+    options: {
+      chart: { type: 'bar', background: 'transparent' },
+      theme: { mode: 'dark' },
+      xaxis: { categories: sorted.map(r => r.domain), labels: { style: { fontSize: '11px' } } },
+      colors: ['#4FC3F7'],
+      plotOptions: { bar: { borderRadius: 4, horizontal: true } },
+      dataLabels: { enabled: false },
+    },
+  }
+})
+
+const bandwidthChart = computed(() => {
+  const sorted = [...filteredRecords.value].sort((a, b) => b.bandwidth - a.bandwidth).slice(0, 10)
+  return {
+    series: [{ name: 'Bandwidth', data: sorted.map(r => r.bandwidth) }],
+    options: {
+      chart: { type: 'bar', background: 'transparent' },
+      theme: { mode: 'dark' },
+      xaxis: { categories: sorted.map(r => r.domain), labels: { style: { fontSize: '11px' } } },
+      colors: ['#AB47BC'],
+      plotOptions: { bar: { borderRadius: 4, horizontal: true } },
+      dataLabels: { enabled: false },
+      yaxis: { labels: { formatter: (val: number) => formatBytes(val) } },
+      tooltip: { y: { formatter: (val: number) => formatBytes(val) } },
+    },
+  }
+})
+
+const threatChart = computed(() => {
+  const withThreats = filteredRecords.value.filter(r => r.threats > 0).sort((a, b) => b.threats - a.threats).slice(0, 10)
+  return {
+    series: [{ name: 'Threats', data: withThreats.map(r => r.threats) }],
+    options: {
+      chart: { type: 'bar', background: 'transparent' },
+      theme: { mode: 'dark' },
+      xaxis: { categories: withThreats.map(r => r.domain), labels: { style: { fontSize: '11px' } } },
+      colors: ['#FF4560'],
+      plotOptions: { bar: { borderRadius: 4, horizontal: true } },
+      dataLabels: { enabled: false },
+    },
   }
 })
 
@@ -209,6 +272,36 @@ onMounted(async () => {
       <VCard class="pa-3" style="min-width: 120px; flex: 1;">
         <div class="text-caption text-medium-emphasis">Unique Visitor</div>
         <div class="text-h5 font-weight-bold">{{ formatNumber(totalStats.uniqueVisitor) }}</div>
+      </VCard>
+    </div>
+
+    <!-- Charts -->
+    <div class="d-flex gap-4 mb-4" style="min-height: 300px;">
+      <VCard style="flex: 1; min-width: 0;">
+        <VCardTitle class="text-body-2">Cached vs Uncached</VCardTitle>
+        <VCardText>
+          <apexchart type="donut" :options="cachedUncachedChart.options" :series="cachedUncachedChart.series" height="250" />
+        </VCardText>
+      </VCard>
+      <VCard style="flex: 2; min-width: 0;">
+        <VCardTitle class="text-body-2">Top 10 by Request</VCardTitle>
+        <VCardText>
+          <apexchart type="bar" :options="topDomainsChart.options" :series="topDomainsChart.series" height="250" />
+        </VCardText>
+      </VCard>
+    </div>
+    <div class="d-flex gap-4 mb-4" style="min-height: 300px;">
+      <VCard style="flex: 1; min-width: 0;">
+        <VCardTitle class="text-body-2">Top 10 by Bandwidth</VCardTitle>
+        <VCardText>
+          <apexchart type="bar" :options="bandwidthChart.options" :series="bandwidthChart.series" height="250" />
+        </VCardText>
+      </VCard>
+      <VCard style="flex: 1; min-width: 0;">
+        <VCardTitle class="text-body-2">Top 10 by Threat</VCardTitle>
+        <VCardText>
+          <apexchart type="bar" :options="threatChart.options" :series="threatChart.series" height="250" />
+        </VCardText>
       </VCard>
     </div>
 
