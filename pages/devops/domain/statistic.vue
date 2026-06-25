@@ -213,7 +213,7 @@ onMounted(async () => {
       <VProgressLinear v-if="loading" indeterminate color="primary" />
       <VTable class="sticky-table" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
         <colgroup>
-          <col style="width: 250px" />
+          <col style="width: 100px" />
           <col style="width: 120px" />
           <col style="width: 120px" />
           <col style="width: 120px" />
@@ -224,12 +224,7 @@ onMounted(async () => {
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
-            <th>
-              <div class="d-flex align-center gap-1">
-                <span>Domain</span>
-              </div>
-              <VTextField v-model="searchDomain" density="compact" hide-details placeholder="Search domain..." clearable style="font-size: 12px; margin-top: 4px;" />
-            </th>
+            <th>Domain</th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('total')">Total <VIcon :icon="sortIcon('total')" size="14" /></th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('cached')">Cached <VIcon :icon="sortIcon('cached')" size="14" /></th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('uncached')">Uncached <VIcon :icon="sortIcon('uncached')" size="14" /></th>
