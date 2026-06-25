@@ -63,6 +63,7 @@ const totalStats = computed(() => {
     bandwidth: sum('bandwidth'),
     threats: sum('threats'),
     pageViews: sum('pageViews'),
+    uniqueVisitor: sum('uniqueVisitor'),
   }
 })
 
@@ -201,6 +202,10 @@ onMounted(async () => {
         <div class="text-caption text-medium-emphasis">Page View</div>
         <div class="text-h5 font-weight-bold">{{ formatNumber(totalStats.pageViews) }}</div>
       </VCard>
+      <VCard class="pa-3" style="min-width: 120px; flex: 1;">
+        <div class="text-caption text-medium-emphasis">Unique Visitor</div>
+        <div class="text-h5 font-weight-bold">{{ formatNumber(totalStats.uniqueVisitor) }}</div>
+      </VCard>
     </div>
 
     <!-- Table -->
@@ -215,6 +220,7 @@ onMounted(async () => {
           <col style="width: 120px" />
           <col style="width: 100px" />
           <col style="width: 100px" />
+          <col style="width: 120px" />
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
@@ -230,6 +236,7 @@ onMounted(async () => {
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('bandwidth')">Bandwidth <VIcon :icon="sortIcon('bandwidth')" size="14" /></th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('threats')">Threat <VIcon :icon="sortIcon('threats')" size="14" /></th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('pageViews')">View <VIcon :icon="sortIcon('pageViews')" size="14" /></th>
+            <th style="cursor: pointer; text-align: right;" @click="toggleSort('uniqueVisitor')">Unique Visitor <VIcon :icon="sortIcon('uniqueVisitor')" size="14" /></th>
           </tr>
         </thead>
         <tbody>
@@ -241,9 +248,10 @@ onMounted(async () => {
             <td style="text-align: right;">{{ formatBytes(r.bandwidth) }}</td>
             <td style="text-align: right;">{{ formatNumber(r.threats) }}</td>
             <td style="text-align: right;">{{ formatNumber(r.pageViews) }}</td>
+            <td style="text-align: right;">{{ formatNumber(r.uniqueVisitor) }}</td>
           </tr>
           <tr v-if="filteredRecords.length === 0">
-            <td :colspan="7" class="text-center py-8 text-medium-emphasis">
+            <td :colspan="8" class="text-center py-8 text-medium-emphasis">
               <VIcon icon="bx-bar-chart" size="48" class="mb-2" />
               <p>No statistics data. Click "Sync" to fetch from Cloudflare.</p>
             </td>
