@@ -441,7 +441,7 @@ onMounted(init)
         <VCardText>
           <p v-if="moveTargets.length <= 1" class="text-body-2 mb-3"><code>{{ moveTargets[0]?.name }}</code></p>
           <div v-else class="mb-3" style="max-height: 150px; overflow-y: auto;"><VChip v-for="z in moveTargets" :key="z.zone_id" size="x-small" class="me-1 mb-1">{{ z.name }}</VChip></div>
-          <VSelect v-model="moveTargetGroup" :items="[{ title: 'Default (Ungrouped)', value: '' }, ...groups.map((g: any) => ({ title: g.name, value: g.id }))}]" label="Move to Group" density="compact" hide-details />
+          <VSelect v-model="moveTargetGroup" :items="[{ title: 'Default (Ungrouped)', value: '' }, ...groups.map((g: any) => ({ title: g.name, value: g.id }))] " label="Move to Group" density="compact" hide-details />
         </VCardText>
         <VCardActions><VSpacer /><VBtn variant="text" @click="moveDialog = false">Cancel</VBtn><VBtn color="primary" @click="doMove">Move</VBtn></VCardActions>
       </VCard>
