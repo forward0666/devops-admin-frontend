@@ -228,8 +228,8 @@ onMounted(async () => {
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('cached')">Cached <VIcon :icon="sortIcon('cached')" size="14" /></th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('uncached')">Uncached <VIcon :icon="sortIcon('uncached')" size="14" /></th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('bandwidth')">Bandwidth <VIcon :icon="sortIcon('bandwidth')" size="14" /></th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('threats')">Threats <VIcon :icon="sortIcon('threats')" size="14" /></th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('pageViews')">Views <VIcon :icon="sortIcon('pageViews')" size="14" /></th>
+            <th style="cursor: pointer; text-align: right;" @click="toggleSort('threats')">Threat <VIcon :icon="sortIcon('threats')" size="14" /></th>
+            <th style="cursor: pointer; text-align: right;" @click="toggleSort('pageViews')">View <VIcon :icon="sortIcon('pageViews')" size="14" /></th>
           </tr>
         </thead>
         <tbody>
