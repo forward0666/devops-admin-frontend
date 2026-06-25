@@ -233,6 +233,7 @@ const isProjectActive = (projectId: number) => {
       >
         <VerticalNavLink :item="{ title: 'Domain', to: DEVOPS.CF_DOMAIN }" />
         <VerticalNavLink :item="{ title: 'Group', to: DEVOPS.DOMAIN_GROUP }" />
+        <VerticalNavLink :item="{ title: 'Statistics', to: DEVOPS.DOMAIN_STATISTICS }" />
       </VerticalNavGroup>
 
       <VerticalNavGroup
