@@ -221,7 +221,6 @@ onMounted(async () => {
           <col style="width: 100px" />
           <col style="width: 100px" />
           <col style="width: 120px" />
-          <col style="width: 200px" />
         </colgroup>
         <thead>
           <tr class="text-caption text-medium-emphasis">
@@ -238,7 +237,6 @@ onMounted(async () => {
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('threats')">Threat <VIcon :icon="sortIcon('threats')" size="14" /></th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('pageViews')">View <VIcon :icon="sortIcon('pageViews')" size="14" /></th>
             <th style="cursor: pointer; text-align: right;" @click="toggleSort('uniqueVisitor')">Unique Visitor <VIcon :icon="sortIcon('uniqueVisitor')" size="14" /></th>
-            <th>Top Country</th>
           </tr>
         </thead>
         <tbody>
@@ -251,14 +249,9 @@ onMounted(async () => {
             <td style="text-align: right;">{{ formatNumber(r.threats) }}</td>
             <td style="text-align: right;">{{ formatNumber(r.pageViews) }}</td>
             <td style="text-align: right;">{{ formatNumber(r.uniqueVisitor) }}</td>
-            <td>
-              <VChip v-for="c in (r.topCountries || []).slice(0, 3)" :key="c.country" size="x-small" class="me-1 mb-1" variant="tonal">
-                {{ c.country }} {{ formatNumber(c.requests) }}
-              </VChip>
-            </td>
           </tr>
           <tr v-if="filteredRecords.length === 0">
-            <td :colspan="9" class="text-center py-8 text-medium-emphasis">
+            <td :colspan="8" class="text-center py-8 text-medium-emphasis">
               <VIcon icon="bx-bar-chart" size="48" class="mb-2" />
               <p>No statistics data. Click "Sync" to fetch from Cloudflare.</p>
             </td>
