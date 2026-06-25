@@ -311,7 +311,7 @@ onMounted(async () => {
     <!-- Table -->
     <VCard style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <VProgressLinear v-if="loading" indeterminate color="primary" />
-      <VTable class="sticky-table" style="flex: 1; min-height: 0; table-layout: fixed; width: 100%;">
+      <VTable class="sticky-table" style="flex: 1; min-height: 0; max-height: calc(100vh - 500px); table-layout: fixed; width: 100%;">
         <colgroup>
           <col style="width: 100px" />
           <col style="width: 120px" />
