@@ -225,13 +225,13 @@ onMounted(async () => {
         <thead>
           <tr class="text-caption text-medium-emphasis">
             <th>Domain</th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('total')">Total <VIcon :icon="sortIcon('total')" size="14" /></th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('cached')">Cached <VIcon :icon="sortIcon('cached')" size="14" /></th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('uncached')">Uncached <VIcon :icon="sortIcon('uncached')" size="14" /></th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('bandwidth')">Bandwidth <VIcon :icon="sortIcon('bandwidth')" size="14" /></th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('threats')">Threat <VIcon :icon="sortIcon('threats')" size="14" /></th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('pageViews')">View <VIcon :icon="sortIcon('pageViews')" size="14" /></th>
-            <th style="cursor: pointer; text-align: right;" @click="toggleSort('uniqueVisitor')">Unique Visitor <VIcon :icon="sortIcon('uniqueVisitor')" size="14" /></th>
+            <th style="cursor: pointer; " @click="toggleSort('total')">Total <VIcon :icon="sortIcon('total')" size="14" /></th>
+            <th style="cursor: pointer; " @click="toggleSort('cached')">Cached <VIcon :icon="sortIcon('cached')" size="14" /></th>
+            <th style="cursor: pointer; " @click="toggleSort('uncached')">Uncached <VIcon :icon="sortIcon('uncached')" size="14" /></th>
+            <th style="cursor: pointer; " @click="toggleSort('bandwidth')">Bandwidth <VIcon :icon="sortIcon('bandwidth')" size="14" /></th>
+            <th style="cursor: pointer; " @click="toggleSort('threats')">Threat <VIcon :icon="sortIcon('threats')" size="14" /></th>
+            <th style="cursor: pointer; " @click="toggleSort('pageViews')">View <VIcon :icon="sortIcon('pageViews')" size="14" /></th>
+            <th style="cursor: pointer; " @click="toggleSort('uniqueVisitor')">Unique Visitor <VIcon :icon="sortIcon('uniqueVisitor')" size="14" /></th>
           </tr>
         </thead>
         <tbody>
