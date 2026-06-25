@@ -37,7 +37,7 @@ async function fetchData() {
 }
 
 onMounted(async () => {
-  await fetchAllListItems() // Always load all items first
+  await syncListMeta() // Sync from CF to MongoDB, then load
   if (selectedFilter.value !== 'all' && !selectedFilter.value.startsWith('kind:')) {
     fetchData()
   }
@@ -87,7 +87,9 @@ async function fetchAllListItems() {
 async function syncListMeta() {
   loading.value = true
   try {
+    await apiClient.get(`${CF_GATEWAY}/configurations/lists/sync`, { params: { account_id: -1 } })
     await fetchLists()
+    await fetchAllListItems()
   } finally {
     loading.value = false
   }
