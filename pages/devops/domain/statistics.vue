@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import apiClient from '~/services/api'
+import apiClient, { domainGroupService } from '~/services/api'
 
 definePageMeta({ layout: 'default' })
 
@@ -12,6 +12,15 @@ const syncing = ref(false)
 const records = ref<any[]>([])
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
+// Groups
+const groups = ref<any[]>([])
+const groupMeta = ref<Record<string, { groupId: string }>>({})
+const selectedGroup = ref<string | null>(null)
+const groupOptions = computed(() => [
+  { title: 'All Groups', value: null },
+  ...groups.value.map((g: any) => ({ title: g.name, value: g.id })),
+])
+
 // Filters
 const selectedDate = ref(new Date().toISOString().slice(0, 10))
 const searchDomain = ref('')
@@ -19,8 +28,20 @@ const sortKey = ref<string>('total')
 const sortDir = ref<'asc' | 'desc'>('desc')
 
 // Computed
+const groupZoneIds = computed(() => {
+  if (!selectedGroup.value) return null
+  return new Set(
+    Object.entries(groupMeta.value)
+      .filter(([_, m]) => m.groupId === selectedGroup.value)
+      .map(([zoneId]) => zoneId)
+  )
+})
+
 const filteredRecords = computed(() => {
   let list = records.value
+  if (selectedGroup.value && groupZoneIds.value) {
+    list = list.filter(r => groupZoneIds.value!.has(r.zoneId))
+  }
   if (searchDomain.value) {
     const s = searchDomain.value.toLowerCase()
     list = list.filter(r => (r.domain || '').toLowerCase().includes(s))
@@ -71,6 +92,22 @@ function formatNumber(n: number): string {
   return n.toString()
 }
 
+// Fetch groups
+async function fetchGroups() {
+  try {
+    const [g, meta] = await Promise.all([
+      domainGroupService.listGroups(),
+      domainGroupService.listMeta(),
+    ])
+    groups.value = g || []
+    const m: Record<string, { groupId: string }> = {}
+    for (const item of (meta || [])) {
+      if (item.zoneId) m[item.zoneId] = { groupId: item.groupId || '' }
+    }
+    groupMeta.value = m
+  } catch { /* ignore */ }
+}
+
 // Fetch data from MongoDB
 async function fetchData() {
   loading.value = true
@@ -104,7 +141,10 @@ function onDateChange() {
   fetchData()
 }
 
-onMounted(fetchData)
+onMounted(async () => {
+  await fetchGroups()
+  await fetchData()
+})
 </script>
 
 <template>
@@ -116,6 +156,7 @@ onMounted(fetchData)
           <h4 class="text-h4 mb-1">Domain Statistics</h4>
           <p class="text-body-2 text-medium-emphasis mb-0">Domain visit analytics from Cloudflare</p>
         </div>
+        <VSelect v-model="selectedGroup" :items="groupOptions" density="compact" hide-details style="max-width: 180px" clearable placeholder="Group" />
         <VTextField
           v-model="selectedDate"
           type="date"
