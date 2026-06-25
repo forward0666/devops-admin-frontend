@@ -276,7 +276,8 @@ onMounted(async () => {
     </div>
 
     <!-- Charts -->
-    <div class="d-flex gap-4 mb-4" style="min-height: 300px;">
+    <div style="overflow-y: auto; max-height: 650px;" class="mb-4">
+    <div class="d-flex gap-4" style="min-height: 300px;">
       <VCard style="flex: 1; min-width: 0;">
         <VCardTitle class="text-body-2">Cached vs Uncached</VCardTitle>
         <VCardText>
@@ -304,6 +305,7 @@ onMounted(async () => {
           <div v-else class="text-center py-8 text-medium-emphasis">No threat data</div>
         </VCardText>
       </VCard>
+    </div>
     </div>
 
     <!-- Table -->
