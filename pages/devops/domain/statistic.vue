@@ -34,9 +34,7 @@ const viewMode = ref<'day' | 'month' | 'year'>(process.client ? (localStorage.ge
 const selectedDate = ref(process.client ? (localStorage.getItem('statistic-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10))
 const selectedMonth = ref(process.client ? (localStorage.getItem('statistic-month') || new Date().toISOString().slice(0, 7)) : new Date().toISOString().slice(0, 7))
 const selectedYear = ref(process.client ? (localStorage.getItem('statistic-year') || new Date().toISOString().slice(0, 4)) : new Date().toISOString().slice(0, 4))
-const dateMenu = ref(false)
-const tempDate = ref(selectedDate.value)
-watch(dateMenu, (v) => { if (v) tempDate.value = selectedDate.value })
+
 const sortKey = ref<string>('total')
 const sortDir = ref<'asc' | 'desc'>('desc')
 const selectedDomain = ref<string | null>(null)
@@ -338,12 +336,6 @@ async function _cacheClear() {
   }
 }
 
-function applyDate() {
-  selectedDate.value = tempDate.value
-  dateMenu.value = false
-  fetchData()
-}
-
 function onDateChange() {
   fetchData()
 }
@@ -386,18 +378,7 @@ onMounted(async () => {
           <VBtn value="month" size="small">Month</VBtn>
           <VBtn value="year" size="small">Year</VBtn>
         </VBtnToggle>
-        <VMenu v-if="viewMode === 'day'" v-model="dateMenu" :close-on-content-click="false" location="bottom">
-          <template #activator="{ props }">
-            <VTextField v-bind="props" v-model="selectedDate" density="compact" hide-details readonly style="max-width: 160px" prepend-inner-icon="bx-calendar" />
-          </template>
-          <VDatePicker v-model="tempDate" color="primary">
-            <template #actions>
-              <VBtn variant="text" size="small" @click="dateMenu = false">Cancel</VBtn>
-              <VBtn variant="text" size="small" @click="tempDate = new Date().toISOString().slice(0, 10)">Today</VBtn>
-              <VBtn variant="tonal" size="small" @click="applyDate">Apply</VBtn>
-            </template>
-          </VDatePicker>
-        </VMenu>
+        <VTextField v-if="viewMode === 'day'" v-model="selectedDate" type="date" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
         <VTextField v-else-if="viewMode === 'month'" v-model="selectedMonth" type="month" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
         <VSelect v-else v-model="selectedYear" :items="yearOptions" density="compact" hide-details style="max-width: 100px" @update:model-value="onDateChange" />
         <VBtn variant="tonal" :loading="syncing" :disabled="viewMode === 'year'" @click="syncData" prepend-icon="bx-cloud-download">Sync</VBtn>
