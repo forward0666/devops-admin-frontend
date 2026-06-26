@@ -93,6 +93,26 @@ const cacheRate = computed(() => {
 // ===== Charts =====
 
 const requestsList = computed(() => {
+  if (selectedIP.value) {
+    // Filter by IP: show domains this IP accessed
+    const domainMap: Record<string, number> = {}
+    let source = selectedDomain.value ? chartData.value.filter(r => r.domain === selectedDomain.value) : chartData.value
+    for (const r of source) {
+      for (const item of (r.topIPs || [])) {
+        if (item.ip === selectedIP.value) {
+          domainMap[r.domain] = (domainMap[r.domain] || 0) + item.requests
+        }
+      }
+    }
+    const sorted = Object.entries(domainMap).sort((a, b) => b[1] - a[1])
+    const total = sorted.reduce((s, [, v]) => s + v, 0) || 1
+    return sorted.map(([name, req], idx) => ({
+      rank: idx + 1,
+      name,
+      total: req,
+      percent: ((req / total) * 100).toFixed(1),
+    }))
+  }
   const seen = new Set()
   const sorted = [...filteredRecords.value].filter(r => { if (seen.has(r.domain)) return false; seen.add(r.domain); return true }).sort((a, b) => b.total - a.total)
   const total = totalStats.value.total || 1
