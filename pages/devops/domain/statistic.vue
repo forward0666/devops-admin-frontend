@@ -285,7 +285,8 @@ async function fetchGroups() {
 async function fetchData() {
   loading.value = true
   try {
-    const params = viewMode.value === 'year' ? { year: selectedYear.value } : viewMode.value === 'month' ? { month: selectedMonth.value } : { date: selectedDate.value }
+    const params: Record<string, any> = viewMode.value === 'year' ? { year: selectedYear.value } : viewMode.value === 'month' ? { month: selectedMonth.value } : { date: selectedDate.value }
+    if (selectedGroup.value) params.groupId = selectedGroup.value
     const [tableRes, chartRes] = await Promise.all([
       apiClient.get('/domain/statistic', { params }),
       apiClient.get('/domain/statistic/chart', { params }),
