@@ -34,6 +34,8 @@ const typeOptions = [
   { title: 'Sync Cloudflare Security', value: 'sync_security', color: 'error' },
   { title: 'Sync Cloudflare Cache', value: 'sync_cache', color: 'success' },
   { title: 'Sync Rule (Push)', value: 'sync_rule', color: 'secondary' },
+  { title: 'Sync Statistic', value: 'sync_statistic', color: 'teal' },
+  { title: 'Sync Statistic Month', value: 'sync_statistic_month', color: 'deep-purple' },
 ]
 
 // Cron preset options
@@ -78,6 +80,8 @@ const isCheckDomain = computed(() => form.value.type === 'check_domain')
 const isSyncZone = computed(() => ['sync_zone', 'sync_dns', 'sync_security', 'sync_cache'].includes(form.value.type))
 const isSyncRule = computed(() => form.value.type === 'sync_rule')
 const isSyncProjectDomain = computed(() => form.value.type === 'sync_project_domain')
+const isSyncStatistic = computed(() => form.value.type === 'sync_statistic')
+const isSyncStatisticMonth = computed(() => form.value.type === 'sync_statistic_month')
 const monitorRules = ref<any[]>([])
 const selectedRuleIds = ref<number[]>([])
 const cfAccounts = ref<any[]>([])
@@ -86,6 +90,10 @@ const syncRules = ref<any[]>([])
 const selectedSyncRuleIds = ref<number[]>([])
 const syncProjectDomainRules = ref<any[]>([])
 const selectedSyncProjectDomainRuleIds = ref<number[]>([])
+const domainGroups = ref<any[]>([])
+const selectedStatisticGroup = ref<string>('')
+const statisticDate = ref<string>('')
+const statisticMonth = ref<string>('')
 
 // When 'all' is selected, clear others; when empty, default to 'all'
 watch(selectedAccountIds, (val) => {
@@ -118,6 +126,9 @@ function resetForm() {
   selectedAccountIds.value = ['all']
   selectedSyncRuleIds.value = []
   selectedSyncProjectDomainRuleIds.value = []
+  selectedStatisticGroup.value = ''
+  statisticDate.value = ''
+  statisticMonth.value = ''
 }
 
 function openCreateDialog() {
@@ -140,6 +151,9 @@ function openEditDialog(task: any) {
   selectedAccountIds.value = task.config?.account_ids || ['all']
   selectedSyncRuleIds.value = task.config?.sync_rule_ids || []
   selectedSyncProjectDomainRuleIds.value = task.config?.sync_project_domain_rule_ids || []
+  selectedStatisticGroup.value = task.config?.group_id || ''
+  statisticDate.value = task.config?.date || ''
+  statisticMonth.value = task.config?.month || ''
   if (!cronPresetOptions.find(o => o.value === task.cron)) {
     form.value.cron = 'custom'
     customCron.value = task.cron
@@ -227,7 +241,17 @@ async function saveTask() {
   }
   saving.value = true
   try {
-    const payload = { ...form.value, cron, config: { rule_ids: selectedRuleIds.value, account_ids: selectedAccountIds.value, sync_rule_ids: selectedSyncRuleIds.value, sync_project_domain_rule_ids: selectedSyncProjectDomainRuleIds.value } }
+    const config: Record<string, any> = { rule_ids: selectedRuleIds.value, account_ids: selectedAccountIds.value, sync_rule_ids: selectedSyncRuleIds.value, sync_project_domain_rule_ids: selectedSyncProjectDomainRuleIds.value }
+  if (isSyncStatistic.value || isSyncStatisticMonth.value) {
+    config.group_id = selectedStatisticGroup.value || ''
+  }
+  if (isSyncStatistic.value) {
+    config.date = statisticDate.value || ''
+  }
+  if (isSyncStatisticMonth.value) {
+    config.month = statisticMonth.value || ''
+  }
+  const payload = { ...form.value, cron, config }
     if (editingId.value) {
       await apiClient.put(`${GATEWAY}/tasks/${editingId.value}`, payload)
       snackbar.value = { show: true, text: 'Task updated', color: 'success' }
@@ -273,12 +297,22 @@ async function runTaskNow(task: any) {
   }
 }
 
+async function fetchDomainGroups() {
+  try {
+    const { data } = await apiClient.get('/domain/groups')
+    domainGroups.value = data.data || data || []
+  } catch (e) {
+    console.error('Failed to fetch domain groups', e)
+  }
+}
+
 onMounted(() => {
   fetchTasks()
   fetchMonitorRules()
   fetchCfAccounts()
   fetchSyncRules()
   fetchSyncProjectDomainRules()
+  fetchDomainGroups()
 })
 </script>
 
@@ -470,6 +504,39 @@ onMounted(() => {
             multiple
             chips
             hint="Select rules to sync (required, or select All)"
+            persistent-hint
+          />
+          <VSelect
+            v-if="isSyncStatistic || isSyncStatisticMonth"
+            v-model="selectedStatisticGroup"
+            :items="[{ id: '', name: 'All' }, ...domainGroups]"
+            item-title="name"
+            item-value="id"
+            label="Domain Group"
+            class="mb-4"
+            variant="outlined"
+            clearable
+            hint="Filter by domain group (optional)"
+            persistent-hint
+          />
+          <VTextField
+            v-if="isSyncStatistic"
+            v-model="statisticDate"
+            label="Date (empty=today)"
+            type="date"
+            class="mb-4 mt-4"
+            variant="outlined"
+            hint="Leave empty to sync today+昨天"
+            persistent-hint
+          />
+          <VTextField
+            v-if="isSyncStatisticMonth"
+            v-model="statisticMonth"
+            label="Month (empty=current)"
+            type="month"
+            class="mb-4 mt-4"
+            variant="outlined"
+            hint="Leave empty to sync current month"
             persistent-hint
           />
           <VSwitch v-model="form.enabled" label="Enabled" color="success" hide-details />
