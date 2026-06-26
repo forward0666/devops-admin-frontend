@@ -152,6 +152,8 @@ const countryList = computed(() => {
   }))
 })
 
+const ipTotal = computed(() => ipList.value.reduce((s, item) => s + item.requests, 0))
+
 const ipList = computed(() => {
   const ipMap: Record<string, { requests: number; country: string }> = {}
   let source = selectedDomain.value ? chartData.value.filter(r => r.domain === selectedDomain.value) : chartData.value
@@ -433,7 +435,7 @@ onMounted(async () => {
           <div class="rank-list rank-list-scroll">
             <div v-if="countryList.length === 0" class="rank-empty text-medium-emphasis">No country data</div>
             <div v-for="c in countryList" :key="c.code" class="rank-row rank-row-click" :class="{ 'rank-row-active-gold': selectedCountry === c.code }" @click="toggleCountry(c.code)">
-              <span class="rank-name" style="min-width: 100px;">{{ c.name }}</span>
+              <span class="rank-name" style="min-width: 80px; width: 80px; max-width: 80px;">{{ c.name }}</span>
               <span class="rank-val">{{ formatNumber(c.requests) }}</span>
               <span class="rank-pct rank-gold">{{ c.percent }}%</span>
             </div>
@@ -449,10 +451,10 @@ onMounted(async () => {
           <div class="rank-list rank-list-scroll">
             <div v-if="ipList.length === 0" class="rank-empty text-medium-emphasis">No IP data</div>
             <div v-for="item in ipList" :key="item.ip" class="rank-row rank-row-click" :class="{ 'rank-row-active-cyan': selectedIP === item.ip }" @click="toggleIP(item.ip)">
-              <span class="rank-name" style="width: 140px; min-width: 140px; max-width: 140px; font-family: monospace; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.ip }}</span>
+              <span class="rank-name" style="width: 120px; min-width: 120px; max-width: 120px; font-family: monospace; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.ip }}</span>
               <span class="rank-sub text-medium-emphasis" style="font-size: 10px;">{{ item.country }}</span>
               <span class="rank-val">{{ formatNumber(item.requests) }}</span>
-              <span class="rank-pct rank-cyan">{{ (item.requests / (ipList[0]?.requests || 1) * 100).toFixed(1) }}%</span>
+              <span class="rank-pct rank-cyan">{{ ((item.requests / (ipTotal || 1)) * 100).toFixed(1) }}%</span>
             </div>
           </div>
         </VCardText>
@@ -558,7 +560,7 @@ onMounted(async () => {
 .rank-blue { color: #4FC3F7; }
 .rank-purple { color: #AB47BC; }
 .rank-cyan { color: #26C6DA; }
-.rank-name { font-size: 13px; font-weight: 500; width: 140px; min-width: 140px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-name { font-size: 13px; font-weight: 500; width: 120px; min-width: 120px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rank-sub { font-size: 11px; min-width: 24px; }
 .rank-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
 .rank-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
@@ -567,5 +569,5 @@ onMounted(async () => {
 .rank-bar-purple { background: #AB47BC; }
 .rank-bar-cyan { background: #26C6DA; }
 .rank-val { font-size: 12px; width: 60px; min-width: 60px; max-width: 60px; text-align: right; }
-.rank-pct { font-size: 12px; font-weight: 600; width: 50px; min-width: 50px; max-width: 50px; text-align: right; }
+.rank-pct { font-size: 12px; font-weight: 600; width: 56px; min-width: 56px; max-width: 56px; text-align: right; }
 </style>
