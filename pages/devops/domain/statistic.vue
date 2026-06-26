@@ -9,7 +9,9 @@ const CF_GATEWAY = '/cloudflare'
 // State
 const loading = ref(false)
 const syncing = ref(false)
-const syncingChart = ref(false)
+let syncTimer: ReturnType<typeof setTimeout> | null = null
+let syncAbort: AbortController | null = null
+const lastSyncedAt = ref<string | null>(process.client ? localStorage.getItem('statistic-synced-at') : null)
 const records = ref<any[]>([])
 const chartData = ref<any[]>([])
 const snackbar = ref({ show: false, text: '', color: 'success' })
@@ -17,16 +19,24 @@ const snackbar = ref({ show: false, text: '', color: 'success' })
 // Groups
 const groups = ref<any[]>([])
 const groupMeta = ref<Record<string, { groupId: string }>>({})
-const selectedGroup = ref<string | null>(process.client ? localStorage.getItem('statistic-group') : null)
+const _savedGroup = process.client ? localStorage.getItem('statistic-group') : null
+const selectedGroup = ref<string | null>(_savedGroup === 'all' ? null : _savedGroup)
 const groupOptions = computed(() => [
   { title: 'All', value: null },
   ...groups.value.map((g: any) => ({ title: g.name, value: g.id })),
 ])
 
+const currentYear = new Date().getFullYear()
+const yearOptions = Array.from({ length: 4 }, (_, i) => String(currentYear - i))
+
 // Filters
-const viewMode = ref<'day' | 'month'>(process.client ? (localStorage.getItem('statistic-mode') as 'day' | 'month' || 'day') : 'day')
+const viewMode = ref<'day' | 'month' | 'year'>(process.client ? (localStorage.getItem('statistic-mode') as 'day' | 'month' | 'year' || 'day') : 'day')
 const selectedDate = ref(process.client ? (localStorage.getItem('statistic-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10))
 const selectedMonth = ref(process.client ? (localStorage.getItem('statistic-month') || new Date().toISOString().slice(0, 7)) : new Date().toISOString().slice(0, 7))
+const selectedYear = ref(process.client ? (localStorage.getItem('statistic-year') || new Date().toISOString().slice(0, 4)) : new Date().toISOString().slice(0, 4))
+const dateMenu = ref(false)
+const tempDate = ref(selectedDate.value)
+watch(dateMenu, (v) => { if (v) tempDate.value = selectedDate.value })
 const sortKey = ref<string>('total')
 const sortDir = ref<'asc' | 'desc'>('desc')
 const selectedDomain = ref<string | null>(null)
@@ -85,25 +95,27 @@ const cacheRate = computed(() => {
 // ===== Charts =====
 
 const requestsList = computed(() => {
-  const sorted = [...filteredRecords.value].sort((a, b) => b.total - a.total)
-  const max = sorted[0]?.total || 1
+  const seen = new Set()
+  const sorted = [...filteredRecords.value].filter(r => { if (seen.has(r.domain)) return false; seen.add(r.domain); return true }).sort((a, b) => b.total - a.total)
+  const total = totalStats.value.total || 1
   return sorted.map((r, idx) => ({
     rank: idx + 1,
     name: r.domain,
     total: r.total,
-    percent: ((r.total / max) * 100).toFixed(1),
+    percent: ((r.total / total) * 100).toFixed(1),
   }))
 })
 
 const bandwidthList = computed(() => {
   const source = selectedDomain.value ? filteredRecords.value.filter(r => r.domain === selectedDomain.value) : filteredRecords.value
-  const sorted = [...source].sort((a, b) => b.bandwidth - a.bandwidth)
-  const max = sorted[0]?.bandwidth || 1
+  const seen = new Set()
+  const sorted = [...source].filter(r => { if (seen.has(r.domain)) return false; seen.add(r.domain); return true }).sort((a, b) => b.bandwidth - a.bandwidth)
+  const total = totalStats.value.bandwidth || 1
   return sorted.map((r, idx) => ({
     rank: idx + 1,
     name: r.domain,
     bandwidth: r.bandwidth,
-    percent: ((r.bandwidth / max) * 100).toFixed(1),
+    percent: ((r.bandwidth / total) * 100).toFixed(1),
   }))
 })
 
@@ -268,20 +280,21 @@ async function fetchGroups() {
       if (item.zoneId) m[item.zoneId] = { groupId: item.groupId || '' }
     }
     groupMeta.value = m
-  } catch { /* ignore */ }
+  } catch (e) { console.warn('[Statistic] fetchGroups failed', e) }
 }
 
 // Fetch data
 async function fetchData() {
   loading.value = true
   try {
-    const params = viewMode.value === 'month' ? { month: selectedMonth.value } : { date: selectedDate.value }
+    const params = viewMode.value === 'year' ? { year: selectedYear.value } : viewMode.value === 'month' ? { month: selectedMonth.value } : { date: selectedDate.value }
     const [tableRes, chartRes] = await Promise.all([
       apiClient.get('/domain/statistic', { params }),
       apiClient.get('/domain/statistic/chart', { params }),
     ])
     records.value = tableRes.data?.data || []
     chartData.value = chartRes.data?.data || []
+    console.log('[Statistic] chartData sample:', chartData.value[0])
   } catch (e: any) {
     console.error('Failed to fetch statistic', e)
     records.value = []
@@ -294,38 +307,41 @@ async function fetchData() {
 // Sync
 async function syncData() {
   syncing.value = true
+  if (syncTimer) clearTimeout(syncTimer)
+  syncTimer = setTimeout(() => { syncing.value = false }, 30000)
+  if (syncAbort) syncAbort.abort()
+  syncAbort = new AbortController()
   try {
-    const url = viewMode.value === 'month' ? `${CF_GATEWAY}/statistic/sync/month` : `${CF_GATEWAY}/statistic/sync`
-    const body = viewMode.value === 'month' ? { month: selectedMonth.value, groupId: selectedGroup.value || '' } : { date: selectedDate.value, groupId: selectedGroup.value || '' }
-    const { data } = await apiClient.post(url, body, { timeout: 600000 })
-    snackbar.value = { show: true, text: data?.message || 'Synced', color: 'success' }
-    _cacheClear()
-    await fetchData()
+    const isMonth = viewMode.value === 'month'
+    const url1 = isMonth ? `${CF_GATEWAY}/statistic/sync/month` : `${CF_GATEWAY}/statistic/sync`
+    const url2 = isMonth ? `${CF_GATEWAY}/statistic/sync/chart/month` : `${CF_GATEWAY}/statistic/sync/chart`
+    const body = isMonth ? { month: selectedMonth.value, groupId: selectedGroup.value || 'all' } : { date: selectedDate.value, groupId: selectedGroup.value || 'all' }
+    const [r1, r2] = await Promise.all([
+      apiClient.post(url1, body, { timeout: 600000, signal: syncAbort.signal, headers: { 'Connection': 'close' } }),
+      apiClient.post(url2, body, { timeout: 600000, signal: syncAbort.signal, headers: { 'Connection': 'close' } }),
+    ])
+    snackbar.value = { show: true, text: `${r1.data?.message || 'OK'} + ${r2.data?.message || 'OK'}`, color: 'success' }
+    lastSyncedAt.value = new Date().toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })
+    if (process.client) localStorage.setItem('statistic-synced-at', lastSyncedAt.value)
+    _cacheClear().then(() => fetchData())
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Sync failed', color: 'error' }
-  } finally {
-    syncing.value = false
   }
 }
 
-async function syncChartData() {
-  syncingChart.value = true
+async function _cacheClear() {
   try {
-    const url = viewMode.value === 'month' ? `${CF_GATEWAY}/statistic/sync/chart/month` : `${CF_GATEWAY}/statistic/sync/chart`
-    const body = viewMode.value === 'month' ? { month: selectedMonth.value, groupId: selectedGroup.value || '' } : { date: selectedDate.value, groupId: selectedGroup.value || '' }
-    const { data } = await apiClient.post(url, body, { timeout: 600000 })
-    snackbar.value = { show: true, text: data?.message || 'Chart synced', color: 'success' }
-    _cacheClear()
-    await fetchData()
-  } catch (e: any) {
-    snackbar.value = { show: true, text: e?.response?.data?.detail || 'Chart sync failed', color: 'error' }
-  } finally {
-    syncingChart.value = false
+    await apiClient.post('/domain/statistic/cache/clear')
+    console.log('[Statistic] Cache cleared')
+  } catch (e) {
+    console.warn('[Statistic] Cache clear failed', e)
   }
 }
 
-function _cacheClear() {
-  apiClient.post('/domain/statistic/cache/clear').catch(() => {})
+function applyDate() {
+  selectedDate.value = tempDate.value
+  dateMenu.value = false
+  fetchData()
 }
 
 function onDateChange() {
@@ -333,13 +349,16 @@ function onDateChange() {
 }
 
 watch(selectedGroup, (v) => {
-  if (process.client) localStorage.setItem('statistic-group', v || '')
+  if (process.client) localStorage.setItem('statistic-group', v === null ? 'all' : v)
 })
 watch(selectedDate, (v) => {
   if (process.client) localStorage.setItem('statistic-date', v)
 })
 watch(selectedMonth, (v) => {
   if (process.client) localStorage.setItem('statistic-month', v)
+})
+watch(selectedYear, (v) => {
+  if (process.client) localStorage.setItem('statistic-year', v)
 })
 watch(viewMode, (v) => {
   if (process.client) localStorage.setItem('statistic-mode', v)
@@ -359,17 +378,29 @@ onMounted(async () => {
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <div class="flex-grow-1">
           <h4 class="text-h4 mb-1">Domain Analytics</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Cloudflare traffic overview — {{ viewMode === 'month' ? selectedMonth : selectedDate }}</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">Cloudflare traffic overview — {{ lastSyncedAt || (viewMode === 'year' ? selectedYear : viewMode === 'month' ? selectedMonth : selectedDate) }}</p>
         </div>
         <VSelect v-model="selectedGroup" :items="groupOptions" density="compact" hide-details style="max-width: 180px" clearable placeholder="Group" />
         <VBtnToggle v-model="viewMode" density="compact" mandatory style="height: 36px;">
           <VBtn value="day" size="small">Day</VBtn>
           <VBtn value="month" size="small">Month</VBtn>
+          <VBtn value="year" size="small">Year</VBtn>
         </VBtnToggle>
-        <VTextField v-if="viewMode === 'day'" v-model="selectedDate" type="date" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
-        <VTextField v-else v-model="selectedMonth" type="month" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
-        <VBtn color="primary" :loading="syncing" @click="syncData" prepend-icon="bx-sync">Sync</VBtn>
-        <VBtn color="secondary" :loading="syncingChart" @click="syncChartData" prepend-icon="bx-bar-chart">Chart</VBtn>
+        <VMenu v-if="viewMode === 'day'" v-model="dateMenu" :close-on-content-click="false" location="bottom">
+          <template #activator="{ props }">
+            <VTextField v-bind="props" v-model="selectedDate" density="compact" hide-details readonly style="max-width: 160px" prepend-inner-icon="bx-calendar" />
+          </template>
+          <VDatePicker v-model="tempDate" color="primary">
+            <template #actions>
+              <VBtn variant="text" size="small" @click="dateMenu = false">Cancel</VBtn>
+              <VBtn variant="text" size="small" @click="tempDate = new Date().toISOString().slice(0, 10)">Today</VBtn>
+              <VBtn variant="tonal" size="small" @click="applyDate">Apply</VBtn>
+            </template>
+          </VDatePicker>
+        </VMenu>
+        <VTextField v-else-if="viewMode === 'month'" v-model="selectedMonth" type="month" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
+        <VSelect v-else v-model="selectedYear" :items="yearOptions" density="compact" hide-details style="max-width: 100px" @update:model-value="onDateChange" />
+        <VBtn variant="tonal" :loading="syncing" :disabled="viewMode === 'year'" @click="syncData" prepend-icon="bx-cloud-download">Sync</VBtn>
       </VCardText>
     </VCard>
 
@@ -391,52 +422,45 @@ onMounted(async () => {
     <!-- Charts Row 1: Top Domains + Bandwidth + Country -->
     <div class="chart-row">
       <VCard class="chart-card" style="flex: 2;">
-        <VCardTitle class="text-body-2 pa-3 pb-0">
+        <VCardTitle class="text-body-2 pa-3 pb-0 d-flex align-center">
           <VIcon icon="bx-bar-chart" size="16" class="me-1" />Top by Domain
+          <span class="text-medium-emphasis ms-auto" style="font-size: 11px; font-weight: 400;">{{ formatNumber(requestsList.length) }}</span>
         </VCardTitle>
         <VCardText class="pa-2">
           <div class="rank-list rank-list-scroll">
             <div v-for="r in requestsList" :key="r.name" class="rank-row rank-row-click" :class="{ 'rank-row-active': selectedDomain === r.name }" @click="toggleDomain(r.name)">
-              <span class="rank-num rank-blue">{{ r.rank }}</span>
               <span class="rank-name">{{ r.name }}</span>
-              <div class="rank-bar-wrap">
-                <div class="rank-bar rank-bar-blue" :style="{ width: r.percent + '%' }" />
-              </div>
               <span class="rank-val">{{ formatNumber(r.total) }}</span>
+              <span class="rank-pct rank-blue">{{ r.percent }}%</span>
             </div>
           </div>
         </VCardText>
       </VCard>
       <VCard class="chart-card" style="flex: 2;">
-        <VCardTitle class="text-body-2 pa-3 pb-0">
+        <VCardTitle class="text-body-2 pa-3 pb-0 d-flex align-center">
           <VIcon icon="bx-data" size="16" class="me-1" />Top by Bandwidth
+          <span class="text-medium-emphasis ms-auto" style="font-size: 11px; font-weight: 400;">{{ formatNumber(bandwidthList.length) }}</span>
         </VCardTitle>
         <VCardText class="pa-2">
           <div class="rank-list rank-list-scroll">
             <div v-for="r in bandwidthList" :key="r.name" class="rank-row">
-              <span class="rank-num rank-purple">{{ r.rank }}</span>
               <span class="rank-name">{{ r.name }}</span>
-              <div class="rank-bar-wrap">
-                <div class="rank-bar rank-bar-purple" :style="{ width: r.percent + '%' }" />
-              </div>
               <span class="rank-val">{{ formatBytes(r.bandwidth) }}</span>
+              <span class="rank-pct rank-purple">{{ r.percent }}%</span>
             </div>
           </div>
         </VCardText>
       </VCard>
       <VCard class="chart-card" style="flex: 2;">
-        <VCardTitle class="text-body-2 pa-3 pb-0">
+        <VCardTitle class="text-body-2 pa-3 pb-0 d-flex align-center">
           <VIcon icon="bx-globe" size="16" class="me-1" />Top by Country
+          <span class="text-medium-emphasis ms-auto" style="font-size: 11px; font-weight: 400;">{{ formatNumber(countryList.length) }}</span>
         </VCardTitle>
         <VCardText class="pa-2">
           <div class="rank-list rank-list-scroll">
             <div v-if="countryList.length === 0" class="rank-empty text-medium-emphasis">No country data</div>
             <div v-for="c in countryList" :key="c.code" class="rank-row rank-row-click" :class="{ 'rank-row-active-gold': selectedCountry === c.code }" @click="toggleCountry(c.code)">
-              <span class="rank-num rank-gold">{{ c.rank }}</span>
               <span class="rank-name" style="min-width: 100px;">{{ c.name }}</span>
-              <div class="rank-bar-wrap">
-                <div class="rank-bar rank-bar-gold" :style="{ width: c.percent + '%' }" />
-              </div>
               <span class="rank-val">{{ formatNumber(c.requests) }}</span>
               <span class="rank-pct rank-gold">{{ c.percent }}%</span>
             </div>
@@ -444,20 +468,18 @@ onMounted(async () => {
         </VCardText>
       </VCard>
       <VCard class="chart-card" style="flex: 2;">
-        <VCardTitle class="text-body-2 pa-3 pb-0">
+        <VCardTitle class="text-body-2 pa-3 pb-0 d-flex align-center">
           <VIcon icon="bx-desktop" size="16" class="me-1" />Top by Client IP
+          <span class="text-medium-emphasis ms-auto" style="font-size: 11px; font-weight: 400;">{{ formatNumber(ipList.length) }}</span>
         </VCardTitle>
         <VCardText class="pa-2">
           <div class="rank-list rank-list-scroll">
             <div v-if="ipList.length === 0" class="rank-empty text-medium-emphasis">No IP data</div>
             <div v-for="item in ipList" :key="item.ip" class="rank-row rank-row-click" :class="{ 'rank-row-active-cyan': selectedIP === item.ip }" @click="toggleIP(item.ip)">
-              <span class="rank-num rank-cyan">{{ item.rank }}</span>
               <span class="rank-name" style="width: 140px; min-width: 140px; max-width: 140px; font-family: monospace; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.ip }}</span>
               <span class="rank-sub text-medium-emphasis" style="font-size: 10px;">{{ item.country }}</span>
-              <div class="rank-bar-wrap">
-                <div class="rank-bar rank-bar-cyan" :style="{ width: (item.requests / (ipList[0]?.requests || 1) * 100).toFixed(1) + '%' }" />
-              </div>
               <span class="rank-val">{{ formatNumber(item.requests) }}</span>
+              <span class="rank-pct rank-cyan">{{ (item.requests / (ipList[0]?.requests || 1) * 100).toFixed(1) }}%</span>
             </div>
           </div>
         </VCardText>
@@ -562,7 +584,7 @@ onMounted(async () => {
 .rank-blue { color: #4FC3F7; }
 .rank-purple { color: #AB47BC; }
 .rank-cyan { color: #26C6DA; }
-.rank-name { font-size: 13px; font-weight: 500; min-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-name { font-size: 13px; font-weight: 500; width: 140px; min-width: 140px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rank-sub { font-size: 11px; min-width: 24px; }
 .rank-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
 .rank-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
@@ -570,6 +592,6 @@ onMounted(async () => {
 .rank-bar-blue { background: #4FC3F7; }
 .rank-bar-purple { background: #AB47BC; }
 .rank-bar-cyan { background: #26C6DA; }
-.rank-val { font-size: 12px; min-width: 56px; text-align: right; }
-.rank-pct { font-size: 12px; font-weight: 600; min-width: 42px; text-align: right; }
+.rank-val { font-size: 12px; width: 60px; min-width: 60px; max-width: 60px; text-align: right; }
+.rank-pct { font-size: 12px; font-weight: 600; width: 50px; min-width: 50px; max-width: 50px; text-align: right; }
 </style>
