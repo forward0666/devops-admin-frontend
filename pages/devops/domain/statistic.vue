@@ -14,6 +14,7 @@ let syncAbort: AbortController | null = null
 const lastSyncedAt = ref<string | null>(process.client ? localStorage.getItem('statistic-synced-at') : null)
 const records = ref<any[]>([])
 const chartData = ref<any[]>([])
+const accountData = ref<any[]>([])
 const snackbar = ref({ show: false, text: '', color: 'success' })
 
 // Groups
@@ -171,6 +172,14 @@ const ipList = computed(() => {
   }))
 })
 
+// Account-level breakdowns
+const accountSummary = computed(() => accountData.value[0] || {})
+const accountStatusCodes = computed(() => {
+  const data = (accountSummary.value.statusCodes || []).sort((a: any, b: any) => b.requests - a.requests)
+  const total = data.reduce((s: number, d: any) => s + d.requests, 0) || 1
+  return data.map((d: any) => ({ ...d, percent: ((d.requests / total) * 100).toFixed(1) }))
+})
+
 const asnChart = computed(() => {
   const asnMap: Record<number, number> = {}
   for (const r of filteredRecords.value) {
@@ -286,12 +295,14 @@ async function fetchData() {
   loading.value = true
   try {
     const params = viewMode.value === 'year' ? { year: selectedYear.value } : viewMode.value === 'month' ? { month: selectedMonth.value } : { date: selectedDate.value }
-    const [tableRes, chartRes] = await Promise.all([
+    const [tableRes, chartRes, accountRes] = await Promise.all([
       apiClient.get('/domain/statistic', { params }),
       apiClient.get('/domain/statistic/chart', { params }),
+      viewMode.value === 'day' ? apiClient.get('/domain/statistic/account', { params: { date: selectedDate.value } }) : Promise.resolve({ data: { data: [] } }),
     ])
     records.value = tableRes.data?.data || []
     chartData.value = chartRes.data?.data || []
+    accountData.value = accountRes.data?.data || []
     console.log('[Statistic] chartData sample:', chartData.value[0])
   } catch (e: any) {
     console.error('Failed to fetch statistic', e)
@@ -461,6 +472,21 @@ onMounted(async () => {
               <span class="rank-sub text-medium-emphasis" style="font-size: 10px;">{{ item.country }}</span>
               <span class="rank-val">{{ formatNumber(item.requests) }}</span>
               <span class="rank-pct rank-cyan">{{ (item.requests / (ipList[0]?.requests || 1) * 100).toFixed(1) }}%</span>
+            </div>
+          </div>
+        </VCardText>
+      </VCard>
+      <VCard class="chart-card" style="flex: 2;">
+        <VCardTitle class="text-body-2 pa-3 pb-0 d-flex align-center">
+          <VIcon icon="bx-shield-quarter" size="16" class="me-1" />Status Codes
+        </VCardTitle>
+        <VCardText class="pa-2">
+          <div class="rank-list rank-list-scroll">
+            <div v-if="accountStatusCodes.length === 0" class="rank-empty text-medium-emphasis">No status data</div>
+            <div v-for="s in accountStatusCodes" :key="s.status" class="rank-row">
+              <span class="rank-name" style="width: 50px; min-width: 50px;" :class="s.status >= 400 ? 'text-error' : 'text-success'">{{ s.status }}</span>
+              <span class="rank-val">{{ formatNumber(s.requests) }}</span>
+              <span class="rank-pct rank-blue">{{ s.percent }}%</span>
             </div>
           </div>
         </VCardText>
