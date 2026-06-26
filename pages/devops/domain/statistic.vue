@@ -332,19 +332,11 @@ async function syncData() {
     snackbar.value = { show: true, text: `${r1.data?.message || 'OK'} + ${r2.data?.message || 'OK'}`, color: 'success' }
     lastSyncedAt.value = new Date().toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })
     if (process.client) localStorage.setItem('statistic-synced-at', lastSyncedAt.value)
-    _cacheClear().then(() => fetchData())
+    fetchData()
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Sync failed', color: 'error' }
   }
 }
-
-async function _cacheClear() {
-  try {
-    await apiClient.post('/domain/statistic/cache/clear')
-    console.log('[Statistic] Cache cleared')
-  } catch (e) {
-    console.warn('[Statistic] Cache clear failed', e)
-  }
 }
 
 function onDateChange() {
