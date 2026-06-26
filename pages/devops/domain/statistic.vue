@@ -337,7 +337,6 @@ async function syncData() {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Sync failed', color: 'error' }
   }
 }
-}
 
 function onDateChange() {
   fetchData()
