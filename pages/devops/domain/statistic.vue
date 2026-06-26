@@ -24,7 +24,9 @@ const groupOptions = computed(() => [
 ])
 
 // Filters
+const viewMode = ref<'day' | 'month'>(process.client ? (localStorage.getItem('statistic-mode') as 'day' | 'month' || 'day') : 'day')
 const selectedDate = ref(process.client ? (localStorage.getItem('statistic-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10))
+const selectedMonth = ref(process.client ? (localStorage.getItem('statistic-month') || new Date().toISOString().slice(0, 7)) : new Date().toISOString().slice(0, 7))
 const sortKey = ref<string>('total')
 const sortDir = ref<'asc' | 'desc'>('desc')
 const selectedDomain = ref<string | null>(null)
@@ -273,9 +275,10 @@ async function fetchGroups() {
 async function fetchData() {
   loading.value = true
   try {
+    const params = viewMode.value === 'month' ? { month: selectedMonth.value } : { date: selectedDate.value }
     const [tableRes, chartRes] = await Promise.all([
-      apiClient.get('/domain/statistic', { params: { date: selectedDate.value } }),
-      apiClient.get('/domain/statistic/chart', { params: { date: selectedDate.value } }),
+      apiClient.get('/domain/statistic', { params }),
+      apiClient.get('/domain/statistic/chart', { params }),
     ])
     records.value = tableRes.data?.data || []
     chartData.value = chartRes.data?.data || []
@@ -292,8 +295,11 @@ async function fetchData() {
 async function syncData() {
   syncing.value = true
   try {
-    const { data } = await apiClient.post(`${CF_GATEWAY}/statistic/sync`, { date: selectedDate.value, groupId: selectedGroup.value || '' }, { timeout: 300000 })
+    const url = viewMode.value === 'month' ? `${CF_GATEWAY}/statistic/sync/month` : `${CF_GATEWAY}/statistic/sync`
+    const body = viewMode.value === 'month' ? { month: selectedMonth.value, groupId: selectedGroup.value || '' } : { date: selectedDate.value, groupId: selectedGroup.value || '' }
+    const { data } = await apiClient.post(url, body, { timeout: 600000 })
     snackbar.value = { show: true, text: data?.message || 'Synced', color: 'success' }
+    _cacheClear()
     await fetchData()
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Sync failed', color: 'error' }
@@ -305,14 +311,21 @@ async function syncData() {
 async function syncChartData() {
   syncingChart.value = true
   try {
-    const { data } = await apiClient.post(`${CF_GATEWAY}/statistic/sync/chart`, { date: selectedDate.value, groupId: selectedGroup.value || '' }, { timeout: 300000 })
+    const url = viewMode.value === 'month' ? `${CF_GATEWAY}/statistic/sync/chart/month` : `${CF_GATEWAY}/statistic/sync/chart`
+    const body = viewMode.value === 'month' ? { month: selectedMonth.value, groupId: selectedGroup.value || '' } : { date: selectedDate.value, groupId: selectedGroup.value || '' }
+    const { data } = await apiClient.post(url, body, { timeout: 600000 })
     snackbar.value = { show: true, text: data?.message || 'Chart synced', color: 'success' }
+    _cacheClear()
     await fetchData()
   } catch (e: any) {
     snackbar.value = { show: true, text: e?.response?.data?.detail || 'Chart sync failed', color: 'error' }
   } finally {
     syncingChart.value = false
   }
+}
+
+function _cacheClear() {
+  apiClient.post('/domain/statistic/cache/clear').catch(() => {})
 }
 
 function onDateChange() {
@@ -324,6 +337,13 @@ watch(selectedGroup, (v) => {
 })
 watch(selectedDate, (v) => {
   if (process.client) localStorage.setItem('statistic-date', v)
+})
+watch(selectedMonth, (v) => {
+  if (process.client) localStorage.setItem('statistic-month', v)
+})
+watch(viewMode, (v) => {
+  if (process.client) localStorage.setItem('statistic-mode', v)
+  fetchData()
 })
 
 onMounted(async () => {
@@ -339,10 +359,15 @@ onMounted(async () => {
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <div class="flex-grow-1">
           <h4 class="text-h4 mb-1">Domain Analytics</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Cloudflare traffic overview — {{ selectedDate }}</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">Cloudflare traffic overview — {{ viewMode === 'month' ? selectedMonth : selectedDate }}</p>
         </div>
         <VSelect v-model="selectedGroup" :items="groupOptions" density="compact" hide-details style="max-width: 180px" clearable placeholder="Group" />
-        <VTextField v-model="selectedDate" type="date" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
+        <VBtnToggle v-model="viewMode" density="compact" mandatory style="height: 36px;">
+          <VBtn value="day" size="small">Day</VBtn>
+          <VBtn value="month" size="small">Month</VBtn>
+        </VBtnToggle>
+        <VTextField v-if="viewMode === 'day'" v-model="selectedDate" type="date" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
+        <VTextField v-else v-model="selectedMonth" type="month" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
         <VBtn color="primary" :loading="syncing" @click="syncData" prepend-icon="bx-sync">Sync</VBtn>
         <VBtn color="secondary" :loading="syncingChart" @click="syncChartData" prepend-icon="bx-bar-chart">Chart</VBtn>
       </VCardText>
@@ -408,8 +433,7 @@ onMounted(async () => {
             <div v-if="countryList.length === 0" class="rank-empty text-medium-emphasis">No country data</div>
             <div v-for="c in countryList" :key="c.code" class="rank-row rank-row-click" :class="{ 'rank-row-active-gold': selectedCountry === c.code }" @click="toggleCountry(c.code)">
               <span class="rank-num rank-gold">{{ c.rank }}</span>
-              <span class="rank-name">{{ c.name }}</span>
-              <span class="rank-sub text-medium-emphasis">{{ c.code }}</span>
+              <span class="rank-name" style="min-width: 100px;">{{ c.name }}</span>
               <div class="rank-bar-wrap">
                 <div class="rank-bar rank-bar-gold" :style="{ width: c.percent + '%' }" />
               </div>
@@ -428,7 +452,7 @@ onMounted(async () => {
             <div v-if="ipList.length === 0" class="rank-empty text-medium-emphasis">No IP data</div>
             <div v-for="item in ipList" :key="item.ip" class="rank-row rank-row-click" :class="{ 'rank-row-active-cyan': selectedIP === item.ip }" @click="toggleIP(item.ip)">
               <span class="rank-num rank-cyan">{{ item.rank }}</span>
-              <span class="rank-name" style="min-width: 110px; font-family: monospace; font-size: 12px;">{{ item.ip }}</span>
+              <span class="rank-name" style="width: 140px; min-width: 140px; max-width: 140px; font-family: monospace; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.ip }}</span>
               <span class="rank-sub text-medium-emphasis" style="font-size: 10px;">{{ item.country }}</span>
               <div class="rank-bar-wrap">
                 <div class="rank-bar rank-bar-cyan" :style="{ width: (item.requests / (ipList[0]?.requests || 1) * 100).toFixed(1) + '%' }" />
