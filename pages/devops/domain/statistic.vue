@@ -356,6 +356,7 @@ function onDateChange() {
 
 watch(selectedGroup, (v) => {
   if (process.client) localStorage.setItem('statistic-group', v === null ? 'all' : v)
+  fetchData()
 })
 watch(selectedDate, (v) => {
   if (process.client) localStorage.setItem('statistic-date', v)
