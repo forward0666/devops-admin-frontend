@@ -625,6 +625,4 @@ onMounted(async () => {
 .rank-val { font-size: 12px; width: 60px; min-width: 60px; max-width: 60px; text-align: right; }
 .rank-pct { font-size: 12px; font-weight: 600; width: 56px; min-width: 56px; max-width: 56px; text-align: right; }
 .date-input { width: 150px !important; min-width: 150px !important; max-width: 150px !important; }
-.date-input :deep(input) { font-size: 12px; }
-.date-input :deep(.v-input__prepend) { display: none; }
 </style>
