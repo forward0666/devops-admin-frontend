@@ -37,6 +37,7 @@ const modelOptions = ref<{ title: string; value: number }[]>([
 const typeOptions = [
   { title: 'Weather', value: 'weather' },
   { title: 'K8S', value: 'k8s' },
+  { title: 'Cloudflare', value: 'cloudflare' },
   { title: 'DevOps', value: 'devops' },
   { title: 'Custom', value: 'custom' },
 ]
@@ -74,6 +75,7 @@ function onTypeChange() {
   const typeMap: Record<string, string> = {
     weather: 'mcp-weather',
     k8s: 'mcp-k8s',
+    cloudflare: 'mcp-cloudflare',
     devops: 'mcp-devops',
   }
   const mcpName = typeMap[form.value.type] || `${form.value.type}-mcp`
@@ -199,6 +201,14 @@ const chatHints: Record<string, { cmd: string; desc: string }[]> = {
     { cmd: 'Beijing', desc: '当前天气' },
     { cmd: 'Tokyo forecast', desc: '天气预报' },
     { cmd: '上海天气', desc: '中文城市名' },
+  ],
+  cloudflare: [
+    { cmd: 'zones', desc: 'Zone 列表' },
+    { cmd: 'stats', desc: '流量统计' },
+    { cmd: 'accounts', desc: '账户列表' },
+    { cmd: 'groups', desc: '域名分组' },
+    { cmd: 'sync rules', desc: '同步规则' },
+    { cmd: 'list tools', desc: '所有工具' },
   ],
   k8s: [
     { cmd: 'pods', desc: '列出 Pod' },
