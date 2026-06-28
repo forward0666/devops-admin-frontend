@@ -32,6 +32,7 @@ const yearOptions = Array.from({ length: 4 }, (_, i) => String(currentYear - i))
 // Filters
 const viewMode = ref<'day' | 'month' | 'year'>(process.client ? (localStorage.getItem('statistic-mode') as 'day' | 'month' | 'year' || 'day') : 'day')
 const selectedDate = ref(process.client ? (localStorage.getItem('statistic-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10))
+const selectedDateEnd = ref(process.client ? (localStorage.getItem('statistic-date-end') || '') : '')
 const selectedMonth = ref(process.client ? (localStorage.getItem('statistic-month') || new Date().toISOString().slice(0, 7)) : new Date().toISOString().slice(0, 7))
 const selectedYear = ref(process.client ? (localStorage.getItem('statistic-year') || new Date().toISOString().slice(0, 4)) : new Date().toISOString().slice(0, 4))
 
@@ -309,7 +310,16 @@ async function fetchGroups() {
 async function fetchData() {
   loading.value = true
   try {
-    const params: Record<string, any> = viewMode.value === 'year' ? { year: selectedYear.value } : viewMode.value === 'month' ? { month: selectedMonth.value } : { date: selectedDate.value }
+    let params: Record<string, any>
+    if (viewMode.value === 'year') {
+      params = { year: selectedYear.value }
+    } else if (viewMode.value === 'month') {
+      params = { month: selectedMonth.value }
+    } else if (selectedDateEnd.value) {
+      params = { dateFrom: selectedDate.value, dateTo: selectedDateEnd.value }
+    } else {
+      params = { date: selectedDate.value }
+    }
     if (selectedGroup.value) params.groupId = selectedGroup.value
     const [tableRes, chartRes] = await Promise.all([
       apiClient.get('/domain/statistic', { params }),
@@ -363,6 +373,9 @@ watch(selectedGroup, (v) => {
 watch(selectedDate, (v) => {
   if (process.client) localStorage.setItem('statistic-date', v)
 })
+watch(selectedDateEnd, (v) => {
+  if (process.client) localStorage.setItem('statistic-date-end', v)
+})
 watch(selectedMonth, (v) => {
   if (process.client) localStorage.setItem('statistic-month', v)
 })
@@ -387,7 +400,7 @@ onMounted(async () => {
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <div class="flex-grow-1">
           <h4 class="text-h4 mb-1">Domain Analytics</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Cloudflare traffic overview — {{ lastSyncedAt || (viewMode === 'year' ? selectedYear : viewMode === 'month' ? selectedMonth : selectedDate) }}</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">Cloudflare traffic overview — {{ lastSyncedAt || (viewMode === 'year' ? selectedYear : viewMode === 'month' ? selectedMonth : selectedDateEnd ? selectedDate + ' ~ ' + selectedDateEnd : selectedDate) }}</p>
         </div>
         <VSelect v-model="selectedGroup" :items="groupOptions" density="compact" hide-details style="max-width: 180px" clearable placeholder="Group" />
         <VBtnToggle v-model="viewMode" density="compact" mandatory style="height: 36px;">
@@ -395,10 +408,16 @@ onMounted(async () => {
           <VBtn value="month" size="small">Month</VBtn>
           <VBtn value="year" size="small">Year</VBtn>
         </VBtnToggle>
-        <VTextField v-if="viewMode === 'day'" v-model="selectedDate" type="date" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
+        <template v-if="viewMode === 'day'">
+          <VTextField v-model="selectedDate" type="date" density="compact" hide-details style="max-width: 150px" @update:model-value="onDateChange" />
+          <span class="text-medium-emphasis" v-if="selectedDateEnd">~</span>
+          <VTextField v-if="selectedDateEnd" v-model="selectedDateEnd" type="date" density="compact" hide-details style="max-width: 150px" @update:model-value="onDateChange" />
+          <VBtn v-if="!selectedDateEnd" size="small" variant="text" color="primary" @click="selectedDateEnd = selectedDate">Range</VBtn>
+          <VBtn v-else size="small" variant="text" color="error" @click="selectedDateEnd = ''; onDateChange()">Clear</VBtn>
+        </template>
         <VTextField v-else-if="viewMode === 'month'" v-model="selectedMonth" type="month" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
         <VSelect v-else v-model="selectedYear" :items="yearOptions" density="compact" hide-details style="max-width: 100px" @update:model-value="onDateChange" />
-        <VBtn variant="tonal" :loading="syncing" :disabled="viewMode === 'year'" @click="syncData" prepend-icon="bx-cloud-download">Sync</VBtn>
+        <VBtn variant="tonal" :loading="syncing" :disabled="viewMode === 'year' || !!selectedDateEnd" @click="syncData" prepend-icon="bx-cloud-download">Sync</VBtn>
       </VCardText>
     </VCard>
 
