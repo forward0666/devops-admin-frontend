@@ -34,6 +34,7 @@ const viewMode = ref<'day' | 'month' | 'year'>(process.client ? (localStorage.ge
 const selectedDate = ref(process.client ? (localStorage.getItem('statistic-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10))
 const selectedDateEnd = ref(process.client ? (localStorage.getItem('statistic-date-end') || '') : '')
 const selectedMonth = ref(process.client ? (localStorage.getItem('statistic-month') || new Date().toISOString().slice(0, 7)) : new Date().toISOString().slice(0, 7))
+const selectedMonthEnd = ref(process.client ? (localStorage.getItem('statistic-month-end') || '') : '')
 const selectedYear = ref(process.client ? (localStorage.getItem('statistic-year') || new Date().toISOString().slice(0, 4)) : new Date().toISOString().slice(0, 4))
 
 const sortKey = ref<string>('total')
@@ -313,6 +314,8 @@ async function fetchData() {
     let params: Record<string, any>
     if (viewMode.value === 'year') {
       params = { year: selectedYear.value }
+    } else if (viewMode.value === 'month' && selectedMonthEnd.value) {
+      params = { monthFrom: selectedMonth.value, monthTo: selectedMonthEnd.value }
     } else if (viewMode.value === 'month') {
       params = { month: selectedMonth.value }
     } else if (selectedDateEnd.value) {
@@ -376,6 +379,9 @@ watch(selectedDate, (v) => {
 watch(selectedDateEnd, (v) => {
   if (process.client) localStorage.setItem('statistic-date-end', v)
 })
+watch(selectedMonthEnd, (v) => {
+  if (process.client) localStorage.setItem('statistic-month-end', v)
+})
 watch(selectedMonth, (v) => {
   if (process.client) localStorage.setItem('statistic-month', v)
 })
@@ -400,7 +406,7 @@ onMounted(async () => {
       <VCardText class="d-flex align-center flex-wrap gap-3 py-3">
         <div class="flex-grow-1">
           <h4 class="text-h4 mb-1">Domain Analytics</h4>
-          <p class="text-body-2 text-medium-emphasis mb-0">Cloudflare traffic overview — {{ lastSyncedAt || (viewMode === 'year' ? selectedYear : viewMode === 'month' ? selectedMonth : selectedDateEnd ? selectedDate + ' ~ ' + selectedDateEnd : selectedDate) }}</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">Cloudflare traffic overview — {{ lastSyncedAt || (viewMode === 'year' ? selectedYear : viewMode === 'month' ? (selectedMonthEnd ? selectedMonth + ' ~ ' + selectedMonthEnd : selectedMonth) : selectedDateEnd ? selectedDate + ' ~ ' + selectedDateEnd : selectedDate) }}</p>
         </div>
         <VSelect v-model="selectedGroup" :items="groupOptions" density="compact" hide-details style="max-width: 180px" clearable placeholder="Group" />
         <VBtnToggle v-model="viewMode" density="compact" mandatory style="height: 36px;">
@@ -415,9 +421,15 @@ onMounted(async () => {
           <VBtn v-if="!selectedDateEnd" size="small" variant="text" color="primary" @click="selectedDateEnd = selectedDate">Range</VBtn>
           <VBtn v-else size="small" variant="text" color="error" @click="selectedDateEnd = ''; onDateChange()">Clear</VBtn>
         </template>
-        <VTextField v-else-if="viewMode === 'month'" v-model="selectedMonth" type="month" density="compact" hide-details style="max-width: 160px" @update:model-value="onDateChange" />
+        <template v-else-if="viewMode === 'month'">
+          <VTextField v-model="selectedMonth" type="month" density="compact" hide-details style="max-width: 150px" @update:model-value="onDateChange" />
+          <span class="text-medium-emphasis" v-if="selectedMonthEnd">~</span>
+          <VTextField v-if="selectedMonthEnd" v-model="selectedMonthEnd" type="month" density="compact" hide-details style="max-width: 150px" @update:model-value="onDateChange" />
+          <VBtn v-if="!selectedMonthEnd" size="small" variant="text" color="primary" @click="selectedMonthEnd = selectedMonth">Range</VBtn>
+          <VBtn v-else size="small" variant="text" color="error" @click="selectedMonthEnd = ''; onDateChange()">Clear</VBtn>
+        </template>
         <VSelect v-else v-model="selectedYear" :items="yearOptions" density="compact" hide-details style="max-width: 100px" @update:model-value="onDateChange" />
-        <VBtn variant="tonal" :loading="syncing" :disabled="viewMode === 'year' || !!selectedDateEnd" @click="syncData" prepend-icon="bx-cloud-download">Sync</VBtn>
+        <VBtn variant="tonal" :loading="syncing" :disabled="viewMode === 'year' || !!selectedDateEnd || !!selectedMonthEnd" @click="syncData" prepend-icon="bx-cloud-download">Sync</VBtn>
       </VCardText>
     </VCard>
 
