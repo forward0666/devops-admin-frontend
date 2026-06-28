@@ -256,14 +256,19 @@ function newChatSession() {
 async function loadChatSessions(agentId: number) {
   try {
     const gatewayBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
-    const resp = await fetch(`${gatewayBase}${AGENT_GATEWAY}/agents/${agentId}/chat/sessions`, {
+    const url = `${gatewayBase}${AGENT_GATEWAY}/agents/${agentId}/chat/sessions`
+    console.log('[Agent] Loading sessions:', url)
+    const resp = await fetch(url, {
       headers: { 'X-Encrypted-Data': import.meta.env.VITE_AGENT_SECRET || import.meta.env.VITE_GATEWAY_SECRET || '' },
     })
+    console.log('[Agent] Sessions response:', resp.status)
     const data = await resp.json()
-    // Filter sessions by current user
+    console.log('[Agent] Sessions data:', data)
     const allSessions = data?.data || []
     chatSessions.value = allSessions.filter((s: any) => s.id?.startsWith(currentUserId.value + '_'))
-  } catch {
+    console.log('[Agent] Filtered sessions:', chatSessions.value.length)
+  } catch (e) {
+    console.error('[Agent] Load sessions error:', e)
     chatSessions.value = []
   }
 }
