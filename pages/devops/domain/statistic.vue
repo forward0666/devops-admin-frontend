@@ -422,9 +422,9 @@ onMounted(async () => {
           <VBtn v-else size="small" variant="text" color="error" @click="selectedDateEnd = ''; onDateChange()">Clear</VBtn>
         </template>
         <template v-else-if="viewMode === 'month'">
-          <VTextField v-model="selectedMonth" type="month" density="compact" hide-details class="month-input" append-inner-icon="bx-calendar" @update:model-value="onDateChange" />
+          <VTextField v-model="selectedMonth" type="month" density="compact" hide-details class="month-input" @update:model-value="onDateChange" />
           <span class="text-medium-emphasis" v-if="selectedMonthEnd">~</span>
-          <VTextField v-if="selectedMonthEnd" v-model="selectedMonthEnd" type="month" density="compact" hide-details class="month-input" append-inner-icon="bx-calendar" @update:model-value="onDateChange" />
+          <VTextField v-if="selectedMonthEnd" v-model="selectedMonthEnd" type="month" density="compact" hide-details class="month-input" @update:model-value="onDateChange" />
           <VBtn v-if="!selectedMonthEnd" size="small" variant="text" color="primary" @click="selectedMonthEnd = selectedMonth">Range</VBtn>
           <VBtn v-else size="small" variant="text" color="error" @click="selectedMonthEnd = ''; onDateChange()">Clear</VBtn>
         </template>
