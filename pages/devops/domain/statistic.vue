@@ -422,9 +422,9 @@ onMounted(async () => {
           <VBtn v-else size="small" variant="text" color="error" @click="selectedDateEnd = ''; onDateChange()">Clear</VBtn>
         </template>
         <template v-else-if="viewMode === 'month'">
-          <VTextField v-model="selectedMonth" type="month" density="compact" hide-details class="month-input" @update:model-value="onDateChange" />
+          <VTextField v-model="selectedMonth" type="month" density="compact" hide-details class="date-input" @update:model-value="onDateChange" />
           <span class="text-medium-emphasis" v-if="selectedMonthEnd">~</span>
-          <VTextField v-if="selectedMonthEnd" v-model="selectedMonthEnd" type="month" density="compact" hide-details class="month-input" @update:model-value="onDateChange" />
+          <VTextField v-if="selectedMonthEnd" v-model="selectedMonthEnd" type="month" density="compact" hide-details class="date-input" @update:model-value="onDateChange" />
           <VBtn v-if="!selectedMonthEnd" size="small" variant="text" color="primary" @click="selectedMonthEnd = selectedMonth">Range</VBtn>
           <VBtn v-else size="small" variant="text" color="error" @click="selectedMonthEnd = ''; onDateChange()">Clear</VBtn>
         </template>
@@ -625,5 +625,5 @@ onMounted(async () => {
 .rank-val { font-size: 12px; width: 60px; min-width: 60px; max-width: 60px; text-align: right; }
 .rank-pct { font-size: 12px; font-weight: 600; width: 56px; min-width: 56px; max-width: 56px; text-align: right; }
 .date-input { width: 150px !important; min-width: 150px !important; max-width: 150px !important; }
-.month-input { width: 150px !important; min-width: 150px !important; max-width: 150px !important; }
+
 </style>
