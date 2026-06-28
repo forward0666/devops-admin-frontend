@@ -297,7 +297,9 @@ async function sendChat() {
 
   try {
     const gatewayBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
-    if (!chatSessionId.value) chatSessionId.value = `${currentUserId.value}_${Date.now()}`}
+    if (!chatSessionId.value) {
+      chatSessionId.value = `${currentUserId.value}_${Date.now()}`
+    }
     const url = `${gatewayBase}${AGENT_GATEWAY}/agents/${chatAgentId.value}/chat/stream?message=${encodeURIComponent(msg)}&session_id=${chatSessionId.value}`
 
     const response = await fetch(url, {
