@@ -22,6 +22,7 @@ const chatStreamContent = ref('')
 const chatSessions = ref<Array<{id: string, title: string, time: string}>>([])
 const chatSessionId = ref('')
 const chatSessionTitle = ref('')
+const currentUserId = ref('')
 
 const form = ref({
   name: '',
@@ -236,12 +237,18 @@ function openChat(agent: any) {
   chatInput.value = ''
   chatSessionId.value = ''
   chatSessionTitle.value = ''
+  // Get user ID from auth store or localStorage
+  try {
+    const authData = localStorage.getItem('auth') || '{}'
+    const parsed = JSON.parse(authData)
+    currentUserId.value = parsed?.user?.id?.toString() || parsed?.id?.toString() || 'anonymous'
+  } catch { currentUserId.value = 'anonymous' }
   chatDialog.value = true
   loadChatSessions(agent.id)
 }
 
 function newChatSession() {
-  chatSessionId.value = `session_${Date.now()}`
+  chatSessionId.value = `${currentUserId.value}_${Date.now()}`
   chatSessionTitle.value = ''
   chatMessages.value = []
 }
@@ -253,7 +260,9 @@ async function loadChatSessions(agentId: number) {
       headers: { 'X-Encrypted-Data': import.meta.env.VITE_AGENT_SECRET || import.meta.env.VITE_GATEWAY_SECRET || '' },
     })
     const data = await resp.json()
-    chatSessions.value = data?.data || []
+    // Filter sessions by current user
+    const allSessions = data?.data || []
+    chatSessions.value = allSessions.filter((s: any) => s.id?.startsWith(currentUserId.value + '_'))
   } catch {
     chatSessions.value = []
   }
@@ -272,7 +281,7 @@ async function loadChatSession(sessionId: string) {
       role: h.role,
       text: h.text,
     }))
-    chatSessionTitle.value = sessionId.replace('session_', '').slice(0, 16)
+    chatSessionTitle.value = sessionId.replace(currentUserId.value + '_', '').slice(0, 16)
   } catch {
     chatMessages.value = []
   }
@@ -288,7 +297,7 @@ async function sendChat() {
 
   try {
     const gatewayBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
-    if (!chatSessionId.value) chatSessionId.value = `session_${Date.now()}`
+    if (!chatSessionId.value) chatSessionId.value = `${currentUserId.value}_${Date.now()}`}
     const url = `${gatewayBase}${AGENT_GATEWAY}/agents/${chatAgentId.value}/chat/stream?message=${encodeURIComponent(msg)}&session_id=${chatSessionId.value}`
 
     const response = await fetch(url, {
