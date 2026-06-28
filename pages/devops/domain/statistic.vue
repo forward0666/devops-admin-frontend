@@ -415,9 +415,9 @@ onMounted(async () => {
           <VBtn value="year" size="small">Year</VBtn>
         </VBtnToggle>
         <template v-if="viewMode === 'day'">
-          <VTextField v-model="selectedDate" type="date" density="compact" hide-details class="date-input" @update:model-value="onDateChange" />
+          <VTextField v-model="selectedDate" type="date" density="compact" hide-details class="date-input" append-inner-icon="bx-calendar" @update:model-value="onDateChange" />
           <span class="text-medium-emphasis" v-if="selectedDateEnd">~</span>
-          <VTextField v-if="selectedDateEnd" v-model="selectedDateEnd" type="date" density="compact" hide-details class="date-input" @update:model-value="onDateChange" />
+          <VTextField v-if="selectedDateEnd" v-model="selectedDateEnd" type="date" density="compact" hide-details class="date-input" append-inner-icon="bx-calendar" @update:model-value="onDateChange" />
           <VBtn v-if="!selectedDateEnd" size="small" variant="text" color="primary" @click="selectedDateEnd = selectedDate">Range</VBtn>
           <VBtn v-else size="small" variant="text" color="error" @click="selectedDateEnd = ''; onDateChange()">Clear</VBtn>
         </template>
