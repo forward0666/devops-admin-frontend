@@ -19,6 +19,9 @@ const chatMessages = ref<Array<{role: string, text: string}>>([])
 const chatInput = ref('')
 const chatLoading = ref(false)
 const chatStreamContent = ref('')
+const chatSessions = ref<Array<{id: string, title: string, time: string}>>([])
+const chatSessionId = ref('')
+const chatSessionTitle = ref('')
 
 const form = ref({
   name: '',
@@ -231,7 +234,48 @@ function openChat(agent: any) {
   chatAgentType.value = agent.type || ''
   chatMessages.value = []
   chatInput.value = ''
+  chatSessionId.value = ''
+  chatSessionTitle.value = ''
   chatDialog.value = true
+  loadChatSessions(agent.id)
+}
+
+function newChatSession() {
+  chatSessionId.value = `session_${Date.now()}`
+  chatSessionTitle.value = ''
+  chatMessages.value = []
+}
+
+async function loadChatSessions(agentId: number) {
+  try {
+    const gatewayBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
+    const resp = await fetch(`${gatewayBase}${AGENT_GATEWAY}/agents/${agentId}/chat/sessions`, {
+      headers: { 'X-Encrypted-Data': import.meta.env.VITE_AGENT_SECRET || import.meta.env.VITE_GATEWAY_SECRET || '' },
+    })
+    const data = await resp.json()
+    chatSessions.value = data?.data || []
+  } catch {
+    chatSessions.value = []
+  }
+}
+
+async function loadChatSession(sessionId: string) {
+  chatSessionId.value = sessionId
+  try {
+    const gatewayBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
+    const resp = await fetch(`${gatewayBase}${AGENT_GATEWAY}/agents/${chatAgentId.value}/chat/history?session_id=${sessionId}`, {
+      headers: { 'X-Encrypted-Data': import.meta.env.VITE_AGENT_SECRET || import.meta.env.VITE_GATEWAY_SECRET || '' },
+    })
+    const data = await resp.json()
+    const history = data?.data || []
+    chatMessages.value = history.map((h: any) => ({
+      role: h.role,
+      text: h.text,
+    }))
+    chatSessionTitle.value = sessionId.replace('session_', '').slice(0, 16)
+  } catch {
+    chatMessages.value = []
+  }
 }
 
 async function sendChat() {
@@ -244,7 +288,8 @@ async function sendChat() {
 
   try {
     const gatewayBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
-    const url = `${gatewayBase}${AGENT_GATEWAY}/agents/${chatAgentId.value}/chat/stream?message=${encodeURIComponent(msg)}`
+    if (!chatSessionId.value) chatSessionId.value = `session_${Date.now()}`
+    const url = `${gatewayBase}${AGENT_GATEWAY}/agents/${chatAgentId.value}/chat/stream?message=${encodeURIComponent(msg)}&session_id=${chatSessionId.value}`
 
     const response = await fetch(url, {
       headers: {
@@ -293,6 +338,12 @@ async function sendChat() {
         } catch {}
       }
     }
+    // Auto-title from first message
+    if (chatMessages.value.filter(m => m.role === 'user').length === 1) {
+      chatSessionTitle.value = msg.slice(0, 30)
+    }
+    // Refresh sessions list
+    loadChatSessions(chatAgentId.value)
   } catch (e: any) {
     chatMessages.value.push({ role: 'error', text: e?.message || 'Failed' })
   } finally {
@@ -437,63 +488,97 @@ async function sendChat() {
     </VDialog>
 
     <!-- Chat Dialog -->
-    <VDialog v-model="chatDialog" max-width="600">
-      <VCard style="display: flex; flex-direction: column; height: 500px;">
-        <VCardTitle class="d-flex align-center">
-          <VIcon icon="bx-message-rounded" class="me-2" />
-          Chat with Agent
-          <VSpacer />
-          <VBtn icon variant="text" size="small" @click="chatDialog = false">
-            <VIcon icon="bx-x" />
-          </VBtn>
-        </VCardTitle>
-        <VDivider />
-        <VCardText style="flex: 1; overflow-y: auto; padding: 16px;">
-          <div v-if="chatMessages.length === 0" class="text-center text-medium-emphasis py-8">
-            <p class="mb-3">Type a message to chat with the agent</p>
+    <VDialog v-model="chatDialog" max-width="900">
+      <VCard style="display: flex; flex-direction: row; height: 600px;">
+        <!-- Sidebar: Chat History -->
+        <div style="width: 220px; min-width: 220px; border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
+          <div class="pa-3 d-flex align-center">
+            <VIcon icon="bx-history" size="18" class="me-2" />
+            <span class="text-body-2 font-weight-medium">History</span>
+            <VSpacer />
+            <VBtn icon size="x-small" variant="text" color="primary" @click="newChatSession">
+              <VIcon icon="bx-plus" size="16" />
+            </VBtn>
           </div>
-          <div v-for="(msg, i) in chatMessages" :key="i" class="mb-3">
-            <div :class="msg.role === 'user' ? 'text-right' : 'text-left'">
-              <VChip :color="msg.role === 'user' ? 'primary' : msg.role === 'error' ? 'error' : 'success'" size="small" variant="tonal">
-                {{ msg.role === 'user' ? 'You' : msg.role === 'error' ? 'Error' : 'Agent' }}
-              </VChip>
-              <div class="mt-1 text-body-2" style="white-space: pre-wrap;">{{ msg.text }}</div>
+          <VDivider />
+          <div style="flex: 1; overflow-y: auto;">
+            <div
+              v-for="s in chatSessions"
+              :key="s.id"
+              class="pa-2 px-3 cursor-pointer text-body-2"
+              :style="{
+                background: s.id === chatSessionId ? 'rgba(var(--v-theme-primary), 0.12)' : 'transparent',
+                borderBottom: '1px solid rgba(255,255,255,0.04)'
+              }"
+              @click="loadChatSession(s.id)"
+            >
+              <div class="text-truncate" style="max-width: 180px;">{{ s.title || 'New Chat' }}</div>
+              <div class="text-caption text-medium-emphasis">{{ s.time }}</div>
+            </div>
+            <div v-if="chatSessions.length === 0" class="pa-4 text-center text-caption text-medium-emphasis">
+              No history
             </div>
           </div>
-          <div v-if="chatLoading" class="text-center">
-            <VProgressCircular indeterminate size="24" color="primary" />
-          </div>
-        </VCardText>
-        <VDivider />
-        <!-- Command hints (fixed above input) -->
-        <div v-if="chatHints[chatAgentType]?.length" class="px-4 pt-2 pb-1">
-          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-            <VChip
-              v-for="h in chatHints[chatAgentType]"
-              :key="h.cmd"
-              size="x-small"
-              variant="outlined"
-              color="primary"
-              style="cursor: pointer;"
-              @click="chatInput = h.cmd"
-            >
-              <strong class="me-1">{{ h.cmd }}</strong>
-              <span class="text-medium-emphasis">{{ h.desc }}</span>
-            </VChip>
-          </div>
         </div>
-        <VCardActions class="pa-3">
-          <VTextField
-            v-model="chatInput"
-            :placeholder="chatPlaceholders[chatAgentType] || 'Type a message...'"
-            density="compact"
-            hide-details
-            @keyup.enter="sendChat"
-            :disabled="chatLoading"
-            class="me-2"
-          />
-          <VBtn color="primary" :loading="chatLoading" :disabled="!chatInput.trim()" @click="sendChat">Send</VBtn>
-        </VCardActions>
+
+        <!-- Main Chat Area -->
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <VCardTitle class="d-flex align-center py-2 px-4">
+            <VIcon icon="bx-message-rounded" class="me-2" />
+            {{ chatSessionTitle || 'New Chat' }}
+            <VSpacer />
+            <VBtn icon variant="text" size="small" @click="chatDialog = false">
+              <VIcon icon="bx-x" />
+            </VBtn>
+          </VCardTitle>
+          <VDivider />
+          <div style="flex: 1; overflow-y: auto; padding: 16px;">
+            <div v-if="chatMessages.length === 0" class="text-center text-medium-emphasis py-8">
+              <p class="mb-3">Type a message to chat with the agent</p>
+            </div>
+            <div v-for="(msg, i) in chatMessages" :key="i" class="mb-3">
+              <div :class="msg.role === 'user' ? 'text-right' : 'text-left'">
+                <VChip :color="msg.role === 'user' ? 'primary' : msg.role === 'error' ? 'error' : 'success'" size="small" variant="tonal">
+                  {{ msg.role === 'user' ? 'You' : msg.role === 'error' ? 'Error' : 'Agent' }}
+                </VChip>
+                <div class="mt-1 text-body-2" style="white-space: pre-wrap;">{{ msg.text }}</div>
+              </div>
+            </div>
+            <div v-if="chatLoading" class="text-center">
+              <VProgressCircular indeterminate size="24" color="primary" />
+            </div>
+          </div>
+          <VDivider />
+        <!-- Command hints -->
+          <div v-if="chatHints[chatAgentType]?.length" class="px-4 pt-2 pb-1">
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <VChip
+                v-for="h in chatHints[chatAgentType]"
+                :key="h.cmd"
+                size="x-small"
+                variant="outlined"
+                color="primary"
+                style="cursor: pointer;"
+                @click="chatInput = h.cmd"
+              >
+                <strong class="me-1">{{ h.cmd }}</strong>
+                <span class="text-medium-emphasis">{{ h.desc }}</span>
+              </VChip>
+            </div>
+          </div>
+          <VCardActions class="pa-3">
+            <VTextField
+              v-model="chatInput"
+              :placeholder="chatPlaceholders[chatAgentType] || 'Type a message...'"
+              density="compact"
+              hide-details
+              @keyup.enter="sendChat"
+              :disabled="chatLoading"
+              class="me-2"
+            />
+            <VBtn color="primary" :loading="chatLoading" :disabled="!chatInput.trim()" @click="sendChat">Send</VBtn>
+          </VCardActions>
+        </div>
       </VCard>
     </VDialog>
 
