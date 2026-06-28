@@ -415,16 +415,16 @@ onMounted(async () => {
           <VBtn value="year" size="small">Year</VBtn>
         </VBtnToggle>
         <template v-if="viewMode === 'day'">
-          <VTextField v-model="selectedDate" type="date" density="compact" hide-details style="width: 150px" @update:model-value="onDateChange" />
+          <VTextField v-model="selectedDate" type="date" density="compact" hide-details class="date-input" @update:model-value="onDateChange" />
           <span class="text-medium-emphasis" v-if="selectedDateEnd">~</span>
-          <VTextField v-if="selectedDateEnd" v-model="selectedDateEnd" type="date" density="compact" hide-details style="width: 150px" @update:model-value="onDateChange" />
+          <VTextField v-if="selectedDateEnd" v-model="selectedDateEnd" type="date" density="compact" hide-details class="date-input" @update:model-value="onDateChange" />
           <VBtn v-if="!selectedDateEnd" size="small" variant="text" color="primary" @click="selectedDateEnd = selectedDate">Range</VBtn>
           <VBtn v-else size="small" variant="text" color="error" @click="selectedDateEnd = ''; onDateChange()">Clear</VBtn>
         </template>
         <template v-else-if="viewMode === 'month'">
-          <VTextField v-model="selectedMonth" type="month" density="compact" hide-details style="width: 150px" @update:model-value="onDateChange" />
+          <VTextField v-model="selectedMonth" type="month" density="compact" hide-details class="date-input" @update:model-value="onDateChange" />
           <span class="text-medium-emphasis" v-if="selectedMonthEnd">~</span>
-          <VTextField v-if="selectedMonthEnd" v-model="selectedMonthEnd" type="month" density="compact" hide-details style="width: 150px" @update:model-value="onDateChange" />
+          <VTextField v-if="selectedMonthEnd" v-model="selectedMonthEnd" type="month" density="compact" hide-details class="date-input" @update:model-value="onDateChange" />
           <VBtn v-if="!selectedMonthEnd" size="small" variant="text" color="primary" @click="selectedMonthEnd = selectedMonth">Range</VBtn>
           <VBtn v-else size="small" variant="text" color="error" @click="selectedMonthEnd = ''; onDateChange()">Clear</VBtn>
         </template>
@@ -624,4 +624,7 @@ onMounted(async () => {
 .rank-bar-cyan { background: #26C6DA; }
 .rank-val { font-size: 12px; width: 60px; min-width: 60px; max-width: 60px; text-align: right; }
 .rank-pct { font-size: 12px; font-weight: 600; width: 56px; min-width: 56px; max-width: 56px; text-align: right; }
+.date-input { width: 150px !important; min-width: 150px !important; max-width: 150px !important; }
+.date-input :deep(input) { font-size: 12px; }
+.date-input :deep(.v-input__prepend) { display: none; }
 </style>
