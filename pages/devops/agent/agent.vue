@@ -241,7 +241,7 @@ function openChat(agent: any) {
   try {
     const authData = localStorage.getItem('auth') || '{}'
     const parsed = JSON.parse(authData)
-    currentUserId.value = parsed?.user?.id?.toString() || parsed?.id?.toString() || 'anonymous'
+    currentUserId.value = parsed?.user?.username || parsed?.username || parsed?.user?.name || 'anonymous'
   } catch { currentUserId.value = 'anonymous' }
   chatDialog.value = true
   loadChatSessions(agent.id)
