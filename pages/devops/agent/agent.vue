@@ -601,7 +601,7 @@ async function sendChat() {
           <VDivider />
         <!-- Command hints -->
           <div v-if="chatHints[chatAgentType]?.length" class="px-4 pt-2 pb-1">
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end;">
               <VChip
                 v-for="h in chatHints[chatAgentType]"
                 :key="h.cmd"
