@@ -20,6 +20,8 @@ const chatInput = ref('')
 const chatLoading = ref(false)
 const chatStreamContent = ref('')
 const chatBodyRef = ref<HTMLElement | null>(null)
+const expandedPrompt = ref<string | null>(null)
+const promptParams = ref<Record<string, string>>({})
 const chatSessions = ref<Array<{id: string, title: string, time: string}>>([])
 const chatSessionId = ref('')
 const chatSessionTitle = ref('')
@@ -201,18 +203,22 @@ const chatPlaceholders: Record<string, string> = {
   k8s: 'e.g. pods, logs my-pod, scale deploy 3, nodes',
 }
 
-const chatHints: Record<string, { cmd: string; desc: string }[]> = {
+const chatHints: Record<string, { cmd: string; desc: string; params?: { name: string; label: string; required?: boolean }[] }[]> = {
   weather: [
     { cmd: 'Beijing', desc: '当前天气' },
     { cmd: 'Tokyo forecast', desc: '天气预报' },
     { cmd: '上海天气', desc: '中文城市名' },
   ],
   cloudflare: [
-    { cmd: 'zones', desc: 'Zone 列表' },
-    { cmd: 'stats', desc: '流量统计' },
+    { cmd: 'zones', desc: 'Zone 列表', params: [{ name: 'account_id', label: 'Account ID' }] },
+    { cmd: 'stats', desc: '流量统计', params: [{ name: 'date', label: 'Date (YYYY-MM-DD)' }, { name: 'group_id', label: 'Group ID' }, { name: 'top', label: 'Top N' }] },
     { cmd: 'accounts', desc: '账户列表' },
     { cmd: 'groups', desc: '域名分组' },
-    { cmd: 'sync rules', desc: '同步规则' },
+    { cmd: 'sync rules', desc: '同步规则', params: [{ name: 'account_id', label: 'Account ID (-1=all)' }] },
+    { cmd: 'dns', desc: 'DNS 记录', params: [{ name: 'zone_id', label: 'Zone ID', required: true }, { name: 'type', label: 'Record Type (A/CNAME...)' }] },
+    { cmd: 'security', desc: '安全规则', params: [{ name: 'zone_id', label: 'Zone ID', required: true }] },
+    { cmd: 'cache', desc: '缓存规则', params: [{ name: 'zone_id', label: 'Zone ID', required: true }] },
+    { cmd: 'purge', desc: '清理缓存', params: [{ name: 'zone_id', label: 'Zone ID', required: true }] },
     { cmd: 'list tools', desc: '所有工具' },
   ],
   k8s: [
@@ -246,6 +252,33 @@ function openChat(agent: any) {
   } catch { currentUserId.value = 'anonymous' }
   chatDialog.value = true
   loadChatSessions(agent.id)
+}
+
+function togglePrompt(h: any) {
+  if (expandedPrompt.value === h.cmd) {
+    expandedPrompt.value = null
+    promptParams.value = {}
+  } else {
+    expandedPrompt.value = h.cmd
+    promptParams.value = {}
+    if (!h.params?.length) {
+      // No params, fill directly
+      chatInput.value = h.cmd
+      expandedPrompt.value = null
+    }
+  }
+}
+
+function executePrompt(h: any) {
+  // Build command: cmd param1=val1 param2=val2
+  let cmd = h.cmd
+  for (const p of (h.params || [])) {
+    const val = promptParams.value[p.name]
+    if (val) cmd += ` ${p.name}=${val}`
+  }
+  chatInput.value = cmd
+  expandedPrompt.value = null
+  promptParams.value = {}
 }
 
 function scrollChatBottom() {
@@ -614,25 +647,42 @@ async function sendChat() {
         </div>
 
         <!-- Right Sidebar: Prompts -->
-        <div v-if="chatHints[chatAgentType]?.length" style="width: 200px; min-width: 200px; border-left: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
+        <div v-if="chatHints[chatAgentType]?.length" style="width: 220px; min-width: 220px; border-left: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
           <div class="pa-3">
             <span class="text-body-2 font-weight-medium">Prompts</span>
           </div>
           <VDivider />
           <div style="flex: 1; overflow-y: auto; padding: 8px;">
-            <VChip
-              v-for="h in chatHints[chatAgentType]"
-              :key="h.cmd"
-              size="small"
-              variant="outlined"
-              color="primary"
-              class="mb-2"
-              style="cursor: pointer; width: 100%; justify-content: flex-start;"
-              @click="chatInput = h.cmd"
-            >
-              <strong class="me-1">{{ h.cmd }}</strong>
-              <span class="text-medium-emphasis text-caption">{{ h.desc }}</span>
-            </VChip>
+            <div v-for="h in chatHints[chatAgentType]" :key="h.cmd" class="mb-2">
+              <VChip
+                size="small"
+                :variant="expandedPrompt === h.cmd ? 'tonal' : 'outlined'"
+                :color="expandedPrompt === h.cmd ? 'primary' : 'default'"
+                style="cursor: pointer; width: 100%; justify-content: flex-start;"
+                @click="togglePrompt(h)"
+              >
+                <strong class="me-1">{{ h.cmd }}</strong>
+                <span class="text-medium-emphasis text-caption">{{ h.desc }}</span>
+              </VChip>
+              <!-- Expanded params -->
+              <div v-if="expandedPrompt === h.cmd && h.params?.length" class="mt-2 pa-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
+                <VTextField
+                  v-for="p in h.params"
+                  :key="p.name"
+                  v-model="promptParams[p.name]"
+                  :label="p.label"
+                  :required="p.required"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  class="mb-2"
+                  style="font-size: 12px;"
+                />
+                <VBtn size="small" color="primary" block @click="executePrompt(h)">
+                  Execute
+                </VBtn>
+              </div>
+            </div>
           </div>
         </div>
 
