@@ -631,7 +631,7 @@ async function sendChat() {
             </div>
             <!-- File tabs -->
             <VTabs v-model="skillTab" density="compact" class="mb-2">
-              <VTab v-for="f in skillFiles" :key="f.name" :value="f.name" size="small">
+              <VTab v-for="f in skillFiles" :key="f.name" :value="f.name" size="small" style="text-transform: none;">
                 {{ f.name }}
               </VTab>
             </VTabs>
