@@ -51,6 +51,8 @@ const typeOptions = [
 
 const mcpServices = ref<any[]>([])
 const discovering = ref(false)
+const agentTools = ref<any[]>([])
+const agentPrompts = ref<any[]>([])
 
 async function discoverMcpServices() {
   discovering.value = true
@@ -119,8 +121,27 @@ async function openCreate() {
   dialog.value = true
 }
 
+function addToolItem(type: 'tools' | 'prompts') {
+  const item = { name: '', command: '', description: '', params: [] }
+  if (type === 'tools') agentTools.value.push(item)
+  else agentPrompts.value.push(item)
+}
+
+async function loadAgentToolsForEdit(agentId: number) {
+  try {
+    const { data } = await apiClient.get(`${AGENT_GATEWAY}/agents/${agentId}/tools`)
+    const d = data?.data || {}
+    agentTools.value = JSON.parse(JSON.stringify(d.tools || []))
+    agentPrompts.value = JSON.parse(JSON.stringify(d.prompts || []))
+  } catch {
+    agentTools.value = []
+    agentPrompts.value = []
+  }
+}
+
 function openEdit(agent: any) {
   editingId.value = agent.id
+  loadAgentToolsForEdit(agent.id)
   fetchModels().then(() => {
     form.value = {
       name: agent.name || '',
@@ -144,6 +165,8 @@ async function save() {
   try {
     if (editingId.value) {
       await apiClient.put(`${AGENT_GATEWAY}/agents/${editingId.value}`, form.value)
+      // Save tools/prompts
+      await apiClient.put(`${AGENT_GATEWAY}/agents/${editingId.value}/tools`, { tools: agentTools.value, prompts: agentPrompts.value })
       snackbar.value = { show: true, text: 'Agent updated', color: 'success' }
     } else {
       await apiClient.post(`${AGENT_GATEWAY}/agents`, form.value)
@@ -561,6 +584,43 @@ async function sendChat() {
           </div>
           <VTextarea v-model="form.description" label="Description" rows="2" class="mb-3" variant="outlined" hide-details />
           <VSwitch v-model="form.enabled" label="Enabled" color="success" hide-details />
+
+          <!-- Tools/Prompts Editor -->
+          <template v-if="editingId">
+            <VDivider class="my-4" />
+            <div class="d-flex align-center mb-2">
+              <VIcon icon="bx-wrench" size="18" class="me-2" />
+              <span class="text-body-1 font-weight-medium">Tools & Prompts</span>
+              <VSpacer />
+              <VBtn size="x-small" variant="tonal" color="primary" @click="addToolItem('tools')">+ Tool</VBtn>
+              <VBtn size="x-small" variant="tonal" color="success" class="ms-1" @click="addToolItem('prompts')">+ Prompt</VBtn>
+            </div>
+            <div v-if="agentTools.length === 0 && agentPrompts.length === 0" class="text-caption text-medium-emphasis py-2">No tools/prompts configured</div>
+            <!-- Tools -->
+            <div v-for="(t, i) in agentTools" :key="'t'+i" class="mb-2 pa-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
+              <div class="d-flex align-center gap-2 mb-1">
+                <VTextField v-model="t.name" label="Name" density="compact" variant="outlined" hide-details style="max-width: 120px" />
+                <VTextField v-model="t.command" label="Command" density="compact" variant="outlined" hide-details style="max-width: 120px" />
+                <VTextField v-model="t.description" label="Description" density="compact" variant="outlined" hide-details style="flex: 1" />
+                <VBtn icon size="x-small" variant="text" color="error" @click="agentTools.splice(i, 1)"><VIcon icon="bx-trash" size="14" /></VBtn>
+              </div>
+              <div v-for="(p, pi) in (t.params || [])" :key="pi" class="d-flex align-center gap-2 ms-4 mb-1">
+                <VTextField v-model="p.name" label="Param" density="compact" variant="outlined" hide-details style="max-width: 100px" />
+                <VTextField v-model="p.label" label="Label" density="compact" variant="outlined" hide-details style="max-width: 120px" />
+                <VBtn icon size="x-small" variant="text" color="error" @click="t.params.splice(pi, 1)"><VIcon icon="bx-x" size="12" /></VBtn>
+              </div>
+              <VBtn size="x-small" variant="text" @click="t.params = t.params || []; t.params.push({name:'', label:'', type:'string'})" class="ms-4">+ Param</VBtn>
+            </div>
+            <!-- Prompts -->
+            <div v-for="(p, i) in agentPrompts" :key="'p'+i" class="mb-2 pa-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
+              <div class="d-flex align-center gap-2 mb-1">
+                <VTextField v-model="p.name" label="Name" density="compact" variant="outlined" hide-details style="max-width: 120px" />
+                <VTextField v-model="p.command" label="Command" density="compact" variant="outlined" hide-details style="max-width: 120px" />
+                <VTextField v-model="p.description" label="Description" density="compact" variant="outlined" hide-details style="flex: 1" />
+                <VBtn icon size="x-small" variant="text" color="error" @click="agentPrompts.splice(i, 1)"><VIcon icon="bx-trash" size="14" /></VBtn>
+              </div>
+            </div>
+          </template>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn variant="tonal" @click="dialog = false">Cancel</VBtn>
