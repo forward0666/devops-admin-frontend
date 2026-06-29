@@ -224,7 +224,7 @@ const chatHints = ref({
     { cmd: 'delete <pod>', desc: '删除 Pod' },
     { cmd: 'ns=xxx pods', desc: '指定命名空间' },
   ],
-}
+})
 
 function openChat(agent: any) {
   chatAgentId.value = agent.id
