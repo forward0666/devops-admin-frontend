@@ -140,7 +140,7 @@ async function loadAgentToolsForEdit(agentId: number) {
     const d = data?.data || {}
     const files: any[] = []
     // Standard files
-    const standardFiles = ['AGENTS.md', 'SOUL.md', 'TOOLS.md', 'IDENTITY.md', 'USER.md']
+    const standardFiles = ['AGENTS.md', 'SOUL.md', 'TOOLS.md', 'IDENTITY.md', 'USER.md', 'MEMORY.md']
     const existingNames = new Set()
     for (const f of (d.files || [])) {
       files.push({ name: f.name, content: f.content || '' })
@@ -155,6 +155,7 @@ async function loadAgentToolsForEdit(agentId: number) {
           'TOOLS.md': `# Tools\n\nAvailable tools and their usage.\n`,
           'IDENTITY.md': `# Identity\n\n- Name: ${d.name || 'Agent'}\n- Type: ${d.type || 'custom'}\n`,
           'USER.md': `# User Context\n\nUser-specific settings and preferences.\n`,
+          'MEMORY.md': `# Memory\n\nLong-term memory and learnings.\n`,
         }
         files.push({ name, content: defaults[name] || `# ${name.replace('.md', '')}\n\n` })
       }
