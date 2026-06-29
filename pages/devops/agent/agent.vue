@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import apiClient from '~/services/api'
 
 definePageMeta({ layout: 'default' })
@@ -19,6 +19,7 @@ const chatMessages = ref<Array<{role: string, text: string}>>([])
 const chatInput = ref('')
 const chatLoading = ref(false)
 const chatStreamContent = ref('')
+const chatBodyRef = ref<HTMLElement | null>(null)
 const chatSessions = ref<Array<{id: string, title: string, time: string}>>([])
 const chatSessionId = ref('')
 const chatSessionTitle = ref('')
@@ -247,6 +248,13 @@ function openChat(agent: any) {
   loadChatSessions(agent.id)
 }
 
+function scrollChatBottom() {
+  nextTick(() => {
+    const el = document.querySelector('.chat-body')
+    if (el) el.scrollTop = el.scrollHeight
+  })
+}
+
 function newChatSession() {
   chatSessionId.value = `${currentUserId.value}_${Date.now()}`
   chatSessionTitle.value = ''
@@ -316,6 +324,7 @@ async function sendChat() {
   chatMessages.value.push({ role: 'user', text: msg })
   chatInput.value = ''
   chatLoading.value = true
+  scrollChatBottom()
   chatStreamContent.value = ''
 
   try {
@@ -357,9 +366,11 @@ async function sendChat() {
           if (event.type === 'content') {
             chatStreamContent.value += event.text
             lastMsg.text = chatStreamContent.value
+            scrollChatBottom()
           } else if (event.type === 'response') {
             chatStreamContent.value = event.text
             lastMsg.text = chatStreamContent.value
+            scrollChatBottom()
           } else if (event.type === 'status') {
             lastMsg.text = `[${event.text}]`
           } else if (event.type === 'thinking') {
@@ -571,7 +582,7 @@ async function sendChat() {
             </VBtn>
           </VCardTitle>
           <VDivider />
-          <div style="flex: 1; overflow-y: auto; padding: 16px;">
+          <div class="chat-body" style="flex: 1; overflow-y: auto; padding: 16px;">
             <div v-if="chatMessages.length === 0" class="text-center text-medium-emphasis py-8">
               <p class="mb-3">Type a message to chat with the agent</p>
             </div>
