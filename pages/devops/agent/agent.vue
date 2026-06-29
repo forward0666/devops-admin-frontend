@@ -203,24 +203,13 @@ const chatPlaceholders: Record<string, string> = {
   k8s: 'e.g. pods, logs my-pod, scale deploy 3, nodes',
 }
 
-const chatHints: Record<string, { cmd: string; desc: string; params?: { name: string; label: string; required?: boolean }[] }[]> = {
+const chatHints = ref<Record<string, { cmd: string; desc: string; params?: { name: string; label: string; required?: boolean }[] }[]>>({
   weather: [
     { cmd: 'Beijing', desc: '当前天气' },
     { cmd: 'Tokyo forecast', desc: '天气预报' },
     { cmd: '上海天气', desc: '中文城市名' },
   ],
-  cloudflare: [
-    { cmd: 'zones', desc: 'Zone 列表', params: [{ name: 'account_id', label: 'Account ID' }] },
-    { cmd: 'stats', desc: '流量统计', params: [{ name: 'date', label: 'Date (YYYY-MM-DD)' }, { name: 'group_id', label: 'Group ID' }, { name: 'top', label: 'Top N' }] },
-    { cmd: 'accounts', desc: '账户列表' },
-    { cmd: 'groups', desc: '域名分组' },
-    { cmd: 'sync rules', desc: '同步规则', params: [{ name: 'account_id', label: 'Account ID (-1=all)' }] },
-    { cmd: 'dns', desc: 'DNS 记录', params: [{ name: 'zone_id', label: 'Zone ID', required: true }, { name: 'type', label: 'Record Type (A/CNAME...)' }] },
-    { cmd: 'security', desc: '安全规则', params: [{ name: 'zone_id', label: 'Zone ID', required: true }] },
-    { cmd: 'cache', desc: '缓存规则', params: [{ name: 'zone_id', label: 'Zone ID', required: true }] },
-    { cmd: 'purge', desc: '清理缓存', params: [{ name: 'zone_id', label: 'Zone ID', required: true }] },
-    { cmd: 'list tools', desc: '所有工具' },
-  ],
+  cloudflare: [],
   k8s: [
     { cmd: 'pods', desc: '列出 Pod' },
     { cmd: 'deploy', desc: '列出 Deployment' },
@@ -252,6 +241,21 @@ function openChat(agent: any) {
   } catch { currentUserId.value = 'anonymous' }
   chatDialog.value = true
   loadChatSessions(agent.id)
+  loadAgentTools(agent.id, agent.type)
+}
+
+async function loadAgentTools(agentId: number, agentType: string) {
+  try {
+    const { data } = await apiClient.get(`${AGENT_GATEWAY}/agents/${agentId}/tools`)
+    const toolsData = data?.data || {}
+    const allHints = [
+      ...(toolsData.tools || []).map((t: any) => ({ cmd: t.command || t.name, desc: t.description, params: t.params || [] })),
+      ...(toolsData.prompts || []).map((p: any) => ({ cmd: p.command || p.name, desc: p.description, params: p.params || [] })),
+    ]
+    chatHints.value[agentType] = allHints
+  } catch (e) {
+    console.error('Load tools error:', e)
+  }
 }
 
 function togglePrompt(h: any) {
