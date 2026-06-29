@@ -273,6 +273,24 @@ async function loadChatSessions(agentId: number) {
   }
 }
 
+async function deleteChatSession(sessionId: string) {
+  if (!confirm('Delete this chat session?')) return
+  try {
+    const gatewayBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
+    await fetch(`${gatewayBase}${AGENT_GATEWAY}/agents/${chatAgentId.value}/chat/sessions/${sessionId}`, {
+      method: 'DELETE',
+      headers: { 'X-Encrypted-Data': import.meta.env.VITE_AGENT_SECRET || import.meta.env.VITE_GATEWAY_SECRET || '' },
+    })
+    chatSessions.value = chatSessions.value.filter(s => s.id !== sessionId)
+    if (chatSessionId.value === sessionId) {
+      chatSessionId.value = ''
+      chatMessages.value = []
+    }
+  } catch (e) {
+    console.error('Delete session error:', e)
+  }
+}
+
 async function loadChatSession(sessionId: string) {
   chatSessionId.value = sessionId
   try {
@@ -504,8 +522,8 @@ async function sendChat() {
     </VDialog>
 
     <!-- Chat Dialog -->
-    <VDialog v-model="chatDialog" max-width="900">
-      <VCard style="display: flex; flex-direction: row; height: 600px;">
+    <VDialog v-model="chatDialog" width="900" height="600" :style="{ maxWidth: '900px', maxHeight: '600px' }">
+      <VCard style="display: flex; flex-direction: row; width: 900px; height: 600px; max-width: 100%; max-height: 100%;">
         <!-- Sidebar: Chat History -->
         <div style="width: 220px; min-width: 220px; border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
           <div class="pa-3 d-flex align-center">
@@ -521,15 +539,20 @@ async function sendChat() {
             <div
               v-for="s in chatSessions"
               :key="s.id"
-              class="pa-2 px-3 cursor-pointer text-body-2"
+              class="pa-2 px-3 d-flex align-center cursor-pointer text-body-2"
               :style="{
                 background: s.id === chatSessionId ? 'rgba(var(--v-theme-primary), 0.12)' : 'transparent',
                 borderBottom: '1px solid rgba(255,255,255,0.04)'
               }"
               @click="loadChatSession(s.id)"
             >
-              <div class="text-truncate" style="max-width: 180px;">{{ s.title || 'New Chat' }}</div>
-              <div class="text-caption text-medium-emphasis">{{ s.time }}</div>
+              <div style="flex: 1; min-width: 0;">
+                <div class="text-truncate">{{ s.title || 'New Chat' }}</div>
+                <div class="text-caption text-medium-emphasis">{{ s.time }}</div>
+              </div>
+              <VBtn icon size="x-small" variant="text" color="error" @click.stop="deleteChatSession(s.id)">
+                <VIcon icon="bx-trash" size="14" />
+              </VBtn>
             </div>
             <div v-if="chatSessions.length === 0" class="pa-4 text-center text-caption text-medium-emphasis">
               No history
