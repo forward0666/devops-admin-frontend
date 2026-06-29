@@ -51,7 +51,8 @@ const typeOptions = [
 
 const mcpServices = ref<any[]>([])
 const discovering = ref(false)
-const skillFiles = ref<Array<{name: string, content: string, open?: boolean}>>([])
+const skillFiles = ref<Array<{name: string, content: string}>>([])
+const skillTab = ref('')
 
 async function discoverMcpServices() {
   discovering.value = true
@@ -121,33 +122,54 @@ async function openCreate() {
 }
 
 function addSkillFile() {
-  const name = prompt('Skill file name (e.g. zones.md):')
-  if (name) skillFiles.value.push({ name, content: '', open: true })
+  const name = prompt('File name (e.g. TOOLS.md):')
+  if (name && !skillFiles.value.find(f => f.name === name)) {
+    skillFiles.value.push({ name, content: `# ${name.replace('.md', '')}\n\n` })
+    skillTab.value = name
+  }
+}
+
+function removeSkillFile(name: string) {
+  skillFiles.value = skillFiles.value.filter(f => f.name !== name)
+  if (skillTab.value === name) skillTab.value = skillFiles.value[0]?.name || ''
 }
 
 async function loadAgentToolsForEdit(agentId: number) {
   try {
     const { data } = await apiClient.get(`${AGENT_GATEWAY}/agents/${agentId}/tools`)
     const d = data?.data || {}
-    // Convert tools/prompts to skill files
     const files: any[] = []
-    for (const t of (d.tools || [])) {
-      let content = `# ${t.name}\n\n${t.description || ''}\n\n`;
-      if (t.command) content += `**Command:** \`${t.command}\`\n\n`;
-      if (t.params?.length) {
-        content += `## Parameters\n`;
-        for (const p of t.params) content += `- **${p.name}**: ${p.label}${p.required ? ' (required)' : ''}\n`;
-      }
-      files.push({ name: `${t.name}.md`, content, open: false })
+    // Standard files
+    const standardFiles = ['AGENTS.md', 'SOUL.md', 'TOOLS.md', 'IDENTITY.md', 'USER.md']
+    const existingNames = new Set()
+    for (const f of (d.files || [])) {
+      files.push({ name: f.name, content: f.content || '' })
+      existingNames.add(f.name)
     }
-    for (const p of (d.prompts || [])) {
-      let content = `# ${p.name}\n\n${p.description || ''}\n\n`;
-      if (p.command) content += `**Command:** \`${p.command}\`\n`;
-      files.push({ name: `${p.name}.md`, content, open: false })
+    // Add missing standard files with defaults
+    for (const name of standardFiles) {
+      if (!existingNames.has(name)) {
+        const defaults: Record<string, string> = {
+          'AGENTS.md': `# ${d.name || 'Agent'}\n\nAgent configuration and behavior rules.\n`,
+          'SOUL.md': `# Soul\n\nDefine the agent's personality and tone.\n`,
+          'TOOLS.md': `# Tools\n\nAvailable tools and their usage.\n`,
+          'IDENTITY.md': `# Identity\n\n- Name: ${d.name || 'Agent'}\n- Type: ${d.type || 'custom'}\n`,
+          'USER.md': `# User Context\n\nUser-specific settings and preferences.\n`,
+        }
+        files.push({ name, content: defaults[name] || `# ${name.replace('.md', '')}\n\n` })
+      }
     }
     skillFiles.value = files
+    skillTab.value = files[0]?.name || ''
   } catch {
-    skillFiles.value = []
+    skillFiles.value = [
+      { name: 'AGENTS.md', content: '# Agent\n\n' },
+      { name: 'SOUL.md', content: '# Soul\n\n' },
+      { name: 'TOOLS.md', content: '# Tools\n\n' },
+      { name: 'IDENTITY.md', content: '# Identity\n\n' },
+      { name: 'USER.md', content: '# User\n\n' },
+    ]
+    skillTab.value = 'AGENTS.md'
   }
 }
 
@@ -177,28 +199,8 @@ async function save() {
   try {
     if (editingId.value) {
       await apiClient.put(`${AGENT_GATEWAY}/agents/${editingId.value}`, form.value)
-      // Save skills as tools/prompts
-      const tools: any[] = []
-      const prompts: any[] = []
-      for (const f of skillFiles.value) {
-        const name = f.name.replace('.md', '')
-        const cmdMatch = f.content.match(/\*\*Command:\*\*\s*`([^`]+)`/)
-        const descMatch = f.content.match(/^# .+\n+([^#*\n][^\n]*)/)
-        const entry = {
-          name,
-          command: cmdMatch?.[1] || name,
-          description: descMatch?.[1]?.trim() || '',
-          params: [] as any[],
-        }
-        const paramMatches = f.content.matchAll(/- \*\*(\w+)\*\*:\s*(.+?)(?:\s*\(required\))?$/gm)
-        for (const m of paramMatches) {
-          entry.params.push({ name: m[1], label: m[2].trim(), type: 'string', required: m[0].includes('(required)') })
-        }
-        // If has params -> tool, else -> prompt
-        if (entry.params.length > 0) tools.push(entry)
-        else prompts.push(entry)
-      }
-      await apiClient.put(`${AGENT_GATEWAY}/agents/${editingId.value}/tools`, { tools, prompts })
+      // Save skill files
+      await apiClient.put(`${AGENT_GATEWAY}/agents/${editingId.value}/tools`, { files: skillFiles.value })
       snackbar.value = { show: true, text: 'Agent updated', color: 'success' }
     } else {
       await apiClient.post(`${AGENT_GATEWAY}/agents`, form.value)
@@ -622,37 +624,36 @@ async function sendChat() {
             <VDivider class="my-4" />
             <div class="d-flex align-center mb-2">
               <VIcon icon="bx-file" size="18" class="me-2" />
-              <span class="text-body-1 font-weight-medium">Skills</span>
+              <span class="text-body-1 font-weight-medium">Agent Files</span>
               <VSpacer />
-              <VBtn size="x-small" variant="tonal" color="primary" @click="addSkillFile">+ Skill</VBtn>
+              <VBtn size="x-small" variant="tonal" color="primary" @click="addSkillFile">+ File</VBtn>
             </div>
-            <!-- Skill file list -->
-            <div v-for="(f, i) in skillFiles" :key="i" class="mb-2">
-              <div
-                class="d-flex align-center pa-2 px-3 cursor-pointer"
-                style="background: rgba(255,255,255,0.03); border-radius: 8px;"
-                @click="f.open = !f.open"
-              >
-                <VIcon icon="bx-file" size="16" class="me-2" />
-                <span class="text-body-2 font-weight-medium" style="flex: 1">{{ f.name }}</span>
-                <VBtn icon size="x-small" variant="text" color="error" @click.stop="skillFiles.splice(i, 1)">
-                  <VIcon icon="bx-trash" size="14" />
-                </VBtn>
-                <VIcon :icon="f.open ? 'bx-chevron-up' : 'bx-chevron-down'" size="16" class="ms-1" />
-              </div>
-              <div v-if="f.open" class="mt-1">
+            <!-- File tabs -->
+            <VTabs v-model="skillTab" density="compact" class="mb-2">
+              <VTab v-for="f in skillFiles" :key="f.name" :value="f.name" size="small">
+                {{ f.name }}
+              </VTab>
+            </VTabs>
+            <VWindow v-model="skillTab">
+              <VWindowItem v-for="f in skillFiles" :key="f.name" :value="f.name">
+                <div class="d-flex align-center mb-1">
+                  <code class="text-caption">{{ f.name }}</code>
+                  <VSpacer />
+                  <VBtn size="x-small" variant="text" color="error" @click="removeSkillFile(f.name)">
+                    <VIcon icon="bx-trash" size="14" class="me-1" /> Delete
+                  </VBtn>
+                </div>
                 <VTextarea
                   v-model="f.content"
                   variant="outlined"
                   density="compact"
-                  rows="12"
+                  rows="15"
                   hide-details
-                  style="font-family: monospace; font-size: 13px;"
-                  placeholder="# Tool Name\n\nDescription of what this tool does...\n\n## Parameters\n- **param1**: description\n\n## Usage\nExample usage..."
+                  style="font-family: monospace; font-size: 13px; line-height: 1.5;"
                 />
-              </div>
-            </div>
-            <div v-if="skillFiles.length === 0" class="text-caption text-medium-emphasis py-2">No skill files. Click "+ Skill" to add one.</div>
+              </VWindowItem>
+            </VWindow>
+            <div v-if="skillFiles.length === 0" class="text-caption text-medium-emphasis py-2">No files. Click "+ File" to add one.</div>
           </template>
         </VCardText>
         <VCardActions class="justify-end">
