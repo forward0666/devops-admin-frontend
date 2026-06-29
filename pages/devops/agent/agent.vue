@@ -51,8 +51,7 @@ const typeOptions = [
 
 const mcpServices = ref<any[]>([])
 const discovering = ref(false)
-const agentTools = ref<any[]>([])
-const agentPrompts = ref<any[]>([])
+const skillFiles = ref<Array<{name: string, content: string, open?: boolean}>>([])
 
 async function discoverMcpServices() {
   discovering.value = true
@@ -121,21 +120,34 @@ async function openCreate() {
   dialog.value = true
 }
 
-function addToolItem(type: 'tools' | 'prompts') {
-  const item = { name: '', command: '', description: '', params: [] }
-  if (type === 'tools') agentTools.value.push(item)
-  else agentPrompts.value.push(item)
+function addSkillFile() {
+  const name = prompt('Skill file name (e.g. zones.md):')
+  if (name) skillFiles.value.push({ name, content: '', open: true })
 }
 
 async function loadAgentToolsForEdit(agentId: number) {
   try {
     const { data } = await apiClient.get(`${AGENT_GATEWAY}/agents/${agentId}/tools`)
     const d = data?.data || {}
-    agentTools.value = JSON.parse(JSON.stringify(d.tools || []))
-    agentPrompts.value = JSON.parse(JSON.stringify(d.prompts || []))
+    // Convert tools/prompts to skill files
+    const files: any[] = []
+    for (const t of (d.tools || [])) {
+      let content = `# ${t.name}\n\n${t.description || ''}\n\n`;
+      if (t.command) content += `**Command:** \`${t.command}\`\n\n`;
+      if (t.params?.length) {
+        content += `## Parameters\n`;
+        for (const p of t.params) content += `- **${p.name}**: ${p.label}${p.required ? ' (required)' : ''}\n`;
+      }
+      files.push({ name: `${t.name}.md`, content, open: false })
+    }
+    for (const p of (d.prompts || [])) {
+      let content = `# ${p.name}\n\n${p.description || ''}\n\n`;
+      if (p.command) content += `**Command:** \`${p.command}\`\n`;
+      files.push({ name: `${p.name}.md`, content, open: false })
+    }
+    skillFiles.value = files
   } catch {
-    agentTools.value = []
-    agentPrompts.value = []
+    skillFiles.value = []
   }
 }
 
@@ -165,8 +177,28 @@ async function save() {
   try {
     if (editingId.value) {
       await apiClient.put(`${AGENT_GATEWAY}/agents/${editingId.value}`, form.value)
-      // Save tools/prompts
-      await apiClient.put(`${AGENT_GATEWAY}/agents/${editingId.value}/tools`, { tools: agentTools.value, prompts: agentPrompts.value })
+      // Save skills as tools/prompts
+      const tools: any[] = []
+      const prompts: any[] = []
+      for (const f of skillFiles.value) {
+        const name = f.name.replace('.md', '')
+        const cmdMatch = f.content.match(/\*\*Command:\*\*\s*`([^`]+)`/)
+        const descMatch = f.content.match(/^# .+\n+([^#*\n][^\n]*)/)
+        const entry = {
+          name,
+          command: cmdMatch?.[1] || name,
+          description: descMatch?.[1]?.trim() || '',
+          params: [] as any[],
+        }
+        const paramMatches = f.content.matchAll(/- \*\*(\w+)\*\*:\s*(.+?)(?:\s*\(required\))?$/gm)
+        for (const m of paramMatches) {
+          entry.params.push({ name: m[1], label: m[2].trim(), type: 'string', required: m[0].includes('(required)') })
+        }
+        // If has params -> tool, else -> prompt
+        if (entry.params.length > 0) tools.push(entry)
+        else prompts.push(entry)
+      }
+      await apiClient.put(`${AGENT_GATEWAY}/agents/${editingId.value}/tools`, { tools, prompts })
       snackbar.value = { show: true, text: 'Agent updated', color: 'success' }
     } else {
       await apiClient.post(`${AGENT_GATEWAY}/agents`, form.value)
@@ -585,41 +617,42 @@ async function sendChat() {
           <VTextarea v-model="form.description" label="Description" rows="2" class="mb-3" variant="outlined" hide-details />
           <VSwitch v-model="form.enabled" label="Enabled" color="success" hide-details />
 
-          <!-- Tools/Prompts Editor -->
+          <!-- Skills Editor -->
           <template v-if="editingId">
             <VDivider class="my-4" />
             <div class="d-flex align-center mb-2">
-              <VIcon icon="bx-wrench" size="18" class="me-2" />
-              <span class="text-body-1 font-weight-medium">Tools & Prompts</span>
+              <VIcon icon="bx-file" size="18" class="me-2" />
+              <span class="text-body-1 font-weight-medium">Skills</span>
               <VSpacer />
-              <VBtn size="x-small" variant="tonal" color="primary" @click="addToolItem('tools')">+ Tool</VBtn>
-              <VBtn size="x-small" variant="tonal" color="success" class="ms-1" @click="addToolItem('prompts')">+ Prompt</VBtn>
+              <VBtn size="x-small" variant="tonal" color="primary" @click="addSkillFile">+ Skill</VBtn>
             </div>
-            <div v-if="agentTools.length === 0 && agentPrompts.length === 0" class="text-caption text-medium-emphasis py-2">No tools/prompts configured</div>
-            <!-- Tools -->
-            <div v-for="(t, i) in agentTools" :key="'t'+i" class="mb-2 pa-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
-              <div class="d-flex align-center gap-2 mb-1">
-                <VTextField v-model="t.name" label="Name" density="compact" variant="outlined" hide-details style="max-width: 120px" />
-                <VTextField v-model="t.command" label="Command" density="compact" variant="outlined" hide-details style="max-width: 120px" />
-                <VTextField v-model="t.description" label="Description" density="compact" variant="outlined" hide-details style="flex: 1" />
-                <VBtn icon size="x-small" variant="text" color="error" @click="agentTools.splice(i, 1)"><VIcon icon="bx-trash" size="14" /></VBtn>
+            <!-- Skill file list -->
+            <div v-for="(f, i) in skillFiles" :key="i" class="mb-2">
+              <div
+                class="d-flex align-center pa-2 px-3 cursor-pointer"
+                style="background: rgba(255,255,255,0.03); border-radius: 8px;"
+                @click="f.open = !f.open"
+              >
+                <VIcon icon="bx-file" size="16" class="me-2" />
+                <span class="text-body-2 font-weight-medium" style="flex: 1">{{ f.name }}</span>
+                <VBtn icon size="x-small" variant="text" color="error" @click.stop="skillFiles.splice(i, 1)">
+                  <VIcon icon="bx-trash" size="14" />
+                </VBtn>
+                <VIcon :icon="f.open ? 'bx-chevron-up' : 'bx-chevron-down'" size="16" class="ms-1" />
               </div>
-              <div v-for="(p, pi) in (t.params || [])" :key="pi" class="d-flex align-center gap-2 ms-4 mb-1">
-                <VTextField v-model="p.name" label="Param" density="compact" variant="outlined" hide-details style="max-width: 100px" />
-                <VTextField v-model="p.label" label="Label" density="compact" variant="outlined" hide-details style="max-width: 120px" />
-                <VBtn icon size="x-small" variant="text" color="error" @click="t.params.splice(pi, 1)"><VIcon icon="bx-x" size="12" /></VBtn>
+              <div v-if="f.open" class="mt-1">
+                <VTextarea
+                  v-model="f.content"
+                  variant="outlined"
+                  density="compact"
+                  rows="12"
+                  hide-details
+                  style="font-family: monospace; font-size: 13px;"
+                  placeholder="# Tool Name\n\nDescription of what this tool does...\n\n## Parameters\n- **param1**: description\n\n## Usage\nExample usage..."
+                />
               </div>
-              <VBtn size="x-small" variant="text" @click="t.params = t.params || []; t.params.push({name:'', label:'', type:'string'})" class="ms-4">+ Param</VBtn>
             </div>
-            <!-- Prompts -->
-            <div v-for="(p, i) in agentPrompts" :key="'p'+i" class="mb-2 pa-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
-              <div class="d-flex align-center gap-2 mb-1">
-                <VTextField v-model="p.name" label="Name" density="compact" variant="outlined" hide-details style="max-width: 120px" />
-                <VTextField v-model="p.command" label="Command" density="compact" variant="outlined" hide-details style="max-width: 120px" />
-                <VTextField v-model="p.description" label="Description" density="compact" variant="outlined" hide-details style="flex: 1" />
-                <VBtn icon size="x-small" variant="text" color="error" @click="agentPrompts.splice(i, 1)"><VIcon icon="bx-trash" size="14" /></VBtn>
-              </div>
-            </div>
+            <div v-if="skillFiles.length === 0" class="text-caption text-medium-emphasis py-2">No skill files. Click "+ Skill" to add one.</div>
           </template>
         </VCardText>
         <VCardActions class="justify-end">
