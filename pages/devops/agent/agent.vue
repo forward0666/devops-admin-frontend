@@ -599,23 +599,6 @@ async function sendChat() {
             </div>
           </div>
           <VDivider />
-        <!-- Command hints -->
-          <div v-if="chatHints[chatAgentType]?.length" class="px-4 pt-2 pb-1">
-            <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end;">
-              <VChip
-                v-for="h in chatHints[chatAgentType]"
-                :key="h.cmd"
-                size="x-small"
-                variant="outlined"
-                color="primary"
-                style="cursor: pointer;"
-                @click="chatInput = h.cmd"
-              >
-                <strong class="me-1">{{ h.cmd }}</strong>
-                <span class="text-medium-emphasis">{{ h.desc }}</span>
-              </VChip>
-            </div>
-          </div>
           <VCardActions class="pa-3">
             <VTextField
               v-model="chatInput"
@@ -629,6 +612,30 @@ async function sendChat() {
             <VBtn color="primary" :loading="chatLoading" :disabled="!chatInput.trim()" @click="sendChat">Send</VBtn>
           </VCardActions>
         </div>
+
+        <!-- Right Sidebar: Prompts -->
+        <div v-if="chatHints[chatAgentType]?.length" style="width: 200px; min-width: 200px; border-left: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
+          <div class="pa-3">
+            <span class="text-body-2 font-weight-medium">Prompts</span>
+          </div>
+          <VDivider />
+          <div style="flex: 1; overflow-y: auto; padding: 8px;">
+            <VChip
+              v-for="h in chatHints[chatAgentType]"
+              :key="h.cmd"
+              size="small"
+              variant="outlined"
+              color="primary"
+              class="mb-2"
+              style="cursor: pointer; width: 100%; justify-content: flex-start;"
+              @click="chatInput = h.cmd"
+            >
+              <strong class="me-1">{{ h.cmd }}</strong>
+              <span class="text-medium-emphasis text-caption">{{ h.desc }}</span>
+            </VChip>
+          </div>
+        </div>
+
       </VCard>
     </VDialog>
 
