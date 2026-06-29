@@ -203,13 +203,13 @@ const chatPlaceholders: Record<string, string> = {
   k8s: 'e.g. pods, logs my-pod, scale deploy 3, nodes',
 }
 
-const chatHints = ref<Record<string, { cmd: string; desc: string; params?: { name: string; label: string; required?: boolean }[] }[]>>({
+const chatHints = ref({
   weather: [
     { cmd: 'Beijing', desc: '当前天气' },
     { cmd: 'Tokyo forecast', desc: '天气预报' },
     { cmd: '上海天气', desc: '中文城市名' },
-  ],
-  cloudflare: [],
+  ] as any[],
+  cloudflare: [] as any[],
   k8s: [
     { cmd: 'pods', desc: '列出 Pod' },
     { cmd: 'deploy', desc: '列出 Deployment' },
