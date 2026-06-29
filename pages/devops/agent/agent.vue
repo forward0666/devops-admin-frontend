@@ -533,8 +533,8 @@ async function sendChat() {
     </VDialog>
 
     <!-- Chat Dialog -->
-    <VDialog v-model="chatDialog" fullscreen :scrim="false" content-class="chat-dialog-full">
-      <VCard style="display: flex; flex-direction: row; height: 100%; margin-left: 260px;">
+    <VDialog v-model="chatDialog" width="1200" height="1200">
+      <VCard style="display: flex; flex-direction: row; width: 1200px; height: 1200px; max-width: 100vw; max-height: 100vh;">
         <!-- Sidebar: Chat History -->
         <div style="width: 260px; min-width: 260px; border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
           <div class="pa-3 d-flex align-center">
@@ -645,11 +645,6 @@ async function sendChat() {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-}
-.chat-dialog-full {
-  margin-left: 260px !important;
-  width: calc(100% - 260px) !important;
-  max-width: calc(100% - 260px) !important;
 }
 .sticky-table :deep(thead) {
   position: sticky;
