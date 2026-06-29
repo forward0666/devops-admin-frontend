@@ -533,10 +533,10 @@ async function sendChat() {
     </VDialog>
 
     <!-- Chat Dialog -->
-    <VDialog v-model="chatDialog" width="900" height="600" :style="{ maxWidth: '900px', maxHeight: '600px' }">
-      <VCard style="display: flex; flex-direction: row; width: 900px; height: 600px; max-width: 100%; max-height: 100%;">
+    <VDialog v-model="chatDialog" fullscreen>
+      <VCard style="display: flex; flex-direction: row; height: 100vh;">
         <!-- Sidebar: Chat History -->
-        <div style="width: 220px; min-width: 220px; border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
+        <div style="width: 260px; min-width: 260px; border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
           <div class="pa-3 d-flex align-center">
             <VIcon icon="bx-history" size="18" class="me-2" />
             <span class="text-body-2 font-weight-medium">History</span>
