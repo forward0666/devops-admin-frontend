@@ -270,6 +270,7 @@ const chatHints = ref({
   cloudflare: [
     { cmd: 'accounts', desc: '查看所有账户' },
     { cmd: 'zones', desc: '查看 Zone 列表' },
+    { cmd: 'bxdjskg.com', desc: '查询 Zone 信息' },
     { cmd: 'dns <zone>', desc: 'DNS 记录' },
     { cmd: 'security <zone>', desc: '安全规则' },
     { cmd: 'cache <zone>', desc: '缓存规则' },
