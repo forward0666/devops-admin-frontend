@@ -317,11 +317,14 @@ async function loadAgentTools(agentId: number, agentType: string) {
   try {
     const { data } = await apiClient.get(`${AGENT_GATEWAY}/agents/${agentId}/tools`)
     const toolsData = data?.data || {}
-    const allHints = [
-      ...(toolsData.tools || []).map((t: any) => ({ cmd: t.command || t.name, desc: t.description, params: t.params || [] })),
-      ...(toolsData.prompts || []).map((p: any) => ({ cmd: p.command || p.name, desc: p.description, params: p.params || [] })),
-    ]
-    chatHints.value[agentType] = allHints
+    // Only update if backend returns tools/prompts (old format), keep static hints otherwise
+    if (toolsData.tools?.length || toolsData.prompts?.length) {
+      const allHints = [
+        ...(toolsData.tools || []).map((t: any) => ({ cmd: t.command || t.name, desc: t.description, params: t.params || [] })),
+        ...(toolsData.prompts || []).map((p: any) => ({ cmd: p.command || p.name, desc: p.description, params: p.params || [] })),
+      ]
+      chatHints.value[agentType] = allHints
+    }
   } catch (e) {
     console.error('Load tools error:', e)
   }
