@@ -271,7 +271,7 @@ const chatHints = ref({
     { cmd: 'accounts', desc: '查看所有账户' },
     { cmd: 'zones', desc: '查看 Zone 列表' },
     { cmd: 'u8 有几个 zone', desc: '按账户查 Zone' },
-    { cmd: 'dns <zone_id>', desc: 'DNS 记录' },
+    { cmd: 'dns <zone_name>', desc: 'DNS 记录' },
     { cmd: 'security <zone_id>', desc: '安全规则' },
     { cmd: 'cache <zone_id>', desc: '缓存规则' },
     { cmd: 'purge <zone_id>', desc: '清理缓存' },
