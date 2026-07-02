@@ -282,6 +282,7 @@ const chatHints = ref({
     ] },
     { cmd: 'stats', desc: '流量统计' },
     { cmd: 'sync rules', desc: '同步规则' },
+    { cmd: 'projects', desc: '项目列表' },
     { cmd: 'groups', desc: '域名分组' },
   ] as any[],
   k8s: [
