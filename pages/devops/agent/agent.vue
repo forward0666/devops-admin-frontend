@@ -762,7 +762,7 @@ async function sendChat() {
         </div>
 
         <!-- Right Sidebar: Prompts -->
-        <div v-if="chatHints[chatAgentType]?.length" style="width: 220px; min-width: 220px; border-left: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
+        <div v-if="chatHints[chatAgentType]?.length" style="width: 270px; min-width: 270px; border-left: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column;">
           <div class="pa-3">
             <span class="text-body-2 font-weight-medium">Prompts</span>
           </div>
