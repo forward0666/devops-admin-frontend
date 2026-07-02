@@ -277,8 +277,8 @@ const chatHints = ref({
     { cmd: 'purge cache', desc: '清缓存', expand: [
       { cmd: 'purge cache <zone> all', desc: 'Zone 清全部缓存' },
       { cmd: 'purge cache <zone> path', desc: 'Zone 清接口缓存' },
-      { cmd: 'purge cache project <project> <type> all', desc: '项目清全部缓存' },
-      { cmd: 'purge cache project <project> <type> path', desc: '项目清接口缓存' },
+      { cmd: 'purge cache project <project> <type> [env] all', desc: '项目清全部缓存' },
+      { cmd: 'purge cache project <project> <type> [env] path', desc: '项目清接口缓存' },
     ] },
     { cmd: 'stats', desc: '流量统计' },
     { cmd: 'sync rules', desc: '同步规则' },
