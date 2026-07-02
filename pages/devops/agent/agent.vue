@@ -274,9 +274,12 @@ const chatHints = ref({
     { cmd: 'dns bxdjskg.com', desc: 'DNS 记录' },
     { cmd: 'security bxdjskg.com', desc: '安全规则' },
     { cmd: 'cache bxdjskg.com', desc: '缓存规则+表达式' },
-    { cmd: 'purge cache bxdjskg.com all', desc: 'Zone 清全部缓存' },
-    { cmd: 'purge cache bxdjskg.com path', desc: 'Zone 清接口缓存' },
-    { cmd: 'purge cache project xxx web all', desc: '项目清全部缓存' },
+    { cmd: 'purge cache', desc: '清缓存', expand: [
+      { cmd: 'purge cache <zone> all', desc: 'Zone 清全部缓存' },
+      { cmd: 'purge cache <zone> path', desc: 'Zone 清接口缓存' },
+      { cmd: 'purge cache project <project> <type> all', desc: '项目清全部缓存' },
+      { cmd: 'purge cache project <project> <type> path', desc: '项目清接口缓存' },
+    ] },
     { cmd: 'stats', desc: '流量统计' },
     { cmd: 'sync rules', desc: '同步规则' },
     { cmd: 'groups', desc: '域名分组' },
@@ -779,8 +782,21 @@ async function sendChat() {
                 <strong class="me-1">{{ h.cmd }}</strong>
                 <span class="text-medium-emphasis text-caption">{{ h.desc }}</span>
               </VChip>
+              <!-- Expanded sub-commands -->
+              <div v-if="expandedPrompt === h.cmd && h.expand?.length" class="mt-1">
+                <div v-for="sub in h.expand" :key="sub.cmd" class="ms-3 mb-1">
+                  <VChip
+                    size="x-small"
+                    variant="text"
+                    style="cursor: pointer; width: 100%; justify-content: flex-start;"
+                    @click="chatInput = sub.cmd"
+                  >
+                    <span class="text-caption">{{ sub.cmd }}</span>
+                  </VChip>
+                </div>
+              </div>
               <!-- Expanded params -->
-              <div v-if="expandedPrompt === h.cmd && h.params?.length" class="mt-2 pa-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
+              <div v-else-if="expandedPrompt === h.cmd && h.params?.length" class="mt-2 pa-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
                 <VTextField
                   v-for="p in h.params"
                   :key="p.name"
