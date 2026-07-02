@@ -63,7 +63,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       const requestUrl = error.config?.url || ''
       // bot / cloudflare 路由的 401 不触发全局登出（使用独立的 Auth 密钥）
-      if (!requestUrl.startsWith('/bot/') && !requestUrl.startsWith('/cloudflare/') && !requestUrl.startsWith('/domain/') && !requestUrl.startsWith('/agent/') && !requestUrl.startsWith('/monitor/')) {
+      if (!requestUrl.startsWith('/bot/') && !requestUrl.startsWith('/cloudflare/') && !requestUrl.startsWith('/domain/') && !requestUrl.startsWith('/agent/') && !requestUrl.startsWith('/monitor/') && !requestUrl.startsWith('/user/')) {
         localStorage.removeItem('auth_token')
         localStorage.removeItem('auth_user')
         localStorage.removeItem('auth')
