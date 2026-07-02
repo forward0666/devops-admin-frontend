@@ -342,8 +342,8 @@ function togglePrompt(h: any) {
   } else {
     expandedPrompt.value = h.cmd
     promptParams.value = {}
-    if (!h.params?.length) {
-      // No params, fill directly
+    if (!h.params?.length && !h.expand?.length) {
+      // No params or expand, fill directly
       chatInput.value = h.cmd
       expandedPrompt.value = null
     }
