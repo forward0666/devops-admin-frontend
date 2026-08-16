@@ -1,0 +1,284 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const loading = ref(true)
+const status = ref<any>(null)
+const deletions = ref<any[]>([])
+const autoRefresh = ref(false)
+const callbackRequests = computed(() => {
+  if (!status.value?.activeRequests?.requests) return []
+  return status.value.activeRequests.requests.filter((r: string) => r.includes('POST') && r.includes('callback'))
+})
+let timer: ReturnType<typeof setInterval> | null = null
+
+async function fetchStatus() {
+  try {
+    const { telegramBotService } = await import('~/services/api')
+    const [statusRes, deletionsRes] = await Promise.all([
+      telegramBotService.getServiceStatus(),
+      telegramBotService.getPendingDeletions()
+    ])
+    status.value = statusRes
+    deletions.value = deletionsRes
+  } catch (e: any) {
+    console.error('Failed to fetch service status', e)
+    status.value = { error: e.message || 'API unavailable' }
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleClearRequests() {
+  try {
+    const { telegramBotService } = await import('~/services/api')
+    await telegramBotService.clearActiveRequests()
+    await fetchStatus()
+  } catch (e: any) {
+    console.error('Failed to clear requests', e)
+  }
+}
+
+function startAutoRefresh() {
+  if (autoRefresh.value) {
+    timer = setInterval(fetchStatus, 3000)
+  } else if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+}
+
+function toggleAutoRefresh() {
+  autoRefresh.value = !autoRefresh.value
+  startAutoRefresh()
+}
+
+function formatMs(ms: number) {
+  return ms < 100 ? `${ms}ms` : ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
+}
+
+onMounted(() => {
+  fetchStatus()
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
+</script>
+
+<template>
+  <div>
+    <div class="d-flex justify-space-between align-center mb-4">
+      <div>
+        <h4 class="text-h4 mb-1">Service Status</h4>
+        <p class="text-body-2 text-medium-emphasis mb-0">Monitor bot service health and pending tasks</p>
+      </div>
+      <div class="d-flex gap-2">
+        <VBtn
+          size="small"
+          variant="tonal"
+          @click="autoRefresh = !autoRefresh; startAutoRefresh()"
+        >
+          <VIcon start size="16">{{ autoRefresh ? 'bx-pause' : 'bx-refresh' }}</VIcon>
+          {{ autoRefresh ? 'Pause' : 'Auto (3s)' }}
+        </VBtn>
+        <VBtn size="small" variant="tonal" @click="fetchStatus">
+          <VIcon start size="16">bx-reload</VIcon>
+          Refresh
+        </VBtn>
+      </div>
+    </div>
+
+    <VAlert v-if="loading && !status" type="info" variant="tonal" class="mb-4">
+      Loading...
+    </VAlert>
+
+    <VAlert v-if="status?.error" type="error" variant="tonal" class="mb-4">
+      ❌ Failed to connect: {{ status.error }}
+    </VAlert>
+
+    <template v-if="status">
+      <!-- Active Requests -->
+      <VCard class="mb-4">
+        <VCardTitle class="d-flex align-center">
+          <VIcon start :color="(status.activeRequests?.count || 0) > 0 ? 'error' : 'success'">bx-transfer-alt</VIcon>
+          Active Requests
+          <VSpacer />
+          <VBtn v-if="callbackRequests.length > 0" size="x-small" variant="tonal" color="error" @click="handleClearRequests">
+            Clear
+          </VBtn>
+          <VChip :color="callbackRequests.length > 0 ? 'error' : 'success'" size="small" label>
+            {{ callbackRequests.length }}
+          </VChip>
+        </VCardTitle>
+        <VCardText v-if="(status.activeRequests?.count || 0) > 0">
+          <VAlert type="error" variant="tonal" class="mb-3" density="compact">
+            ⚠️ {{ callbackRequests.length }} stuck webhook request(s)
+          </VAlert>
+          <div v-for="(req, idx) in callbackRequests" :key="idx" class="text-body-2 mb-1 font-monospace" style="color: rgb(var(--v-theme-error))">
+            {{ req }}
+          </div>
+        </VCardText>
+        <VCardText v-else class="text-medium-emphasis">
+          ✅ No active requests
+        </VCardText>
+      </VCard>
+
+      <!-- Redis -->
+      <VCard class="mb-4">
+        <VCardTitle class="d-flex align-center">
+          <VIcon start color="error">bx-data</VIcon>
+          Redis
+          <VSpacer />
+          <VChip :color="status.redis?.status === 'UP' ? 'success' : 'error'" size="small" label>
+            {{ status.redis?.status }}
+          </VChip>
+        </VCardTitle>
+        <VCardText>
+          <div class="d-flex gap-6">
+            <div>
+              <div class="text-caption text-medium-emphasis">Ping Latency</div>
+              <div class="text-h6">{{ formatMs(status.redis?.pingMs || 0) }}</div>
+            </div>
+          </div>
+        </VCardText>
+      </VCard>
+
+      <!-- Pending Deletions -->
+      <VCard class="mb-4">
+        <VCardTitle class="d-flex align-center">
+          <VIcon start color="warning">bx-time-five</VIcon>
+          Pending Deletions
+          <VSpacer />
+          <VChip :color="(status.pendingDeletions?.expired || 0) > 0 ? 'error' : 'success'" size="small" label>
+            {{ status.pendingDeletions?.expired || 0 }} expired
+          </VChip>
+        </VCardTitle>
+        <VCardText>
+          <div class="d-flex gap-6">
+            <div>
+              <div class="text-caption text-medium-emphasis">Total in Queue</div>
+              <div class="text-h6">{{ status.pendingDeletions?.total || 0 }}</div>
+            </div>
+            <div>
+              <div class="text-caption text-medium-emphasis">Expired (waiting for scan)</div>
+              <div class="text-h6" :class="{ 'text-error': (status.pendingDeletions?.expired || 0) > 0 }">
+                {{ status.pendingDeletions?.expired || 0 }}
+              </div>
+            </div>
+            <div>
+              <div class="text-caption text-medium-emphasis">Pending (not yet expired)</div>
+              <div class="text-h6">{{ status.pendingDeletions?.pending || 0 }}</div>
+            </div>
+          </div>
+        </VCardText>
+      </VCard>
+
+      <!-- Deletion List -->
+      <VCard class="mb-4" v-if="deletions.length > 0">
+        <VCardTitle class="d-flex align-center">
+          <VIcon start>bx-list-check</VIcon>
+          Deletion Queue Detail
+        </VCardTitle>
+        <VTable density="compact" class="sticky-table" style="flex: 1; min-height: 0;">
+          <thead>
+            <tr>
+              <th>Chat ID</th>
+              <th>Message ID</th>
+              <th>User ID</th>
+              <th>Status</th>
+              <th>Remaining</th>
+              <th>Scheduled At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, idx) in deletions" :key="idx" :class="{ 'text-error': item.expired }">
+              <td>{{ item.chatId }}</td>
+              <td>{{ item.messageId }}</td>
+              <td>{{ item.userId }}</td>
+              <td>
+                <VChip :color="item.expired ? 'error' : 'warning'" size="x-small" label>
+                  {{ item.expired ? 'EXPIRED' : 'WAITING' }}
+                </VChip>
+              </td>
+              <td>{{ item.remainingSeconds }}s</td>
+              <td class="text-caption">{{ new Date(item.expireAt).toLocaleTimeString() }}</td>
+            </tr>
+          </tbody>
+        </VTable>
+      </VCard>
+
+      <!-- JVM -->
+      <VCard class="mb-4">
+        <VCardTitle class="d-flex align-center">
+          <VIcon start color="info">bx-chip</VIcon>
+          JVM
+          <VSpacer />
+          <VChip size="small" label>{{ status.jvm?.uptime }}</VChip>
+        </VCardTitle>
+        <VCardText>
+          <div class="d-flex gap-6 flex-wrap">
+            <div>
+              <div class="text-caption text-medium-emphasis">Heap Used / Max</div>
+              <div class="text-h6">{{ status.jvm?.heapUsed }} / {{ status.jvm?.heapMax }}</div>
+            </div>
+            <div>
+              <div class="text-caption text-medium-emphasis">Total Memory</div>
+              <div class="text-h6">{{ status.jvm?.totalMemory }}</div>
+            </div>
+            <div>
+              <div class="text-caption text-medium-emphasis">Free Memory</div>
+              <div class="text-h6">{{ status.jvm?.freeMemory }}</div>
+            </div>
+            <div>
+              <div class="text-caption text-medium-emphasis">Processors</div>
+              <div class="text-h6">{{ status.jvm?.processors }}</div>
+            </div>
+          </div>
+        </VCardText>
+      </VCard>
+
+      <!-- Threads -->
+      <VCard class="mb-4">
+        <VCardTitle class="d-flex align-center">
+          <VIcon start color="secondary">bx-loader-alt</VIcon>
+          Threads
+        </VCardTitle>
+        <VCardText>
+          <div class="d-flex gap-6">
+            <div>
+              <div class="text-caption text-medium-emphasis">Current</div>
+              <div class="text-h6">{{ status.threads?.current }}</div>
+            </div>
+            <div>
+              <div class="text-caption text-medium-emphasis">Peak</div>
+              <div class="text-h6">{{ status.threads?.peak }}</div>
+            </div>
+            <div>
+              <div class="text-caption text-medium-emphasis">Daemon</div>
+              <div class="text-h6">{{ status.threads?.daemon }}</div>
+            </div>
+          </div>
+        </VCardText>
+      </VCard>
+    </template>
+  </div>
+</template>
+
+<style scoped>
+.sticky-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.sticky-table :deep(.v-table__wrapper) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sticky-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(var(--v-theme-surface));
+}
+</style>

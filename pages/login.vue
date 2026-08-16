@@ -1,0 +1,265 @@
+<script setup lang="ts">
+import logo from '@images/logo.svg?raw'
+import authV1BottomShape from '@images/svg/auth-v1-bottom-shape.svg?url'
+import authV1TopShape from '@images/svg/auth-v1-top-shape.svg?url'
+
+const authStore = useAuthStore()
+const { authService } = await import('~/services/api')
+
+const form = ref({
+  username: '',
+  password: '',
+  verificationCode: '',
+  remember: false,
+})
+
+const isPasswordVisible = ref(false)
+const loading = ref(false)
+const errorMsg = ref('')
+const captchaImage = ref('')
+const captchaKey = ref('')
+const captchaLoading = ref(false)
+
+definePageMeta({ layout: 'blank' })
+
+// 获取验证码
+async function fetchCaptcha() {
+  captchaLoading.value = true
+  try {
+    const res = await authService.getVerificationCode()
+    captchaKey.value = res.codeId
+    // 后端 imageBase64 可能已含 data:image 前缀，也可能没有
+    captchaImage.value = res.imageBase64?.startsWith('data:')
+      ? res.imageBase64
+      : res.imageBase64
+        ? `data:image/png;base64,${res.imageBase64}`
+        : ''
+  }
+  catch (e: any) {
+    console.error('获取验证码失败:', e)
+    captchaImage.value = ''
+    captchaKey.value = ''
+  }
+  finally {
+    captchaLoading.value = false
+  }
+}
+
+const handleLogin = async () => {
+  loading.value = true
+  errorMsg.value = ''
+
+  try {
+    const success = await authStore.login(
+      form.value.username,
+      form.value.password,
+      form.value.verificationCode,
+      captchaKey.value,
+    )
+
+    if (success) {
+      navigateTo(authStore.homeRoute)
+    }
+    else {
+      errorMsg.value = 'Invalid username or password'
+    }
+  }
+  catch (e: any) {
+    const msg = e.message || ''
+    if (msg.includes('locked') || msg.includes('Locked')) {
+      errorMsg.value = '账号已被锁定，请稍后再试'
+    } else if (msg.includes('verification') || msg.includes('Verification')) {
+      errorMsg.value = '验证码错误'
+    } else if (msg.includes('Invalid username') || msg.includes('password') || msg.includes('密码') || msg.includes('账号')) {
+      errorMsg.value = '账号或密码错误'
+    } else {
+      errorMsg.value = msg || '登录失败，请稍后重试'
+    }
+  }
+  finally {
+    loading.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="auth-wrapper d-flex align-center justify-center pa-4">
+    <div class="position-relative my-sm-16">
+      <!-- 👉 Top shape -->
+      <VImg
+        :src="authV1TopShape"
+        class="text-primary auth-v1-top-shape d-none d-sm-block"
+      />
+
+      <!-- 👉 Bottom shape -->
+      <VImg
+        :src="authV1BottomShape"
+        class="text-primary auth-v1-bottom-shape d-none d-sm-block"
+      />
+
+      <!-- 👉 Auth Card -->
+      <VCard
+        class="auth-card"
+        max-width="460"
+        :class="$vuetify.display.smAndUp ? 'pa-6' : 'pa-0'"
+      >
+        <VCardItem class="justify-center">
+          <NuxtLink
+            to="/"
+            class="app-logo"
+          >
+            <div
+              class="d-flex"
+              v-html="logo"
+            />
+          </NuxtLink>
+        </VCardItem>
+
+        <VCardText>
+          <h4 class="text-h4 mb-1">
+            Welcome to JH DevOps! 👋🏻
+          </h4>
+          <p class="mb-0">
+            Please sign-in to your account and start the adventure
+          </p>
+        </VCardText>
+
+        <VCardText>
+          <!-- Error message -->
+          <VAlert
+            v-if="errorMsg"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+          >
+            {{ errorMsg }}
+          </VAlert>
+
+          <VForm @submit.prevent="handleLogin">
+            <VRow>
+              <!-- username -->
+              <VCol cols="12">
+                <VTextField
+                  v-model="form.username"
+                  autofocus
+                  label="Username"
+                  placeholder="admin"
+                />
+              </VCol>
+
+              <!-- password -->
+              <VCol cols="12">
+                <VTextField
+                  v-model="form.password"
+                  label="Password"
+                  placeholder="············"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  autocomplete="password"
+                  :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                />
+              </VCol>
+
+              <!-- verification code -->
+              <VCol cols="12">
+                <div class="d-flex align-center gap-3">
+                  <VTextField
+                    v-model="form.verificationCode"
+                    label="Verification Code"
+                    placeholder="Enter code"
+                    class="flex-grow-1"
+                  />
+                  <!-- 验证码图片 + 刷新 -->
+                  <VBtn
+                    v-if="captchaImage"
+                    variant="tonal"
+                    size="large"
+                    :loading="captchaLoading"
+                    class="flex-shrink-0"
+                    @click="fetchCaptcha"
+                  >
+                    <div class="d-flex align-center gap-1">
+                      <VImg
+                        :src="captchaImage"
+                        width="120"
+                        height="40"
+                        contain
+                      />
+                      <VIcon
+                        size="18"
+                        color="grey"
+                        icon="bx-refresh"
+                      />
+                    </div>
+                  </VBtn>
+                  <!-- 未获取时显示 Get Code -->
+                  <VBtn
+                    v-else
+                    variant="tonal"
+                    size="large"
+                    :loading="captchaLoading"
+                    class="flex-shrink-0 text-no-wrap"
+                    @click="fetchCaptcha"
+                  >
+                    Get Code
+                  </VBtn>
+                </div>
+              </VCol>
+
+              <!-- remember me checkbox -->
+              <VCol cols="12">
+                <div class="d-flex align-center justify-space-between flex-wrap my-2">
+                  <VCheckbox
+                    v-model="form.remember"
+                    label="Remember me"
+                  />
+
+                  <a
+                    class="text-primary"
+                    href="javascript:void(0)"
+                  >
+                    Forgot Password?
+                  </a>
+                </div>
+              </VCol>
+
+              <!-- login button -->
+              <VCol cols="12">
+                <VBtn
+                  block
+                  type="submit"
+                  :loading="loading"
+                  :disabled="!form.verificationCode"
+                >
+                  Login
+                </VBtn>
+              </VCol>
+
+              <!-- create account -->
+              <VCol
+                cols="12"
+                class="d-flex align-center"
+              >
+                <VDivider />
+                <span class="mx-4 text-high-emphasis">or</span>
+                <VDivider />
+              </VCol>
+
+              <!-- auth providers -->
+              <VCol
+                cols="12"
+                class="text-center"
+              >
+                <!-- Social login placeholder -->
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardText>
+      </VCard>
+    </div>
+  </div>
+</template>
+
+<style lang="scss">
+@use "@core/scss/template/pages/page-auth";
+</style>
