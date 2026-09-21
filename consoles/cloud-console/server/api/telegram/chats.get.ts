@@ -1,0 +1,13 @@
+import { tgChats } from '../../data/telegram'
+
+export default defineEventHandler((event) => {
+  const query = getQuery(event)
+  const page = Number(query.page) || 1
+  const pageSize = Number(query.pageSize) || 10
+
+  const total = tgChats.length
+  const start = (page - 1) * pageSize
+  const items = tgChats.slice(start, start + pageSize)
+
+  return { items, total, page, pageSize }
+})
